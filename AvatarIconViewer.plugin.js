@@ -3,8 +3,8 @@
 class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
-    getDescription() { return "Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally. REQUIRES DARK THEME!"; }
-    getVersion() { return "0.0.1"; }
+    getDescription() { return "Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally. REQUIRES DARK THEME! If you need any help or have any suggestions, feel free to message me, Metalloriff#2891."; }
+    getVersion() { return "0.1.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -22,13 +22,13 @@ class AvatarIconViewer {
 		else libraryScript.addEventListener("load", () => { this.initialize(); });
 	}
 	
-	initialize(){
+	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/AvatarIconViewer.plugin.js");
 		AvatarIconViewer.clickedTooSoon = false;
 		document.addEventListener("contextmenu", this.onContextMenu, false);
 	}
 	
-	onContextMenu(){
+	onContextMenu() {
 		if(AvatarIconViewer.clickedTooSoon == false){
 			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = document.getElementsByClassName("contextMenu-uoJTbz theme-dark")[0];
 			if(context){
@@ -50,23 +50,38 @@ class AvatarIconViewer {
 		}
 	}
 	
-	static createImagePreview(){		
+	static createImagePreview() {
 		if(document.getElementById("avatar-img-preview") == null){
-			var context = document.getElementsByClassName("contextMenu-uoJTbz theme-dark")[0];
-			if(context != null)
-				context.innerHTML = "";
+			document.addEventListener("keyup", AvatarIconViewer.onEscape, false);
+			AvatarIconViewer.closeContextMenu();
 			var p = document.getElementsByClassName("theme-dark")[document.getElementsByClassName("theme-dark").length - 1];
 			p.insertAdjacentHTML("beforeend", "<center><div class=\"item-1XYaYf\" id=\"avatar-img-preview\" onclick=\"AvatarIconViewer.destroyPreview();\" width=\"100\" height=\"30\">Close</div></center>");
+			p.insertAdjacentHTML("beforeend", "<center><div class=\"item-1XYaYf\" id=\"avatar-img-preview\" onclick=\"AvatarIconViewer.copyURL();\" width=\"100\" height=\"30\">Copy URL</div></center>");
 			p.insertAdjacentHTML("beforeend", "<center><div class=\"item-1XYaYf\" id=\"avatar-img-preview\" onclick=\"AvatarIconViewer.openURL();\" width=\"200\" height=\"30\">Open Externally</div></center>");
-			p.insertAdjacentHTML("afterbegin", "<center><img src=\"" + AvatarIconViewer.url + "\" width=\"" + (window.innerHeight - 60) + "\" height=\"" + (window.innerHeight - 60) + "\" id=\"avatar-img-preview\" onclick=\"AvatarIconViewer.destroyPreview();\"></center>");
+			p.insertAdjacentHTML("afterbegin", "<center><img src=\"" + AvatarIconViewer.url + "\" width=\"" + (window.innerHeight - 90) + "\" height=\"" + (window.innerHeight - 90) + "\" id=\"avatar-img-preview\" onclick=\"AvatarIconViewer.destroyPreview();\"></center>");
 		}
 	}
 	
-	static destroyPreview(){
-		document.getElementsByClassName("theme-dark")[document.getElementsByClassName("theme-dark").length - 1].innerHTML = "";
+	static onEscape(e){
+		if(e.keyCode == 27)
+			AvatarIconViewer.destroyPreview();
 	}
 	
-	static copyURL(){
+	static destroyPreview() {
+		document.getElementsByClassName("theme-dark")[document.getElementsByClassName("theme-dark").length - 1].innerHTML = "";
+		document.removeEventListener("keyup", AvatarIconViewer.onEscape);
+	}
+	
+	static closeContextMenu(){
+		var context = document.getElementsByClassName("contextMenu-uoJTbz theme-dark")[0];
+		if(context != null){
+			context.innerHTML = "";
+			context.className = "";
+		}
+	}
+	
+	static copyURL() {
+		AvatarIconViewer.closeContextMenu();
 		document.body.insertAdjacentHTML("beforeend", "<textarea class=\"temp-clipboard-data\" width=\"0\">" + AvatarIconViewer.url + "</textarea>");
 		var qs = document.querySelector(".temp-clipboard-data");
 		qs.select();
@@ -78,15 +93,16 @@ class AvatarIconViewer {
 			PluginUtilities.showToast("Failed to copy URL!");
 	}
 	
-	static openURL(){
+	static openURL() {
 		window.open(AvatarIconViewer.url);
 	}
 	
     stop() {
 		document.removeEventListener("contextmenu", this.onContextMenu);
+		document.removeEventListener("keyup", AvatarIconViewer.onEscape);
 	}
 	
-	static getBetween(str, first, last){
+	static getBetween(str, first, last) {
 		return str.substring(str.lastIndexOf(first) + first.length, str.lastIndexOf(last));
 	}
 	

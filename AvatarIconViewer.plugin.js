@@ -23,7 +23,7 @@ class AvatarIconViewer {
 	}
 	
 	initialize(){
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://dl.dropbox.com/s/d4cednehljcjndl/AvatarIconViewer.plugin.js");
+		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/AvatarIconViewer.plugin.js");
 		AvatarIconViewer.clickedTooSoon = false;
 		document.addEventListener("contextmenu", this.onContextMenu, false);
 	}

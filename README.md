@@ -7,9 +7,5 @@
 ## [AvatarIconViewer](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js)
 - Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally. **REQUIRES DARK THEME!**
 
-## [HideBlockedMessages](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/HideBlockedMessages.plugin.js)
-- Very simple plugin that removes annoying blocked messages from the chat.
-- If you're too lazy to use custom CSS.
-
 ## [IdleGuildlistScroller](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/IdleGuildlistScroller.plugin.js)
 - Automatically scrolls to the top of the guilds list after the specified amount of time that your mouse isn't over it.

@@ -2,7 +2,7 @@
 
 class VCMuteSounds {
 	
-    getName() { return "Voice Call Mute Sounds"; }
+    getName() { return "Voice Chat Mute Sounds"; }
     getDescription() { return "Enables the mute and unmute sound for all users in a voice call when the server/group is selected."; }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Metalloriff"; }

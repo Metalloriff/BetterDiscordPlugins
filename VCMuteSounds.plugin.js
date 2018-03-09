@@ -4,7 +4,7 @@ class VCMuteSounds {
 	
     getName() { return "Voice Chat Mute Sounds"; }
     getDescription() { return "Enables the mute and unmute sound for all users in a voice call when the server/group is selected."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -75,12 +75,17 @@ class VCMuteSounds {
 	}
 	
 	static check(){
-		var muteCount = document.getElementsByClassName("iconSpacing-1WJZFe").length + document.getElementsByClassName("callAvatarStatus-2ybelh").length;
-		if(VCMuteSounds.switched == false){
-			if(muteCount > VCMuteSounds.lastMuteCount)
-				VCMuteSounds.muteSound.play();
-			if(muteCount < VCMuteSounds.lastMuteCount)
-				VCMuteSounds.unmuteSound.play();
+		var selectedVoiceChannel = document.getElementsByClassName("wrapperSelectedVoice-1Q1ocJ wrapper-fDmxzK")[0], dmMuteCount = document.getElementsByClassName("callAvatarStatus-2ybelh").length;
+		if(selectedVoiceChannel != null || dmMuteCount > 0){
+			var muteCount = dmMuteCount;
+			if(selectedVoiceChannel != null)
+				muteCount = selectedVoiceChannel.parentElement.getElementsByClassName("iconSpacing-1WJZFe").length;
+			if(VCMuteSounds.switched == false){
+				if(muteCount > VCMuteSounds.lastMuteCount)
+					VCMuteSounds.muteSound.play();
+				if(muteCount < VCMuteSounds.lastMuteCount)
+					VCMuteSounds.unmuteSound.play();
+			}
 		}
 		VCMuteSounds.lastMuteCount = muteCount;
 		VCMuteSounds.switched = false;

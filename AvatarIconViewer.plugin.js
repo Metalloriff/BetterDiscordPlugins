@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally. REQUIRES DARK THEME! If you need any help or have any suggestions, feel free to message me, Metalloriff#2891."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.1.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -30,19 +30,26 @@ class AvatarIconViewer {
 	
 	onContextMenu() {
 		if(AvatarIconViewer.clickedTooSoon == false){
-			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = document.getElementsByClassName("contextMenu-uoJTbz theme-dark")[0];
+			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = document.getElementsByClassName("contextMenu-uoJTbz theme-dark")[0],
+				messageGroup = elementMouseIsOver.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement, userData = null;
 			if(context){
+				if(messageGroup != null){
+					var messages = messageGroup[Object.keys(messageGroup).find((key) => key.startsWith('__reactInternalInstance'))].return.memoizedProps.messages;
+					if(messages != null && messages.length > 0)
+						userData = messages[0].author;
+				}
 				if(elementMouseIsOver.parentNode.outerHTML.includes("guild-inner")){
 					AvatarIconViewer.url = AvatarIconViewer.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)").replace(".webp", ".png") + "?size=2048";
 					context.firstChild.insertAdjacentHTML("beforeend", "<div class=\"item-1XYaYf\" onclick=\"AvatarIconViewer.createImagePreview();\"><span>View Icon</span><div class=\"hint-3TJykr\"></div></div>");
 					context.firstChild.insertAdjacentHTML("beforeend", "<div class=\"item-1XYaYf\" onclick=\"AvatarIconViewer.copyURL();\"><span>Copy Icon URL</span><div class=\"hint-3TJykr\"></div></div>");
-				}
-				if(elementMouseIsOver.outerHTML.includes("avatar")){
-					AvatarIconViewer.url = AvatarIconViewer.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)");
+				}else if(elementMouseIsOver.outerHTML.includes("avatar") || (userData != null && !elementMouseIsOver.parentElement.outerHTML.includes("markup"))){
+					if(elementMouseIsOver.outerHTML.includes("avatar"))
+						AvatarIconViewer.url = AvatarIconViewer.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)");
+					else
+						AvatarIconViewer.url = userData.getAvatarURL();
 					if(AvatarIconViewer.url.includes("?"))
 						AvatarIconViewer.url = AvatarIconViewer.url.substr(0, AvatarIconViewer.url.indexOf("?"));
 					AvatarIconViewer.url += "?size=2048";
-					console.log(AvatarIconViewer.url);
 					context.firstChild.insertAdjacentHTML("beforeend", "<div class=\"item-1XYaYf\" onclick=\"AvatarIconViewer.createImagePreview();\"><span>View Avatar</span><div class=\"hint-3TJykr\"></div></div>");
 					context.firstChild.insertAdjacentHTML("beforeend", "<div class=\"item-1XYaYf\" onclick=\"AvatarIconViewer.copyURL();\"><span>Copy Avatar URL</span><div class=\"hint-3TJykr\"></div></div>");
 				}

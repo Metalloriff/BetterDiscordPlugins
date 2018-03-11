@@ -4,7 +4,7 @@ class DiscordLogger {
 	
     getName() { return "Discord Logger"; }
     getDescription() { return "Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -61,7 +61,11 @@ class DiscordLogger {
 	}
 	
 	getSettingsPanel(){
-		return "Force Refresh Delay (seconds):<br><input id='dl-refreshDelay' type='number' min='10' max='500' value='" + DiscordLogger.refreshDelay + "'><br><br><button onclick='DiscordLogger.resetSettings();'>Reset Settings</button><br><br><button onclick='DiscordLogger.saveSettings(true);'>Save & Update</button>"
+		var changeLog =
+		`<br><br>0.0.2:<br>
+		 Fixed the plugin randomly thinking you left every server.<br>
+		 Fixed the plugin thinking you left a server when the server name changed.`;
+		return "Force Refresh Delay (seconds):<br><input id='dl-refreshDelay' type='number' min='10' max='500' value='" + DiscordLogger.refreshDelay + "'><br><br><button onclick='DiscordLogger.resetSettings();'>Reset Settings</button><br><br><button onclick='DiscordLogger.saveSettings(true);'>Save & Update</button><br><br><br><b>Changelog</b>" + changeLog;
 	}
 	
 	static resetSettings(){
@@ -84,7 +88,7 @@ class DiscordLogger {
 	}
 	
 	static readServerList(){
-		return Array.from(BDfunctionsDevilBro.readServerList(), x => [x.name, x.icon == null ? "null" : "https://cdn.discordapp.com/icons/" + x.id + "/" + x.icon + ".png"]);
+		return Array.from(BDfunctionsDevilBro.readServerList(), x => [x.id, x.name, x.icon == null ? "null" : "https://cdn.discordapp.com/icons/" + x.id + "/" + x.icon + ".png"]);
 	}
 	
 	static readFriendsList(){
@@ -97,7 +101,7 @@ class DiscordLogger {
 			DiscordLogger.lastServerLength = DiscordLogger.guildsScroller.childElementCount;
 		}
 		if(DiscordLogger.lastServerLength != DiscordLogger.guildsScroller.childElementCount)
-			DiscordLogger.update("force");
+			DiscordLogger.update("normal");
 		DiscordLogger.lastServerLength = DiscordLogger.guildsScroller.childElementCount;
 		DiscordLogger.changeWatcherLoop = setTimeout(DiscordLogger.watchForChanges, 500);
 	}
@@ -110,36 +114,41 @@ class DiscordLogger {
 		}
 		try{
 			var newServerList = DiscordLogger.readServerList(), newFriendsList = DiscordLogger.readFriendsList();
-			for(var i = 0; i < DiscordLogger.serverList.length; i++){
-				var server = DiscordLogger.serverList[i];
-				var nsl = Array.from(newServerList, x => x[0]);
-				if(!nsl.includes(server[0]) || (i == 0 && window.event && window.event.altKey)){
-					DiscordLogger.log.push(server[0] + " was removed from the server list.");
-					document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", DiscordLogger.serverAlert);
-					document.getElementById("dl-servernamelabel").textContent = server[0];
-					if(server[1] != "null")
-						document.getElementById("dl-servericon").src = server[1];
+			if(newServerList.length > 0 && newFriendsList.length > 0){
+				for(var i = 0; i < DiscordLogger.serverList.length; i++){
+					var server = DiscordLogger.serverList[i];
+					if(server[1] != server[2]){
+						if(!newServerList[i][0].includes(server[0])){
+							DiscordLogger.log.push(server[1] + " was removed from the server list.");
+							document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", DiscordLogger.serverAlert);
+							document.getElementById("dl-servernamelabel").textContent = server[1];
+							if(server[2] != "null")
+								document.getElementById("dl-servericon").src = server[2];
+						}
+					}
 				}
-			}
-			for(var i = 0; i < DiscordLogger.friendsList.length; i++){
-				var user = DiscordLogger.friendsList[i];
-				if(!newFriendsList.includes(user)){
-					var userInfo = DiscordLogger.userFunctions.getUser(user.toString());
-					if(userInfo != null){
-						DiscordLogger.log.push(userInfo.tag + " was removed from the friends list.");
-						document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", DiscordLogger.serverAlert);
-						document.getElementById("dl-servernamelabel").textContent = userInfo.username + " (#" + userInfo.discriminator + ")";
-						document.getElementById("dl-servericon").src = userInfo.getAvatarURL();
-						document.getElementById("dl-servermessagelabel").textContent = "This user was removed from your friends list.";
-					}else{
-						console.log("Failed to resolve user with id " + user + ".");
+				for(var i = 0; i < DiscordLogger.friendsList.length; i++){
+					var user = DiscordLogger.friendsList[i];
+					if(!newFriendsList.includes(user)){
+						var userInfo = DiscordLogger.userFunctions.getUser(user.toString());
+						if(userInfo != null){
+							DiscordLogger.log.push(userInfo.tag + " was removed from the friends list.");
+							document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", DiscordLogger.serverAlert);
+							document.getElementById("dl-servernamelabel").textContent = userInfo.username + " (#" + userInfo.discriminator + ")";
+							document.getElementById("dl-servericon").src = userInfo.getAvatarURL();
+							document.getElementById("dl-servermessagelabel").textContent = "This user was removed from your friends list.";
+						}else{
+							console.log("Failed to resolve user with id " + user + ".");
+						}
 					}
 				}
 			}
 			DiscordLogger.serverList = newServerList;
 			DiscordLogger.friendsList = newFriendsList;
 			DiscordLogger.saveSettings(false);
-		}finally{}
+		}catch(e){
+			console.log("[DiscordLogger]: " + e);
+		}
 		if(type == "loop")
 			DiscordLogger.updateLoop = setTimeout(DiscordLogger.update, DiscordLogger.refreshDelay * 1000, "loop");
 	}

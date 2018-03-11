@@ -4,7 +4,7 @@ class DiscordLogger {
 	
     getName() { return "Discord Logger"; }
     getDescription() { return "Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -39,7 +39,7 @@ class DiscordLogger {
 	
 	waitToInitialize(){
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/DiscordLogger.plugin.js");
-		if(document.getElementsByClassName("guilds scroller") == 0)
+		if(document.getElementsByClassName("guilds scroller").length == 0)
 			DiscordLogger.initLoop = setTimeout(this.waitToInitialize, 1000);
 		else
 			DiscordLogger.initLoop = setTimeout(this.initialize, 5000);
@@ -64,7 +64,9 @@ class DiscordLogger {
 		var changeLog =
 		`<br><br>0.0.2:<br>
 		 Fixed the plugin randomly thinking you left every server.<br>
-		 Fixed the plugin thinking you left a server when the server name changed.`;
+		 Fixed the plugin thinking you left a server when the server name changed.<br>
+		 <br>0.0.3:<br>
+		 I kind of accidentally broke the plugin entirely in the last update, so I fixed that.<br>`;
 		return "Force Refresh Delay (seconds):<br><input id='dl-refreshDelay' type='number' min='10' max='500' value='" + DiscordLogger.refreshDelay + "'><br><br><button onclick='DiscordLogger.resetSettings();'>Reset Settings</button><br><br><button onclick='DiscordLogger.saveSettings(true);'>Save & Update</button><br><br><br><b>Changelog</b>" + changeLog;
 	}
 	
@@ -115,10 +117,11 @@ class DiscordLogger {
 		try{
 			var newServerList = DiscordLogger.readServerList(), newFriendsList = DiscordLogger.readFriendsList();
 			if(newServerList.length > 0 && newFriendsList.length > 0){
+				var newServerIDs = Array.from(newServerList, x => x[0]);
 				for(var i = 0; i < DiscordLogger.serverList.length; i++){
 					var server = DiscordLogger.serverList[i];
 					if(server[1] != server[2]){
-						if(!newServerList[i][0].includes(server[0])){
+						if(!newServerIDs.includes(server[0])){
 							DiscordLogger.log.push(server[1] + " was removed from the server list.");
 							document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", DiscordLogger.serverAlert);
 							document.getElementById("dl-servernamelabel").textContent = server[1];

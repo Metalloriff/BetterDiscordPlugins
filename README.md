@@ -13,5 +13,7 @@
 ## [Voice Chat Mute Sounds](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VCMuteSounds.plugin.js)
 - Enables the mute and unmute sound for all users in a voice call when the server/group is selected.
 
-## [Discord Logger[(https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DiscordLogger.plugin.js)
+## [Discord Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DiscordLogger.plugin.js)
 - Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you.
+- [Screenshot #1](https://i.imgur.com/wVt6zOB.jpg)
+- [Screenshot #2](https://i.imgur.com/f5b80tn.png)

@@ -17,3 +17,5 @@
 - Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you.
 - [Screenshot #1](https://i.imgur.com/wVt6zOB.jpg)
 - [Screenshot #2](https://i.imgur.com/f5b80tn.png)
+- [Screenshot #3](https://i.imgur.com/fLyTYZh.png)
+- [Screenshot #4](https://i.imgur.com/zxkjGMQ.png)

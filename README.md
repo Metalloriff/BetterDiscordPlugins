@@ -20,7 +20,7 @@
 - [Screenshot #3](https://i.imgur.com/fLyTYZh.png)
 - [Screenshot #4](https://i.imgur.com/zxkjGMQ.png)
 
-## [User Birthdays[(https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js)
+## [User Birthdays](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js)
 - Allows you to set birthdays for users and get notified when it's a user's birthday.
 - [Screenshot #1](https://i.imgur.com/ZhLPwqV.png)
 - [Screenshot #2](https://i.imgur.com/vuzlwX7.png)

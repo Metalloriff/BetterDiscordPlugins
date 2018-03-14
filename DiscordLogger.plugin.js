@@ -4,7 +4,7 @@ class DiscordLogger {
 	
     getName() { return "Discord Logger"; }
     getDescription() { return "Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server."; }
-    getVersion() { return "0.2.3"; }
+    getVersion() { return "0.2.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -87,13 +87,15 @@ class DiscordLogger {
 		 Fixed the plugin thinking you left a server when the server name changed.<br>
 		 <br>0.0.3:<br>
 		 I kind of accidentally broke the plugin entirely in the last update, so I fixed that.<br>
-		 <br>0.1.3:</br>
+		 <br>0.1.3:<br>
 		 Added a viewable log. You can also write to it.<br>
-		 <br>0.2.3:</br>
+		 <br>0.2.3:<br>
 		 Fixed the server removed notifications. I accidentally broke them in the last update, as always.<br>
 		 Added a server logging system, it logs server name changes, server icon changes, owner transferships, role additions, changes, and removals, channel additions, changes, and removals, and server member additions, changes, and removals.<br>
-		 You can now put "separator" in the log to create a separator.`;
-		return "Force Refresh Delay (seconds):<br><input id='dl-refreshDelay' type='number' min='10' max='500' value='" + this.refreshDelay + "'><br><br><button onclick='DiscordLogger.resetSettings();'>Reset Settings</button><br><br><button onclick='DiscordLogger.saveSettings(true);'>Save & Update</button><br><br><br><b>Changelog</b>" + changeLog;
+		 You can now put "separator" in the log to create a separator.<br>
+		 <br>0.2.4:<br>
+		 Fixed the settings.`;
+		return `Force Refresh Delay (seconds):<br><input id="dl-refreshDelay" type="number" min="10" max="500" value="` + this.refreshDelay + `"><br><br><button onclick="BdApi.getPlugin('${this.getName()}').resetSettings();">Reset Settings</button><br><br><button onclick="BdApi.getPlugin('${this.getName()}').saveSettings(true);">Save & Update</button><br><br><br><b>Changelog</b>` + changeLog;
 	}
 	
 	resetSettings(){
@@ -153,66 +155,68 @@ class DiscordLogger {
 		if(server != null && selectedChannel != null)
 			isGeneral = selectedChannel.id == server.id;
 		if(server != null && loggedServers.includes(server.id) && (this.lastServer != server.id || isGeneral)){
-			var index = loggedServers.findIndex(x => x == server.id), lastScan = this.serverLogs[index], newScan = this.scanServer(server), changes = new Array();
-			if(newScan["owner"] != lastScan["owner"])
-				changes.push("Server ownership was transferred from " + this.userFunctions.getUser(lastScan["owner"]).tag + " to " + this.userFunctions.getUser(newScan["owner"]).tag + ".");
-			if(newScan["name"] != lastScan["name"])
-				changes.push("Server name was changed from " + lastScan["name"] + " to " + newScan["name"] + ".");
-			if(newScan["icon"] != lastScan["icon"])
-				changes.push("Server icon was changed.");
-			var newChanIds = Array.from(newScan["channels"], x => x["id"]), lastChanIds = Array.from(lastScan["channels"], x => x["id"]);
-			lastScan["channels"].forEach(function(channel){
-				var found = newScan["channels"].find(x => x.id == channel["id"]);
-				if(!newChanIds.includes(channel["id"]))
-					changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was removed.");
-				else if(found && JSON.stringify(found) != JSON.stringify(channel))
-					changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was changed to #" + found["name"]	+ " (" + found["topic"].replace("\n", "") + ").");
-			});
-			newScan["channels"].forEach(function(channel){
-				if(!lastChanIds.includes(channel["id"]))
-					changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was added.");
-			});
-			var newRoleIds = Array.from(newScan["roles"], x => x["id"]), lastRoleIds = Array.from(lastScan["roles"], x => x["id"]);
-			lastScan["roles"].forEach(function(role){
-				var found = newScan["roles"].find(x => x.id == role["id"]);
-				if(!newRoleIds.includes(role["id"]))
-					changes.push("Role \"" + role["name"] + "\" was removed.");
-				else{
-					if(found && found["permissions"] != role["permissions"])
-						changes.push("Role \"" + role["name"] + "\" permissions have changed.");
-					if(found && found["name"] != role["name"])
-						changes.push("Role \"" + role["name"] + "\" name was changed to \"" + found["name"] + ".\"");
-				}
-			});
-			newScan["roles"].forEach(function(role){
-				if(!lastRoleIds.includes(role["id"]))
-					changes.push("Role \"" + role["name"] + "\" was added.");
-			});
-			if(isGeneral){
-				var newUserIds = Array.from(newScan["members"], x => x["id"]), lastUserIds = Array.from(lastScan["members"], x => x["id"]);
-				lastScan["members"].forEach(function(user){
-					var found = newScan["members"].find(x => x.id == user["id"]);
-					if(!newUserIds.includes(user["id"]))
-						changes.push("User \"" + user["tag"] + "\" (" + user["nickname"] + ") left or was kicked/banned.");
-					else if(found && found["nickname"] != user["nickname"])
-						changes.push("User \"" + found["tag"] + "\" changed their nickname from \"" + user["nickname"] + "\" to \"" + found["nickname"] + ".\"");
+			setTimeout(() => {
+				var index = loggedServers.findIndex(x => x == server.id), lastScan = this.serverLogs[index], newScan = this.scanServer(server), changes = new Array();
+				if(newScan["owner"] != lastScan["owner"])
+					changes.push("Server ownership was transferred from " + this.userFunctions.getUser(lastScan["owner"]).tag + " to " + this.userFunctions.getUser(newScan["owner"]).tag + ".");
+				if(newScan["name"] != lastScan["name"])
+					changes.push("Server name was changed from " + lastScan["name"] + " to " + newScan["name"] + ".");
+				if(newScan["icon"] != lastScan["icon"])
+					changes.push("Server icon was changed.");
+				var newChanIds = Array.from(newScan["channels"], x => x["id"]), lastChanIds = Array.from(lastScan["channels"], x => x["id"]);
+				lastScan["channels"].forEach(function(channel){
+					var found = newScan["channels"].find(x => x.id == channel["id"]);
+					if(!newChanIds.includes(channel["id"]))
+						changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was removed.");
+					else if(found && JSON.stringify(found) != JSON.stringify(channel))
+						changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was changed to #" + found["name"]	+ " (" + found["topic"].replace("\n", "") + ").");
 				});
-				newScan["members"].forEach(function(user){
-					if(!lastUserIds.includes(user["id"]))
-						changes.push("User \"" + user["tag"] + "\" joined.");
+				newScan["channels"].forEach(function(channel){
+					if(!lastChanIds.includes(channel["id"]))
+						changes.push("Channel #" + channel["name"] + " (" + channel["topic"].replace("\n", "") + ") was added.");
 				});
-			}
-			if(changes.length > 0){
-				this.pushLog("[separator]Changes in " + server.name + " since " + lastScan["scan_date"]);
-				for(var i = 0; i < changes.length; i++){
-					this.pushLog(changes[i]);
+				var newRoleIds = Array.from(newScan["roles"], x => x["id"]), lastRoleIds = Array.from(lastScan["roles"], x => x["id"]);
+				lastScan["roles"].forEach(function(role){
+					var found = newScan["roles"].find(x => x.id == role["id"]);
+					if(!newRoleIds.includes(role["id"]))
+						changes.push("Role \"" + role["name"] + "\" was removed.");
+					else{
+						if(found && found["permissions"] != role["permissions"])
+							changes.push("Role \"" + role["name"] + "\" permissions have changed.");
+						if(found && found["name"] != role["name"])
+							changes.push("Role \"" + role["name"] + "\" name was changed to \"" + found["name"] + ".\"");
+					}
+				});
+				newScan["roles"].forEach(function(role){
+					if(!lastRoleIds.includes(role["id"]))
+						changes.push("Role \"" + role["name"] + "\" was added.");
+				});
+				if(isGeneral){
+					var newUserIds = Array.from(newScan["members"], x => x["id"]), lastUserIds = Array.from(lastScan["members"], x => x["id"]);
+					lastScan["members"].forEach(function(user){
+						var found = newScan["members"].find(x => x.id == user["id"]);
+						if(!newUserIds.includes(user["id"]))
+							changes.push("User \"" + user["tag"] + "\" (" + user["nickname"] + ") left or was kicked/banned.");
+						else if(found && found["nickname"] != user["nickname"])
+							changes.push("User \"" + found["tag"] + "\" changed their nickname from \"" + user["nickname"] + "\" to \"" + found["nickname"] + ".\"");
+					});
+					newScan["members"].forEach(function(user){
+						if(!lastUserIds.includes(user["id"]))
+							changes.push("User \"" + user["tag"] + "\" joined.");
+					});
 				}
-				this.pushLog("[separator]End of " + server.name + " change log");
-				PluginUtilities.showToast("There are new server changes, check the log for more information.");
-				this.serverLogs[index] = newScan;
-				PluginUtilities.saveData("DiscordLogger", "server_logs", { logs : this.serverLogs });
-				this.saveSettings();
-			}
+				if(changes.length > 0){
+					this.pushLog("[separator]Changes in " + server.name + " since " + lastScan["scan_date"]);
+					for(var i = 0; i < changes.length; i++){
+						this.pushLog(changes[i]);
+					}
+					this.pushLog("[separator]End of " + server.name + " change log");
+					PluginUtilities.showToast("There are new server changes, check the log for more information.");
+					this.serverLogs[index] = newScan;
+					PluginUtilities.saveData("DiscordLogger", "server_logs", { logs : this.serverLogs });
+					this.saveSettings();
+				}
+			}, 250);
 		}
 		this.lastServer = server.id;
 	}

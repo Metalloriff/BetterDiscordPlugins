@@ -14,7 +14,7 @@
 - Enables the mute and unmute sound for all users in a voice call when the server/group is selected.
 
 ## [Discord Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DiscordLogger.plugin.js)
-- Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and be notified upon users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes.
+- Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server.
 - [Screenshot #1](https://i.imgur.com/wVt6zOB.jpg)
 - [Screenshot #2](https://i.imgur.com/f5b80tn.png)
 - [Screenshot #3](https://i.imgur.com/fLyTYZh.png)

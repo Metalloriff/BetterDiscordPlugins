@@ -4,7 +4,7 @@ class DiscordLogger {
 	
     getName() { return "Discord Logger"; }
     getDescription() { return "Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server."; }
-    getVersion() { return "0.2.4"; }
+    getVersion() { return "0.2.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -23,6 +23,7 @@ class DiscordLogger {
 			this.lastServerLength;
 			this.changeWatcherLoop;
 			this.lastServer = "";
+			this.ended = false;
 	}
 
     start() {
@@ -53,9 +54,16 @@ class DiscordLogger {
 		else libraryScript.addEventListener("load", () => { this.waitToInitialize(); });
 	}
 	
+	get themeType(){
+		if(!$(".theme-dark").length)
+			return "light";
+		else
+			return "dark";
+	}
+	
 	waitToInitialize(){
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/DiscordLogger.plugin.js");
-		$(".theme-dark.popouts").on("DOMNodeInserted", e => { this.onPopout(e); });
+		$(".theme-" + this.themeType + ".popouts").on("DOMNodeInserted", e => { this.onPopout(e); });
 		if(document.getElementsByClassName("guilds scroller").length == 0)
 			this.initLoop = setTimeout(e => { this.waitToInitialize(e); }, 1000);
 		else
@@ -75,7 +83,7 @@ class DiscordLogger {
 		this.refreshDelay = data["refreshDelay"];
 		this.update("loop");
 		this.watchForChanges();
-		$(`<div id="dl-log-button" class="friends-online" style="color: rgb(255, 255, 255) !important;">View Log</div>`).insertBefore($(".guilds.scroller").find(".friends-online"));
+		$(`<button id="dl-log-button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="width: 65px !important; height: 30px !important; min-width: 65px !important; min-height: 30px !important; left: -12.5%; margin-bottom: 5px; margin-top: 4px;"><div class="contents-4L4hQM" style="font-size: 90%; overflow: visible;">View Log</div></button>`).insertBefore($(".guilds.scroller").find(".friends-online"));
 		$("#dl-log-button").on("click", e => { this.createLogWindow(e); });
 		PluginUtilities.showToast("Discord Logger has been initialized!");
 	}
@@ -94,7 +102,12 @@ class DiscordLogger {
 		 Added a server logging system, it logs server name changes, server icon changes, owner transferships, role additions, changes, and removals, channel additions, changes, and removals, and server member additions, changes, and removals.<br>
 		 You can now put "separator" in the log to create a separator.<br>
 		 <br>0.2.4:<br>
-		 Fixed the settings.`;
+		 Fixed the settings.<br>
+		 <br>0.2.5:<br>
+		 Fixed an annoying error every time you switch DM's.<br>
+		 The plugin now works on the light theme.
+		 Fixed multiple notifications at once causing all but the first to break.
+		 Improved the view log button. It's still not good though.`;
 		return `Force Refresh Delay (seconds):<br><input id="dl-refreshDelay" type="number" min="10" max="500" value="` + this.refreshDelay + `"><br><br><button onclick="BdApi.getPlugin('${this.getName()}').resetSettings();">Reset Settings</button><br><br><button onclick="BdApi.getPlugin('${this.getName()}').saveSettings(true);">Save & Update</button><br><br><br><b>Changelog</b>` + changeLog;
 	}
 	
@@ -144,7 +157,7 @@ class DiscordLogger {
 			PluginUtilities.showToast(server.name + " will no longer be logged.");
 		}else{
 			this.serverLogs.push(this.scanServer(server));
-			PluginUtilities.showToast(server.name + " will now be logged.");
+			PluginUtilities.showToast(server.name + " will now be logged. (currently buggy)");
 		}
 		PluginUtilities.saveData("DiscordLogger", "server_logs", { logs : this.serverLogs });
 		$("#dl-serverloglabel")[0].textContent = (this.loggedServers.includes(server.id) ? "Disable" : "Enable") + " Server Logging";
@@ -218,11 +231,12 @@ class DiscordLogger {
 				}
 			}, 250);
 		}
-		this.lastServer = server.id;
+		if(server != null)
+			this.lastServer = server.id;
 	}
 	
 	onPopout(){
-		var popout = $(".theme-dark.popouts"), button = $(".item-rK1j5B.leave-2bjeRM").last();
+		var popout = $(".theme-" + this.themeType + ".popouts"), button = $(".item-rK1j5B.leave-2bjeRM").last();
 		if(!button.length)
 			button = $(".item-rK1j5B").last();
 		if(popout && !$("#dl-serverlogbutton").length && button.length){
@@ -252,7 +266,7 @@ class DiscordLogger {
 					this.updateLoop = setTimeout(e => { this.update(e); }, this.refreshDelay * 1000, "loop");
 			}else return;
 		}
-		var newServerList = this.readServerList(), newFriendsList = this.readFriendsList(), removedServers = new Array();
+		var newServerList = this.readServerList(), newFriendsList = this.readFriendsList(), removedServers = new Array(), removedFriends = new Array(), themeType = this.themeType;
 		if(newServerList.length > 0 && newFriendsList.length > 0){
 			var newServerIDs = Array.from(newServerList, x => x[0]);
 			for(var i = 0; i < this.serverList.length; i++){
@@ -260,24 +274,19 @@ class DiscordLogger {
 				if(server[1] != server[2]){
 					if(!newServerIDs.includes(server[0]) && !removedServers.includes(server[0])){
 						this.pushLog(server[1] + " was removed from the server list.");
-						document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", this.serverAlert);
-						document.getElementById("dl-servernamelabel").textContent = server[1];
-						if(server[2] != "null")
-							document.getElementById("dl-servericon").src = server[2];
+						$(".theme-" + themeType).last().append(`<div id="discord-logger-serveralert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img id="dl-servericon" src="` + (server[2] == null ? "/assets/f046e2247d730629309457e902d5c5b3.svg" : server[2]) + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span id="dl-servernamelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">` + server[1] + `</span></div><div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">This server no longer exists! The server is either temporarliy down, you were kicked/banned, or the server was deleted.</div></div></header></div></div></div></div>`);
 						removedServers.push(server[0]);
 					}
 				}
 			}
 			for(var i = 0; i < this.friendsList.length; i++){
 				var user = this.friendsList[i];
-				if(!newFriendsList.includes(user)){
+				if(!newFriendsList.includes(user) && !removedFriends.includes(user)){
 					var userInfo = this.userFunctions.getUser(user.toString());
 					if(userInfo != null){
 						this.pushLog(userInfo.tag + " was removed from the friends list.");
-						document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", this.serverAlert);
-						document.getElementById("dl-servernamelabel").textContent = userInfo.username + " (#" + userInfo.discriminator + ")";
-						document.getElementById("dl-servericon").src = userInfo.getAvatarURL();
-						document.getElementById("dl-servermessagelabel").textContent = "This user was removed from your friends list.";
+						$(".theme-" + themeType).last().append(`<div id="discord-logger-serveralert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img id="dl-servericon" src="` + userInfo.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span id="dl-servernamelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">` + (userInfo.username + " (#" + userInfo.discriminator + ")") + `</span></div><div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">This user was removed from your friends list.</div></div></header></div></div></div></div>`);
+						removedFriends.push(user);
 					}else{
 						console.log("Failed to resolve user with id " + user + ".");
 					}
@@ -287,7 +296,7 @@ class DiscordLogger {
 		this.serverList = newServerList;
 		this.friendsList = newFriendsList;
 		this.saveSettings(false);
-		if(type == "loop")
+		if(type == "loop" && !this.ended)
 			this.updateLoop = setTimeout(e => { this.update("loop", e); }, this.refreshDelay * 1000, "loop");
 	}
 	
@@ -302,12 +311,10 @@ class DiscordLogger {
 		this.saveSettings(false);
 	}
 	
-	get serverAlert(){
-		return `<div id="discord-logger-serveralert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#discord-logger-serveralert').remove();"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img id="dl-servericon" src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span id="dl-servernamelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">Server Name</span></div><div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">This server no longer exists! The server is either temporarliy down, you were kicked/banned, or the server was deleted.</div></div></header></div></div></div></div>`;
-	}
-	
 	createLogWindow(){
-		document.getElementsByClassName("theme-dark")[0].insertAdjacentHTML("beforeend", this.logWindow);
+		var themeDark = document.getElementsByClassName("theme-" + this.themeType);
+		themeDark = themeDark[themeDark.length - 1];
+		themeDark.insertAdjacentHTML("beforeend", this.logWindow);
 		$("#dl-log-appendtolog").on("click", e => { this.pushLog($("#dl-log-logfield")[0].value, e); });
 		$("#dl-log-search-bar").on("input", e => { this.updateLogElements(e); });
 		this.updateLogElements();
@@ -345,11 +352,12 @@ class DiscordLogger {
 	}
 	
     stop() {
+		this.ended = true;
 		clearTimeout(this.updateLoop);
 		clearTimeout(this.changeWatcherLoop);
 		clearTimeout(this.initLoop);
 		$("#dl-log-button").remove();
-		$(".theme-dark.popouts").off("DOMNodeInserted");
+		$(".theme-" + this.themeType + ".popouts").off("DOMNodeInserted");
 	}
 	
 }

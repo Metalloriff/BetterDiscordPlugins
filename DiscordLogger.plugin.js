@@ -105,8 +105,8 @@ class DiscordLogger {
 		 Fixed the settings.<br>
 		 <br>0.2.5:<br>
 		 Fixed an annoying error every time you switch DM's.<br>
-		 The plugin now works on the light theme.
-		 Fixed multiple notifications at once causing all but the first to break.
+		 The plugin now works on the light theme.<br>
+		 Fixed multiple notifications at once causing all but the first to break.<br>
 		 Improved the view log button. It's still not good though.`;
 		return `Force Refresh Delay (seconds):<br><input id="dl-refreshDelay" type="number" min="10" max="500" value="` + this.refreshDelay + `"><br><br><button onclick="BdApi.getPlugin('${this.getName()}').resetSettings();">Reset Settings</button><br><br><button onclick="BdApi.getPlugin('${this.getName()}').saveSettings(true);">Save & Update</button><br><br><br><b>Changelog</b>` + changeLog;
 	}

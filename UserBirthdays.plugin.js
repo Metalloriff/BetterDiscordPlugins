@@ -5,11 +5,12 @@ class UserBirthdays {
 	constructor(){
 		this.birthdays = new Array();
 		this.checkLoop;
+		this.themeType = "dark";
 	}
 	
     getName() { return "User Birthdays"; }
     getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -44,7 +45,11 @@ class UserBirthdays {
 		this.reset();
 		var data = PluginUtilities.loadData("UserBirthdays", "data", {birthdays : this.birthdays});
 		this.birthdays = data["birthdays"];
-		$(".theme-dark").last().on("DOMNodeInserted", e => { this.onThemeDarkChange(e); });
+		if(!$(".theme-dark").length)
+			this.themeType = "light";
+		else
+			this.themeType = "dark";
+		$(".theme-" + this.themeType).last().on("DOMNodeInserted", e => { this.onThemeDarkChange(e); });
 		this.checkForBirthdays();
 	}
 	
@@ -57,9 +62,9 @@ class UserBirthdays {
 			if(today.getMonth() == birthdayDate.getMonth() && today.getDate() == birthdayDate.getDate() && (this.birthdays[i][3] == "never" || today.getFullYear() != this.birthdays[i][3])){
 				var user = this.getUser(this.birthdays[i][0]);
 				if(user.id == "264163473179672576")
-					$(".theme-dark").last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.tag + `'s birthday today!<div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">It's the plugin developer's birthday! Go tell him happy birthday, he's lonely!</div></span></div></div></header></div></div></div></div>`);
+					$(".theme-" + this.themeType).last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.tag + `'s birthday today!<div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">It's the plugin developer's birthday! Go tell him happy birthday, he's lonely!</div></span></div></div></header></div></div></div></div>`);
 				else
-					$(".theme-dark").last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.username +`'s birthday today!</span></div></div></header></div></div></div></div>`);
+					$(".theme-" + this.themeType).last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.username +`'s birthday today!</span></div></div></header></div></div></div></div>`);
 				this.birthdays[i][3] = today.getFullYear();
 				this.save();
 			}
@@ -68,7 +73,7 @@ class UserBirthdays {
 	}
 	
 	onThemeDarkChange(){
-		var userInfo = $(".theme-dark").last().find(".inner-1_1f7b"), userAvatar = $(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW").css("background-image"), userID = "";
+		var userInfo = $(".theme-" + this.themeType).last().find(".inner-1_1f7b"), userAvatar = $(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW").css("background-image"), userID = "";
 		if(userAvatar)
 			userID = userAvatar.match(/\d+/)[0];
 		if(userID != "" && userInfo && !document.getElementById("ub-birthdayfield")){
@@ -106,7 +111,7 @@ class UserBirthdays {
 	
     stop() {
 		clearTimeout(this.checkLoop);
-		$(".theme-dark").last().off("DOMNodeInserted", this.onThemeDarkChange);
+		$(".theme-" + this.themeType).last().off("DOMNodeInserted", this.onThemeDarkChange);
 	}
 	
 	getUser(id){

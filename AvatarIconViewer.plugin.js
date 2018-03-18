@@ -17,8 +17,8 @@ class AvatarIconViewer {
 	}
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
-    getDescription() { return "Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally. If you need any help or have any suggestions, feel free to message me, Metalloriff#2891."; }
-    getVersion() { return "0.2.3"; }
+    getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
+    getVersion() { return "0.3.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -44,7 +44,7 @@ class AvatarIconViewer {
 	
 	onContextMenu() {
 		if(this.clickedTooSoon == false){
-			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = $(".contextMenu-uoJTbz")[0], messageGroup = null, userData = null, memberElement;
+			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = $(".contextMenu-uoJTbz")[0], messageGroup = null, userData = null, memberElement, createContext = false, viewLabel, copyLabel;
 			if(context){
 				$(".member.member-status").toArray().forEach(function(e){
 					if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
@@ -52,6 +52,10 @@ class AvatarIconViewer {
 				});
 				if(memberElement == null){
 					$(".draggable-3SphXU").toArray().forEach(function(e){
+						if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
+							memberElement = e;
+					});
+					$(".channel.private").toArray().forEach(function(e){
 						if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
 							memberElement = e;
 					});
@@ -66,11 +70,10 @@ class AvatarIconViewer {
 						userData = messages[0].author;
 				}
 				if(elementMouseIsOver.style.backgroundImage.includes("/icons/")){
-					this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)").replace(".webp", ".png") + "?size=2048";
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>View Icon</span></div>`);
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>Copy Icon URL</span></div>`);
-					$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
-					$("#aic-copy-button").on("click", e => { this.copyURL(e); });
+					this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)") + "?size=2048";
+					viewLabel = "View Icon";
+					copyLabel = "Copy Icon URL";
+					createContext = true;
 				}else if(elementMouseIsOver.className.includes("avatar") || (userData != null && !elementMouseIsOver.parentElement.outerHTML.includes("markup")) || memberElement != null){
 					if(elementMouseIsOver.className.includes("avatar"))
 						this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)");
@@ -81,8 +84,18 @@ class AvatarIconViewer {
 					if(this.url.includes("?"))
 						this.url = this.url.substr(0, this.url.indexOf("?"));
 					this.url += "?size=2048";
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>View Avatar</span></div>`);
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>Copy Avatar URL</span></div>`);
+					viewLabel = "View Avatar";
+					copyLabel = "Copy Avatar URL";
+					createContext = true;
+				}else if(elementMouseIsOver.className.includes("emoji")){
+					this.url = elementMouseIsOver.src;
+					viewLabel = "View Emote";
+					copyLabel = "Copy Emote URL";
+					createContext = true;
+				}
+				if(createContext){
+					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
+					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
 					$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
 					$("#aic-copy-button").on("click", e => { this.copyURL(e); });
 				}

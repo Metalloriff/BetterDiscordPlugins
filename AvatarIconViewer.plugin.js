@@ -18,7 +18,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.3.4"; }
+    getVersion() { return "0.3.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -74,7 +74,7 @@ class AvatarIconViewer {
 					viewLabel = "View Icon";
 					copyLabel = "Copy Icon URL";
 					createContext = true;
-				}else if(elementMouseIsOver.className.includes("avatar") || (userData != null && !elementMouseIsOver.parentElement.outerHTML.includes("markup")) || memberElement != null){
+				}else if(elementMouseIsOver.className.includes("avatar") || (userData != null && elementMouseIsOver.className == "user-name") || memberElement != null){
 					if(elementMouseIsOver.className.includes("avatar"))
 						this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)");
 					else if(userData != null)

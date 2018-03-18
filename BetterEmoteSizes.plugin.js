@@ -10,7 +10,7 @@ class BetterEmoteSizes {
 	}
 	
     getName() { return "Better Emote Sizes"; }
-    getDescription() { return "Increases the size of emotes upon hovering over them, allows you to set a default and hover size for large and small emotes, and enables dragging emotes."; }
+    getDescription() { return "Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes."; }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Metalloriff"; }
 	

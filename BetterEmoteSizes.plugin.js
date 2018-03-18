@@ -7,11 +7,12 @@ class BetterEmoteSizes {
 		this.initialSmallSize = 22;
 		this.hoverSize = 96;
 		this.hoverSmallSize = 66;
+		this.messageObserver = null;
 	}
 	
     getName() { return "Better Emote Sizes"; }
     getDescription() { return "Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -68,14 +69,22 @@ class BetterEmoteSizes {
 		this.update();
 	}
 	
-	onSwitch(){ this.update(); }
+	onSwitch(){
+		this.update();
+		if($(".messages.scroller").length){
+			this.messageObserver = new MutationObserver(e => { this.update(); });
+			this.messageObserver.observe($(".messages.scroller")[0], { childList : true });
+		}else if(this.messageObserver != null)
+			this.messageObserver.disconnect();
+	}
 	onMessage(){ this.update(); }
 	
 	update(){
-		var emotes = $(".emoji");
+		var emotes = $(".emoji, .emote");
 		for(var i = 0; i < emotes.length; i++){
-			var emote = emotes[i], size = (emote.className.includes("jumboable") ? this.initialSize : this.initialSmallSize) + "px";
+			var emote = emotes[i], size = (emote.className.includes("jumboable") || emote.className.includes("emote") ? this.initialSize : this.initialSmallSize) + "px";
 			emote.draggable = "true";
+			emote.style.maxHeight = "";
 			emote.style.width = size;
 			emote.style.height = size;
 			emote.style.transition = "all 0.5s";
@@ -85,27 +94,29 @@ class BetterEmoteSizes {
 	}
 	
 	zoom(){
-		var plugin = BdApi.getPlugin("Better Emote Sizes"), size = (this.className.includes("jumboable") ? plugin.hoverSize : plugin.hoverSmallSize) + "px";
+		var plugin = BdApi.getPlugin("Better Emote Sizes"), size = (this.className.includes("jumboable") || this.className.includes("emote") ? plugin.hoverSize : plugin.hoverSmallSize) + "px";
 		this.style.width = size;
 		this.style.height = size;
 	}
 	
 	unzoom(){
-		var plugin = BdApi.getPlugin("Better Emote Sizes"), size = (this.className.includes("jumboable") ? plugin.initialSize : plugin.initialSmallSize) + "px";
+		var plugin = BdApi.getPlugin("Better Emote Sizes"), size = (this.className.includes("jumboable") || this.className.includes("emote") ? plugin.initialSize : plugin.initialSmallSize) + "px";
 		this.style.width = size;
 		this.style.height = size;
 	}
 	
     stop(){
-		var emotes = $(".emoji");
+		var emotes = $(".emoji, .emote");
 		for(var i = 0; i < emotes.length; i++){
-			var emote = emotes[i], size = (emote.className.includes("jumboable") ? 32 : 22) + "px";
+			var emote = emotes[i], size = (emote.className.includes("jumboable") || emote.className.includes("emote") ? 32 : 22) + "px";
 			emote.style.transition = "";
 			emote.style.width = size;
 			emote.style.height = size;
 		}
 		emotes.off("mouseover", this.zoom);
 		emotes.off("mouseout", this.unzoom);
+		if(this.messageObserver != null)
+			this.messageObserver.disconnect();
 	}
 	
 }

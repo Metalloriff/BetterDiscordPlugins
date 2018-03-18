@@ -18,7 +18,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.3.3"; }
+    getVersion() { return "0.3.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -90,14 +90,17 @@ class AvatarIconViewer {
 				}else if(elementMouseIsOver.className.includes("emoji")){
 					this.url = elementMouseIsOver.src;
 					viewLabel = "View Emote";
-					copyLabel = "Copy Emote URL";
 					createContext = true;
 				}
 				if(createContext){
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
-					$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
-					$("#aic-copy-button").on("click", e => { this.copyURL(e); });
+					if(viewLabel){
+						$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
+						$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
+					}
+					if(copyLabel){
+						$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
+						$("#aic-copy-button").on("click", e => { this.copyURL(e); });
+					}
 				}
 			}
 			setTimeout(e => {

@@ -4,7 +4,7 @@ class DiscordLogger {
 	
     getName() { return "Discord Logger"; }
     getDescription() { return "Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server."; }
-    getVersion() { return "0.2.5"; }
+    getVersion() { return "0.3.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -90,14 +90,7 @@ class DiscordLogger {
 	
 	getSettingsPanel(){
 		var changeLog =
-		`<br><br>0.0.2:<br>
-		 Fixed the plugin randomly thinking you left every server.<br>
-		 Fixed the plugin thinking you left a server when the server name changed.<br>
-		 <br>0.0.3:<br>
-		 I kind of accidentally broke the plugin entirely in the last update, so I fixed that.<br>
-		 <br>0.1.3:<br>
-		 Added a viewable log. You can also write to it.<br>
-		 <br>0.2.3:<br>
+		` <br>0.2.3:<br>
 		 Fixed the server removed notifications. I accidentally broke them in the last update, as always.<br>
 		 Added a server logging system, it logs server name changes, server icon changes, owner transferships, role additions, changes, and removals, channel additions, changes, and removals, and server member additions, changes, and removals.<br>
 		 You can now put "separator" in the log to create a separator.<br>
@@ -107,8 +100,13 @@ class DiscordLogger {
 		 Fixed an annoying error every time you switch DM's.<br>
 		 The plugin now works on the light theme.<br>
 		 Fixed multiple notifications at once causing all but the first to break.<br>
-		 Improved the view log button. It's still not good though.`;
-		return `Force Refresh Delay (seconds):<br><input id="dl-refreshDelay" type="number" min="10" max="500" value="` + this.refreshDelay + `"><br><br><button onclick="BdApi.getPlugin('${this.getName()}').resetSettings();">Reset Settings</button><br><br><button onclick="BdApi.getPlugin('${this.getName()}').saveSettings(true);">Save & Update</button><br><br><br><b>Changelog</b>` + changeLog;
+		 Improved the view log button. It's still not good though.<br>
+		 <br>0.3.5:<br>
+		 Fixed the settings panel looking absolutely horrible with the default theme, now it just doesn't look good.<br>
+		 Fixed the log server button being on your status for some reason.<br>
+		 Added commands to the log.<br>
+		 You can now double click on log messages to remove them.</p>`;
+		return `<p style="color: rgb(255, 255, 255);">Force Refresh Delay (seconds):</p><br><input id="dl-refreshDelay" type="number" min="10" max="500" value="` + this.refreshDelay + `"><br><br><button onclick="BdApi.getPlugin('${this.getName()}').resetSettings();" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" id="dl-log-appendtolog"><div class="contents-4L4hQM">Reset Settings</div></button><br><button onclick="BdApi.getPlugin('${this.getName()}').saveSettings(true);" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" id="dl-log-appendtolog"><div class="contents-4L4hQM">Save & Update</div></button><br><br><br><p style="color: rgb(255, 255, 255);"><b>Changelog</b><br>` + changeLog;
 	}
 	
 	resetSettings(){
@@ -236,10 +234,8 @@ class DiscordLogger {
 	}
 	
 	onPopout(){
-		var popout = $(".theme-" + this.themeType + ".popouts"), button = $(".item-rK1j5B.leave-2bjeRM").last();
-		if(!button.length)
-			button = $(".item-rK1j5B").last();
-		if(popout && !$("#dl-serverlogbutton").length && button.length){
+		var popout = $(".theme-" + this.themeType + ".popouts"), button = $(".item-rK1j5B").last();
+		if(popout && !$("#dl-serverlogbutton").length && button.length && button[0].innerHTML.includes("Server")){
 			var server = BDfunctionsDevilBro.getSelectedServer();
 			$(`<div id="dl-serverlogbutton" class="item-rK1j5B"><div class="icon-3ICDZz" style="background-image: url(&quot;/assets/bc11a9099f5729962c095cb49d5042f6.svg&quot;);"></div><div id="dl-serverloglabel" class="label-HtH0tJ">...</div></div>`).insertBefore(button);
 			$("#dl-serverloglabel")[0].textContent = (this.loggedServers.includes(server.id) ? "Disable" : "Enable") + " Server Logging";
@@ -302,13 +298,33 @@ class DiscordLogger {
 	
 	pushLog(message){
 		var date = new Date();
-		this.log.push([date.toLocaleDateString("en-us"), date.toLocaleTimeString("en-us"), message]);
+		if(message[0] == "/"){
+			var messages = new Array(), num = parseInt(message);
+			if(message == "/help")
+				messages = ["/help - Display this list.", "/clear - Clear log.", "/copy - Copy log to clipboard."];
+			if(message == "/clear")
+				this.log = new Array();
+			if(message == "/copy"){
+				this.copyToClipboard(this.log.join("\n"));
+				PluginUtilities.showToast("Log copied to clipboard!");
+			}
+			for(var i = 0; i < messages.length; i++)
+				this.log.push([date.toLocaleDateString("en-us"), date.toLocaleTimeString("en-us"), messages[i]]);
+		}else
+			this.log.push([date.toLocaleDateString("en-us"), date.toLocaleTimeString("en-us"), message]);
 		if($("#dl-log-scroller").length)
 			this.updateLogElements();
 		var lf = document.getElementById("dl-log-logfield");
 		if(lf)
 			lf.value = "";
 		this.saveSettings(false);
+	}
+	
+	copyToClipboard(message) {
+		document.body.insertAdjacentHTML("beforeend", "<textarea class=\"temp-clipboard-data\" width=\"0\">" + message + "</textarea>");
+		document.querySelector(".temp-clipboard-data").select();
+		var success = document.execCommand("copy");
+		document.getElementsByClassName("temp-clipboard-data")[0].outerHTML = "";
 	}
 	
 	createLogWindow(){
@@ -341,14 +357,20 @@ class DiscordLogger {
 					message = message.replace("[separator]", "");
 					scroller.insertAdjacentHTML("beforeend", `<div class="inviteRow-1OabNn flex-3B1Tl4 alignCenter-3VxkQP justifyBetween-1d1Hto"><div class="inviteRowInfo-3TXWjG flex-3B1Tl4 alignCenter-3VxkQP"><div class="inviteRowName-uHzNmr"><b>--` + message + `--</b></div></div></div>`);
 				}else
-					scroller.insertAdjacentHTML("beforeend", `<div class="inviteRow-1OabNn flex-3B1Tl4 alignCenter-3VxkQP justifyBetween-1d1Hto"><div class="inviteRowInfo-3TXWjG flex-3B1Tl4 alignCenter-3VxkQP"><div class="inviteRowName-uHzNmr"><b>[` + time + `]: </b>` + message + `</div></div></div>`);
+					scroller.insertAdjacentHTML("beforeend", `<div ondblclick="BdApi.getPlugin('Discord Logger').removeLogElement(` + i + `);" class="inviteRow-1OabNn flex-3B1Tl4 alignCenter-3VxkQP justifyBetween-1d1Hto"><div class="inviteRowInfo-3TXWjG flex-3B1Tl4 alignCenter-3VxkQP"><div class="inviteRowName-uHzNmr"><b>[` + time + `]: </b>` + message + `</div></div></div>`);
 			}
 		}
 		$("#dl-log-scroller").animate({scrollTop : $("#dl-log-scroller")[0].scrollHeight}, "fast");
 	}
 	
+	removeLogElement(i){
+		this.log.splice(i, 1);
+		this.updateLogElements();
+		this.saveSettings(false);
+	}
+	
 	get logWindow(){
-		return `<div id="discord-logger-log-window"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#discord-logger-log-window').remove();"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="wrapper-2PXjeM"><div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);"><div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;"><div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;"><h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">Log</h2><br><div class="search-bar"><div class="search-bar-inner"><input id="dl-log-search-bar" type="text" placeholder="Search..."></div></div></div></div><div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW"><div id="dl-log-scroller" class="scroller-fzNley inner-tqJwAU marginBottom8-1mABJ4"></div></div><div class="flex-lFgbSz flex-3B1Tl4 horizontalReverse-2LanvO horizontalReverse-k5PqxT flex-3B1Tl4 directionRowReverse-2eZTxP justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO footer-1PYmcw" style="flex: 0 0 auto;"><button onclick="$('#discord-logger-log-window').remove();" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button"><div class="contents-4L4hQM">Close</div></button><div style="width: 15px; display: inline-block; height: auto;"></div><button type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" id="dl-log-appendtolog"><div class="contents-4L4hQM">Log</div></button><div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="height: 32px; flex: 1 1 auto; padding-top: 3px; padding-right: 10px;"><div class="search-bar"><div class="search-bar-inner"><input id="dl-log-logfield" type="text" placeholder="Write to log..."></div></div></div></div></div></div></div></div></div>`;
+		return `<div id="discord-logger-log-window"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#discord-logger-log-window').remove();"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="wrapper-2PXjeM"><div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);"><div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;"><div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;"><h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">Log</h2><br><div class="search-bar"><div class="search-bar-inner"><input id="dl-log-search-bar" type="text" placeholder="Search..."></div></div></div></div><div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW"><div id="dl-log-scroller" class="scroller-fzNley inner-tqJwAU marginBottom8-1mABJ4"></div></div><div class="flex-lFgbSz flex-3B1Tl4 horizontalReverse-2LanvO horizontalReverse-k5PqxT flex-3B1Tl4 directionRowReverse-2eZTxP justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO footer-1PYmcw" style="flex: 0 0 auto;"><button onclick="$('#discord-logger-log-window').remove();" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button"><div class="contents-4L4hQM">Close</div></button><div style="width: 15px; display: inline-block; height: auto;"></div><button type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" id="dl-log-appendtolog"><div class="contents-4L4hQM">Log</div></button><div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="height: 32px; flex: 1 1 auto; padding-top: 3px; padding-right: 10px;"><div class="search-bar"><div class="search-bar-inner"><input id="dl-log-logfield" type="text" placeholder="Write to log.     (type /help)"></div></div></div></div></div></div></div></div></div>`;
 	}
 	
     stop() {

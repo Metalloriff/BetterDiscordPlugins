@@ -25,3 +25,9 @@
 - [Screenshot #1](https://i.imgur.com/ZhLPwqV.png)
 - [Screenshot #2](https://i.imgur.com/vuzlwX7.png)
 - [Screenshot #3](https://i.imgur.com/dAeQgUj.png)
+
+## [Better Emote Sizes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)
+- Increases the size of emotes upon hovering over them, allows you to set a default and hover size for large and small emotes, and enables dragging emotes.
+- [Screenshot #1](https://i.imgur.com/ms1inZd.jpg)
+- [Gif #1](https://i.imgur.com/4AQh4xm.gifv)
+- [Gif #2](https://i.imgur.com/dZvWG0c.gif)

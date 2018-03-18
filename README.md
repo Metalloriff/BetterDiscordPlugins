@@ -5,7 +5,7 @@
 
 
 ## [User Avatar And Server Icon Viewer](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js)
-- Allows you to view server icons and user avatars in fullscreen by right clicking on a user's avatar or a server icon. You can also directly copy the image URL or open the URL externally.
+- Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.
 
 ## [Idle Guildlist Scroller](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/IdleGuildlistScroller.plugin.js)
 - Automatically scrolls to the top of the guilds list after the specified amount of time that your mouse isn't over it.

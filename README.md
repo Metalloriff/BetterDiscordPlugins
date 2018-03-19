@@ -32,6 +32,6 @@
 - [Gif #1](https://i.imgur.com/4AQh4xm.gifv)
 - [Gif #2](https://i.imgur.com/dZvWG0c.gif)
 
-##[The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
+## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
 - Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis.
 - [Screenshot #1](https://i.imgur.com/6u5yQdI.png)

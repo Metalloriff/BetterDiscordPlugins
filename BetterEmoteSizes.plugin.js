@@ -13,7 +13,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Better Emote Sizes"; }
     getDescription() { return "Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes."; }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -86,8 +86,10 @@ class BetterEmoteSizes {
 	
 	update(){
 		var emotes = $(".emoji, .emote");
+		emotes.off("mouseover.BetterEmoteSizes");
+		emotes.off("mouseout.BetterEmoteSizes");
 		for(var i = 0; i < emotes.length; i++){
-			if(emotes[i].parentElement.className == "reaction")
+			if(emotes[i].parentElement.className.includes("reaction"))
 				continue;
 			var emote = emotes[i], size = (emote.className.includes("jumboable") || emote.className.includes("emote") ? this.initialSize : this.initialSmallSize) + "px";
 			emote.draggable = "true";
@@ -96,13 +98,13 @@ class BetterEmoteSizes {
 			emote.style.height = size;
 			emote.style.transition = "all 0.5s";
 		}
-		emotes.on("mouseover", this.zoom);
-		emotes.on("mouseout", this.unzoom);
+		emotes.on("mouseover.BetterEmoteSizes", this.zoom);
+		emotes.on("mouseout.BetterEmoteSizes", this.unzoom);
 	}
 	
 	zoom(){
 		var plugin = BdApi.getPlugin("Better Emote Sizes");
-		if(this.parentElement.className == "reaction" || (this.className.includes("emote") && !plugin.includeBDEmotes))
+		if(this.parentElement.className.includes("reaction") || (this.className.includes("emote") && !plugin.includeBDEmotes))
 			return;
 		var size = (this.className.includes("jumboable") || this.className.includes("emote") ? plugin.hoverSize : plugin.hoverSmallSize) + "px";
 		this.style.width = size;
@@ -111,7 +113,7 @@ class BetterEmoteSizes {
 	
 	unzoom(){
 		var plugin = BdApi.getPlugin("Better Emote Sizes");
-		if(this.parentElement.className == "reaction" || (this.className.includes("emote") && !plugin.includeBDEmotes))
+		if(this.parentElement.className.includes("reaction") || (this.className.includes("emote") && !plugin.includeBDEmotes))
 			return;
 		var size = (this.className.includes("jumboable") || this.className.includes("emote") ? plugin.initialSize : plugin.initialSmallSize) + "px";
 		this.style.width = size;
@@ -121,15 +123,15 @@ class BetterEmoteSizes {
     stop(){
 		var emotes = $(".emoji, .emote");
 		for(var i = 0; i < emotes.length; i++){
-			if(emotes[i].parentElement.className == "reaction" || (emotes[i].className.includes("emote") && !this.includeBDEmotes))
+			if(emotes[i].parentElement.className.includes("reaction")|| (emotes[i].className.includes("emote") && !this.includeBDEmotes))
 				continue;
 			var emote = emotes[i], size = (emote.className.includes("jumboable") || emote.className.includes("emote") ? 32 : 22) + "px";
 			emote.style.transition = "";
 			emote.style.width = size;
 			emote.style.height = size;
 		}
-		emotes.off("mouseover", this.zoom);
-		emotes.off("mouseout", this.unzoom);
+		emotes.off("mouseover.BetterEmoteSizes");
+		emotes.off("mouseout.BetterEmoteSizes");
 		if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 	}

@@ -3,8 +3,8 @@
 class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
-    getDescription() { return "Literally the most useless plugin ever. It allows you to surround text with \"(clapclap)\" to replace spaces with clap emojis."; }
-    getVersion() { return "CLAP.CLAP.CLAP"; }
+    getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis."; }
+    getVersion() { return "0.1.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -23,6 +23,7 @@ class TheClapBestClapPluginClapEver {
 	}
 	
 	initialize(){
+		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/TheClapBestClapPluginClapEver.plugin.js");
 		this.attach();
 	}
 	
@@ -31,27 +32,31 @@ class TheClapBestClapPluginClapEver {
 	}
 	
 	attach(){
-		var chatboxJQ = $(".textAreaEnabled-2vOfh8");
+		var chatboxJQ = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatboxJQ.length){
 			var chatbox = chatboxJQ[0];
 			chatboxJQ.on("keydown.ClapClap", e => {
 				if(e.which == 13 && !e.shiftKey && chatbox.value){
-					var whyamidoingthis = chatbox.value;
-					if(whyamidoingthis.startsWith("clapclap:")){
-						whyamidoingthis = whyamidoingthis.replace("clapclap:", "").split(" ").join(" :clap: ");
-						if(whyamidoingthis.startsWith(" :clap: "))
-							whyamidoingthis += " :clap: ";
+					var chatboxValue = chatbox.value;
+					if(chatboxValue.startsWith("clapclap")){
+						var getClapClap = chatboxValue.substring(0, chatboxValue.indexOf(":") + 1), emote = "clap", definedEmote = getClapClap.substring(getClapClap.indexOf("(") + 1, getClapClap.indexOf(")"));
+						if(definedEmote)
+							emote = definedEmote;
+						emote = " :" + emote  + ": ";
+						chatboxValue = chatboxValue.replace(getClapClap, "").split(" ").join(emote);
+						if(chatboxValue.startsWith(emote))
+							chatboxValue += emote;
 					}
 					chatbox.focus();
 					chatbox.select();
-					document.execCommand("insertText", false, whyamidoingthis);
+					document.execCommand("insertText", false, chatboxValue);
 				}
 			});
 		}
 	}
 	
     stop() {
-		var chatbox = $(".textAreaEnabled-2vOfh8");
+		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatbox)
 			chatbox.off("keydown.ClapClap");
 	}

@@ -19,7 +19,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -61,7 +61,7 @@ class MentionAliases {
 		this.aliases = new Array();
 		this.displayTags = true;
 		if(fromSettings){
-			$("#ma-displayTags'")[0].checked = true;
+			$("#ma-displayTags")[0].checked = true;
 			this.save();
 		}
 	}
@@ -148,18 +148,20 @@ class MentionAliases {
 	
 	onPopout(){
 		if(this.aliases == null)
-			return;
+			this.aliases = new Array();
 		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1_1f7b"), userAvatar = $(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW").css("background-image"),
 		userID = "";
 		if(userAvatar)
 			userID = userAvatar.match(/\d+/)[0];
 		if(popout && userID != "" && !$("#ma-aliasfield").length){
 			$(`<div class="userInfoSection-2WJxMm"><div class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-39NEdV"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
-			$("#ma-aliasfield").on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
-			$("#ma-aliasfield").on("focusout", e => { this.updateAlias(userID, e); });
-			for(var i = 0; i < this.aliases.length; i++)
-				if(this.aliases[i][0] == userID)
-					$("#ma-aliasfield")[0].value = this.aliases[i][1];
+			if($("#ma-aliasfield").length){
+				$("#ma-aliasfield").on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
+				$("#ma-aliasfield").on("focusout", e => { this.updateAlias(userID, e); });
+				for(var i = 0; i < this.aliases.length; i++)
+					if(this.aliases[i][0] == userID)
+						$("#ma-aliasfield")[0].value = this.aliases[i][1];
+			}
 		}
 	}
 	
@@ -208,24 +210,7 @@ class MentionAliases {
 	}
 	
 	getUser(id){
-		return this.findWebModulesByProperties(["getUser"]).getUser(id);
+		return InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]).getUser(id);
 	}
-	
-	//The following were kindly stolen from mwittrien's BDfunctionsDevilBro.js https://github.com/mwittrien/BetterDiscordAddons/blob/master/Plugins/BDfunctionsDevilBro.js
-	findWebModules(filter) {
-		const req = webpackJsonp([], {"__extra_id__": (module, exports, req) => exports.default = req}, ["__extra_id__"]).default;
-		delete req.c["__extra_id__"];
-		for (let i in req.c) { 
-			if (req.c.hasOwnProperty(i)) {
-				let m = req.c[i].exports;
-				if (m && m.__esModule && m.default && filter(m.default)) return m.default;
-				if (m && filter(m)) return m;
-			}
-		}
-	};
-
-	 findWebModulesByProperties(properties) {
-		return this.findWebModules((module) => properties.every(prop => module[prop] !== undefined));
-	};
 	
 }

@@ -6,7 +6,7 @@
 
 ## [User Avatar And Server Icon Viewer](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js)
 - Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.
-- [Preview](https://imgur.com/a/pPGxG)
+- [View Preview](https://imgur.com/a/pPGxG)
 
 ## [Idle Guildlist Scroller](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/IdleGuildlistScroller.plugin.js)
 - Automatically scrolls to the top of the guilds list after the specified amount of time that your mouse isn't over it.
@@ -16,20 +16,20 @@
 
 ## [Discord Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DiscordLogger.plugin.js)
 - Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server.
-- [Preview](https://imgur.com/a/R95Hi)
+- [View Preview](https://imgur.com/a/R95Hi)
 
 ## [User Birthdays](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js)
 - Allows you to set birthdays for users and get notified when it's a user's birthday.
-- [Preview](https://imgur.com/a/ydrqP)
+- [View Preview](https://imgur.com/a/ydrqP)
 
 ## [Better Emote Sizes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)
 - Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes.
-- [Preview](https://imgur.com/a/vCBE4)
+- [View Preview](https://imgur.com/a/vCBE4)
 
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
 - Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):".
-- [Preview](https://imgur.com/a/9nGWn)
+- [View Preview](https://imgur.com/a/9nGWn)
 
 ## [Mention Aliases](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js)
 - Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names.
-- [Preview](https://imgur.com/a/vJ3Gh)
+- [View Preview](https://imgur.com/a/vJ3Gh)

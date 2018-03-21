@@ -4,7 +4,6 @@ class MentionAliases {
 	
 	constructor() {
 		this.aliases = new Array();
-		this.tdObserver = null;
 		this.usersInServer = new Array();
 		this.displayTags = true;
 		this.messageObserver = null;
@@ -20,13 +19,29 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 	
 	getSettingsPanel(){
-		return `<h style="color: rgb(255, 255, 255); font-size: 30px; font-weight: bold;">Mention Aliases by Metalloriff</h><br><br><input id="ma-displayTags" type="checkbox"` + (this.displayTags ? "checked" : "") + `><span></span></div><span style="color: rgb(255, 255, 255);">Display alias tag on users</span></div><div style="text-align: center;"><br><button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u"><div class="contents-4L4hQM">Reset All Aliases & Settings</div></button><button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u"><div class="contents-4L4hQM">Save Settings</div></button></div>`;
+		return `
+			<h style="color: rgb(255, 255, 255); font-size: 30px; font-weight: bold;">Mention Aliases by Metalloriff</h>
+			<br><br>
+			<div onclick="var e = $('#ma-displayTags')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
+				<div class="checkbox-inner"><input id="ma-displayTags" type="checkbox"` + (this.displayTags ? "checked" : "") + `><span></span></div>
+				<span style="color: rgb(255, 255, 255);">Display alias tag on users</span>
+			</div>
+			<div style="text-align: center;">
+				<br>
+				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+					<div class="contents-4L4hQM">Reset All Aliases & Settings</div>
+				</button>
+				<button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+					<div class="contents-4L4hQM">Save Settings</div>
+				</button>
+			</div>
+		`;
 	}
 
     start() {
@@ -64,10 +79,7 @@ class MentionAliases {
 		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.alises, displayTags : this.displayTags });
 		this.aliases = data["aliases"];
 		this.displayTags = data["displayTags"];
-		if(this.tdObserver != null)
-			this.tdObserver.disconnect();
-		this.tdObserver = new MutationObserver(e => { this.updateMemberlist(e); });
-		this.tdObserver.observe($(".theme-" + this.themeType).last()[0], { childList : true });
+		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
 	}
 	
@@ -90,7 +102,6 @@ class MentionAliases {
 		this.aliases.push([userID, newAlias]);
 		this.save(false);
 		this.updateMessages();
-		this.updateMemberlist();
 	}
 	
 	onSwitch(){
@@ -116,7 +127,6 @@ class MentionAliases {
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 		this.updateMessages();
-		this.updateMemberlist();
 	}
 	
 	updateMessages(){
@@ -136,15 +146,15 @@ class MentionAliases {
 		}
 	}
 	
-	updateMemberlist(){
-		if(!this.displayTags)
+	onPopout(){
+		if(this.aliases == null)
 			return;
 		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1_1f7b"), userAvatar = $(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW").css("background-image"),
 		userID = "";
 		if(userAvatar)
 			userID = userAvatar.match(/\d+/)[0];
 		if(popout && userID != "" && !$("#ma-aliasfield").length){
-			$(`<div class="userInfoSection-2WJxMm"><div class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-39NEdV"><textarea id="ma-aliasfield" placeholder="No alias specified. Click to add one." maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
+			$(`<div class="userInfoSection-2WJxMm"><div class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-39NEdV"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
 			$("#ma-aliasfield").on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
 			$("#ma-aliasfield").on("focusout", e => { this.updateAlias(userID, e); });
 			for(var i = 0; i < this.aliases.length; i++)
@@ -191,9 +201,8 @@ class MentionAliases {
 		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");
-		if(this.tdObserver != null)
-			this.tdObserver.disconnect();
 		$(".scroller-fzNley.channel-members").off("DOMNodeInserted.MentionAliases");
+		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
 		if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 	}

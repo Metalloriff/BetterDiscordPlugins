@@ -41,4 +41,4 @@
 - [Screenshot #1](https://i.imgur.com/A54DeI6.png)
 - [Screenshot #2](https://i.imgur.com/a8DXikK.png)
 - [Screenshot #3](https://i.imgur.com/WHrsEFx.png)
-- [Gif #1](https://i.imgur.com/RyWU30e.gif)
+- [Gif #1](https://i.imgur.com/XWvCHWt.gif)

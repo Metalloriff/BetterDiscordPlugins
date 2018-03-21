@@ -38,7 +38,8 @@
 
 ## [Mention Aliases](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js)
 - Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names.
-- [Screenshot #1](https://i.imgur.com/A54DeI6.png)
-- [Screenshot #2](https://i.imgur.com/a8DXikK.png)
-- [Screenshot #3](https://i.imgur.com/WHrsEFx.png)
+- [Screenshot #1](https://i.imgur.com/wGoRS7I.png)
+- [Screenshot #2](https://i.imgur.com/stsKoxy.png)
+- [Screenshot #3](https://i.imgur.com/bEiJBk9.png)
+- [Screenshot #4](https://i.imgur.com/0eXNkPu.png)
 - [Gif #1](https://i.imgur.com/XWvCHWt.gif)

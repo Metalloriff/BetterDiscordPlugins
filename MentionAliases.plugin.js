@@ -19,8 +19,8 @@ class MentionAliases {
 	
 	
     getName() { return "Mention Aliases"; }
-    getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names."; }
-    getVersion() { return "0.0.1"; }
+    getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -120,7 +120,7 @@ class MentionAliases {
 	}
 	
 	updateMessages(){
-		if(!this.displayTags)
+		if(!this.displayTags || this.aliases == null)
 			return;
 		var messages = $(".message-group");
 		for(var i = 0; i < messages.length; i++){

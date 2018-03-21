@@ -24,7 +24,7 @@
 
 ## [Better Emote Sizes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)
 - Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes.
-- [View Preview](https://imgur.com/a/vCBE4)
+- [View Preview](https://imgur.com/a/r197T)
 
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
 - Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):".

@@ -35,3 +35,10 @@
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
 - Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):".
 - [Screenshot #1](https://i.imgur.com/6u5yQdI.png)
+
+## [Mention Aliases](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js)
+- Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names.
+- [Screenshot #1](https://i.imgur.com/A54DeI6.png)
+- [Screenshot #2](https://i.imgur.com/a8DXikK.png)
+- [Screenshot #3](https://i.imgur.com/WHrsEFx.png)
+- [Gif #1](https://i.imgur.com/RyWU30e.gif)

@@ -19,7 +19,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -112,13 +112,10 @@ class MentionAliases {
 			channelList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
 				channelList.on("DOMNodeInserted.MentionAliases", e =>{
-					var added = $(e.target);
-					if(added.length && added.find(".avatar-small").length){
-						var id = added.find(".avatar-small")[0].style["background-image"].match(/\d+/)[0], alias = this.aliases.find(x => x[0] == id), color = added.find(".member-username-inner")[0].style["color"];
-						if(alias != null && !added.find("#ma-usertag").length)
-							$(`<span id="ma-usertag" style="background-color: ` + color + `" class="botTagRegular-288-ZL botTag-1OwMgs">` + alias[1] + `</span>`).insertAfter(added.find(".member-username-inner"));
-					}
+					this.updateMember($(e.target), e);
 				});
+				for(var i = 0; i < channelList.length; i++)
+					this.updateMember($(channelList[i]));
 			}
 		}
 		if($(".messages.scroller").length){
@@ -127,6 +124,14 @@ class MentionAliases {
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 		this.updateMessages();
+	}
+	
+	updateMember(added){
+		if(added.length && added.find(".avatar-small").length){
+			var id = added.find(".avatar-small")[0].style["background-image"].match(/\d+/)[0], alias = this.aliases.find(x => x[0] == id), color = added.find(".member-username-inner")[0].style["color"];
+			if(alias != null && !added.find("#ma-usertag").length)
+				$(`<span id="ma-usertag" style="background-color: ` + color + `" class="botTagRegular-288-ZL botTag-1OwMgs">` + alias[1] + `</span>`).insertAfter(added.find(".member-username-inner"));
+		}
 	}
 	
 	updateMessages(){
@@ -149,11 +154,10 @@ class MentionAliases {
 	onPopout(){
 		if(this.aliases == null)
 			this.aliases = new Array();
-		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1_1f7b"), userAvatar = $(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW").css("background-image"),
-		userID = "";
-		if(userAvatar)
-			userID = userAvatar.match(/\d+/)[0];
-		if(popout && userID != "" && !$("#ma-aliasfield").length){
+		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1_1f7b"), userID = "";
+		if(popout.length && $(".discriminator.discriminator-3KVlLu.size14-1wjlWP").length)
+			userID = ZeresLibrary.ReactUtilities.getReactInstance(popout[0]).child.memoizedProps.user.id;
+		if(popout.length && userID != "" && !$("#ma-aliasfield").length){
 			$(`<div class="userInfoSection-2WJxMm"><div class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-39NEdV"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
 			if($("#ma-aliasfield").length){
 				$("#ma-aliasfield").on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
@@ -172,11 +176,12 @@ class MentionAliases {
 			chatboxJQ.off("keydown.MentionAliases");
 			chatboxJQ.on("keydown.MentionAliases", e => {
 				if((e.which == 13 || e.which == 32) && chatbox.value){
-					var originalChatboxValue = chatbox.value, chatboxValue = chatbox.value, invalidAliases = new Array();
+					var originalChatboxValue = chatbox.value, chatboxValue = chatbox.value;
 					for(var i = 0; i < this.aliases.length; i++){
 						var alias = this.aliases[i];
 						if(!alias[0] || !alias[1]){
-							invalidAliases.push(i);
+							this.aliases.splice(i, 1);
+							i--;
 							continue;
 						}
 						if(chatboxValue.toLowerCase().includes(alias[1].toLowerCase()) && this.usersInServer.includes(alias[0])){
@@ -187,8 +192,6 @@ class MentionAliases {
 							}
 						}
 					}
-					for(var invalidAlias in invalidAliases)
-						this.aliases.splice(invalidAlias, 1);
 					if(originalChatboxValue != chatboxValue){
 						chatbox.focus();
 						chatbox.select();

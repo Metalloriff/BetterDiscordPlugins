@@ -5,8 +5,6 @@ class AvatarIconViewer {
 	constructor(){
 		this.clickedTooSoon = false;
 		this.url = "";
-		this.onContextMenuEvent = e => { this.onContextMenu(e); };
-		this.onEscapeEvent = e => { this.onEscape(e); };
 	}
 	
 	get themeType(){
@@ -18,7 +16,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.3.5"; }
+    getVersion() { return "0.3.6"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -39,28 +37,28 @@ class AvatarIconViewer {
 	initialize() {
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/AvatarIconViewer.plugin.js");
 		this.clickedTooSoon = false;
-		document.addEventListener("contextmenu", this.onContextMenuEvent);
+		$(document).on("contextmenu.AvatarIconViewer", e => { this.onContextMenu(e); });
 	}
 	
 	onContextMenu() {
 		if(this.clickedTooSoon == false){
-			var x = event.clientX, y = event.clientY, elementMouseIsOver = document.elementFromPoint(x, y), context = $(".contextMenu-uoJTbz")[0], messageGroup = null, userData = null, memberElement, createContext = false, viewLabel, copyLabel;
+			var x = event.clientX, y = event.clientY, target = event.target, context = $(".contextMenu-uoJTbz")[0], messageGroup = null, userData = null, memberElement, createContext = false, viewLabel, copyLabel;
 			if(context){
 				$(".member.member-status").toArray().forEach(function(e){
-					if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
+					if(e.outerHTML.includes(target.outerHTML))
 						memberElement = e;
 				});
 				if(memberElement == null){
 					$(".draggable-3SphXU").toArray().forEach(function(e){
-						if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
+						if(e.outerHTML.includes(target.outerHTML))
 							memberElement = e;
 					});
 					$(".channel.private").toArray().forEach(function(e){
-						if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
+						if(e.outerHTML.includes(target.outerHTML))
 							memberElement = e;
 					});
 					$(".message-group").toArray().forEach(function(e){
-						if(e.outerHTML.includes(elementMouseIsOver.outerHTML))
+						if(e.outerHTML.includes(target.outerHTML))
 							messageGroup = e;
 					});
 				}
@@ -69,14 +67,14 @@ class AvatarIconViewer {
 					if(messages != null && messages.length > 0)
 						userData = messages[0].author;
 				}
-				if(elementMouseIsOver.style.backgroundImage.includes("/icons/")){
-					this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)") + "?size=2048";
+				if(target.style.backgroundImage.includes("/icons/")){
+					this.url = this.getBetween(target.outerHTML, "url(&quot;", "&quot;)") + "?size=2048";
 					viewLabel = "View Icon";
 					copyLabel = "Copy Icon URL";
 					createContext = true;
-				}else if(elementMouseIsOver.className.includes("avatar") || (userData != null && elementMouseIsOver.className == "user-name") || memberElement != null){
-					if(elementMouseIsOver.className.includes("avatar"))
-						this.url = this.getBetween(elementMouseIsOver.outerHTML, "url(&quot;", "&quot;)");
+				}else if(target.className.includes("avatar") || (userData != null && target.className == "user-name") || memberElement != null){
+					if(target.className.includes("avatar"))
+						this.url = this.getBetween(target.outerHTML, "url(&quot;", "&quot;)");
 					else if(userData != null)
 						this.url = userData.getAvatarURL();
 					else
@@ -87,8 +85,8 @@ class AvatarIconViewer {
 					viewLabel = "View Avatar";
 					copyLabel = "Copy Avatar URL";
 					createContext = true;
-				}else if(elementMouseIsOver.className.includes("emoji")){
-					this.url = elementMouseIsOver.src;
+				}else if(target.className.includes("emoji")){
+					this.url = target.src;
 					viewLabel = "View Emote";
 					createContext = true;
 				}
@@ -98,7 +96,7 @@ class AvatarIconViewer {
 						$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
 					}
 					if(copyLabel){
-						$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
+						$(context.firstChild).append(`<div id="aic-copy-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
 						$("#aic-copy-button").on("click", e => { this.copyURL(e); });
 					}
 				}
@@ -112,7 +110,7 @@ class AvatarIconViewer {
 	
 	createImagePreview() {
 		if(document.getElementById("avatar-img-preview") == null){
-			document.addEventListener("keyup", this.onEscapeEvent);
+			$(document).on("keyup.AvatarIconViewer", e => { this.onEscape(e); });
 			this.closeContextMenu();
 			var p = $(".theme-" + this.themeType).last(), scale = window.innerHeight - 160;
 			p.append(`<div id="aiv-preview-window" class=""><div id="aiv-preview-backdrop" class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div><div class="imageWrapper-38T7d9" style="width: ` + scale + `px; height: ` + scale + `px;"><img src="` + this.url + `" style="width: 100%; height: 100%;"></div><div style="text-align: center; padding-top: 5px;"><button id="aiv-preview-copy" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Copy URL</div></button><button id="aiv-preview-close" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Close</div></button><button id="aiv-preview-open" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Open Externally</div></button></div></div></div></div></div>`);
@@ -130,7 +128,7 @@ class AvatarIconViewer {
 	
 	destroyPreview() {
 		$("#aiv-preview-window").remove();
-		document.removeEventListener("keyup", this.onEscapeEvent);
+		$(document).off("keyup.AvatarIconViewer");
 	}
 	
 	closeContextMenu(){
@@ -159,8 +157,8 @@ class AvatarIconViewer {
 	}
 	
     stop() {
-		document.removeEventListener("contextmenu", this.onContextMenuEvent);
-		document.removeEventListener("keyup", this.onEscapeEvent);
+		$(document).off("contextmenu.AvatarIconViewer");
+		$(document).off("keyup.AvatarIconViewer");
 	}
 	
 	getBetween(str, first, last) {

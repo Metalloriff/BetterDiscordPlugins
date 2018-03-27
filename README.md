@@ -33,3 +33,7 @@
 ## [Mention Aliases](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js)
 - Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in.
 - [View Preview](https://imgur.com/a/vJ3Gh)
+
+## [Guild Counter](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildCounter.plugin.js)
+- Displays a guild counter below the online friend counter.
+- [View Preview](https://i.imgur.com/328NvYq.png)

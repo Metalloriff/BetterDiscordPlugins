@@ -8,7 +8,7 @@ class ViewGuildRelationships {
 	
     getName() { return "View Guild Relationships"; }
     getDescription() { return "Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.1.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -115,7 +115,8 @@ class ViewGuildRelationships {
 	}
 	
 	getRelationships(){
-		var users = Array.from(InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(PluginUtilities.getCurrentServer()), x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
+		$(".menu-3BZuDT").remove();
+		var members = InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(PluginUtilities.getCurrentServer()), users = Array.from(members, x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
 		$(".theme-" + this.themeType).last().append(`<div id="vgr-relationshipswindow">
 				<div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#vgr-relationshipswindow').remove();"></div>
 				<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
@@ -164,8 +165,8 @@ class ViewGuildRelationships {
 					<div id="vgr-outgoing-nonefound" style="font-weight: bold;color: white;padding: 15px;opacity: 0.6;background-color: rgba(0, 0, 0, 0.1);">No outgoing friend requests found here.</div>
 				</div>`);
 		for(var i = 0; i < relationships.length; i++){
-			var user = userModule.getUser(relationships[i][0]), relationship = relationships[i][1], item =
-			`<div class="vgr-friend-item" data-name="` + user.username + `" data-tag="` + user.tag + `" data-id="` + user.id + `" style="font-weight: bold;color: white;padding: 15px;background-color: rgba(0, 0, 0, 0.1);">
+			var member = members[i], user = userModule.getUser(relationships[i][0]), relationship = relationships[i][1], item =
+			`<div id="vgr-friend-item-` + i + `" class="vgr-friend-item" data-name="` + user.username + `" data-tag="` + user.tag + `" data-id="` + user.id + `" style="font-weight: bold;color: white;padding: 15px;background-color: rgba(0, 0, 0, 0.1);">
 				<img src="` + user.getAvatarURL() + `" height="48px" width="48px" style="position: relative;float: left;">
 				<p style="left: 2%;position: relative;padding-top: 4px;">` + user.username  + `</p>
 			</div>`;
@@ -185,7 +186,27 @@ class ViewGuildRelationships {
 				$("#vgr-outgoing-nonefound").remove();
 				$("#vgr-outgoing-separator").append(item);
 			}
+			var label = $("#vgr-friend-item-" + i + ".vgr-friend-item > p")[0];
+			if(member.colorString != undefined && label != null){
+				label.style.color = member.colorString;
+			}
 		}
+		var sortCheck = function(x, y){
+			var a = x.dataset["name"].toLowerCase(), b = y.dataset["name"].toLowerCase();
+			if(a < b)
+				return -1
+			else if(a > b)
+				return 1;
+			else
+				return 0;
+		};
+		$("#vgr-friends-separator > .vgr-friend-item").sort(sortCheck).appendTo("#vgr-friends-separator");
+		$("#vgr-blocked-separator > .vgr-friend-item").sort(sortCheck).appendTo("#vgr-blocked-separator");
+		$("#vgr-incoming-separator > .vgr-friend-item").sort(sortCheck).appendTo("#vgr-incoming-separator");
+		$("#vgr-outgoing-separator > .vgr-friend-item").sort(sortCheck).appendTo("#vgr-outgoing-separator");
+		$("#vgr-friends-separator > div:nth-child(1), #vgr-blocked-separator > div:nth-child(1), #vgr-incoming-separator > div:nth-child(1), #vgr-outgoing-separator > div:nth-child(1)").on("click", e => {
+			$(e.currentTarget.parentElement).find("*:not(div:nth-child(1))").toggle();
+		});
 		if(this.discriminatorType == 2)
 			$(".vgr-friend-item").hover(e => { this.onFriendItemHover(e); }, e => { this.onFriendItemHoverOff(e); });
 		else if(this.discriminatorType == 3)

@@ -37,3 +37,7 @@
 ## [Guild Counter](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildCounter.plugin.js)
 - Displays a guild counter below the online friend counter.
 - [View Preview](https://i.imgur.com/328NvYq.png)
+
+## [View Guild Relationships](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ViewGuildRelationships.plugin.js)
+- Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server. NOTE: It cannot see offline users in large servers.
+- [View Preview](https://imgur.com/a/agdcU)

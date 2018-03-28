@@ -8,7 +8,7 @@ class ViewGuildRelationships {
 	
     getName() { return "View Guild Relationships"; }
     getDescription() { return "Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server. NOTE: It cannot see offline users in large servers."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -165,7 +165,7 @@ class ViewGuildRelationships {
 				</div>`);
 		for(var i = 0; i < relationships.length; i++){
 			var user = userModule.getUser(relationships[i][0]), relationship = relationships[i][1], item =
-			`<div class="vgr-friend-item" data-name="` + user.username + `" data-tag="` + user.tag + `" style="font-weight: bold;color: white;padding: 15px;background-color: rgba(0, 0, 0, 0.1);">
+			`<div class="vgr-friend-item" data-name="` + user.username + `" data-tag="` + user.tag + `" data-id="` + user.id + `" style="font-weight: bold;color: white;padding: 15px;background-color: rgba(0, 0, 0, 0.1);">
 				<img src="` + user.getAvatarURL() + `" height="48px" width="48px" style="position: relative;float: left;">
 				<p style="left: 2%;position: relative;padding-top: 4px;">` + user.username  + `</p>
 			</div>`;
@@ -192,6 +192,18 @@ class ViewGuildRelationships {
 			$(".vgr-friend-item").each(function(index){ $(this).find("p")[0].textContent = this.dataset["tag"]; });
 		else
 			$(".vgr-friend-item").each(function(index){ $(this).find("p")[0].textContent = this.dataset["name"]; });
+		$(".vgr-friend-item").on("contextmenu", e => { this.onFriendItemContext(e.target.dataset["id"], e); });
+		$(".vgr-friend-item > p, .vgr-friend-item > img").on("contextmenu", e => { this.onFriendItemContext(e.target.parentElement.dataset["id"], e); });
+	}
+	
+	onFriendItemContext(id, e){
+		var UserUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser", "getUsers"]),
+			ChannelUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel", "getDMFromUserId"]),
+			UserContextMenuUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["openUserContextMenu"]),
+			user = UserUtils.getUser(id),
+			channel = ChannelUtils.getChannel(ReactUtilities.getReactInstance($(".wrapperSelectedText-31jJa8")[0].parentElement).memoizedProps.children.props.channel.id);
+		if(user && channel)
+			UserContextMenuUtils.openUserContextMenu(e, user, channel);
 	}
 	
 	onFriendItemHover(e){

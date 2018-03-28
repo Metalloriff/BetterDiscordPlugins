@@ -7,18 +7,11 @@ class ViewGuildRelationships {
 	}
 	
     getName() { return "View Guild Relationships"; }
-    getDescription() { return "Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-    getVersion() { return "0.1.3"; }
+    getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
+    getVersion() { return "0.1.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
-	
-	get themeType(){
-		if($(".theme-dark").length)
-			return "dark";
-		else
-			return "light";
-	}
 
     start() {
 		var libraryScript = document.getElementById('zeresLibraryScript');
@@ -104,20 +97,38 @@ class ViewGuildRelationships {
 		this.discriminatorType = data["discriminatorType"];
 		BdApi.injectCSS("ViewGuildRelationships", ".vgr-friend-item:hover { background-color: rgba(0, 0, 0, 0.2) !important; }");
 		$(".popouts").on("DOMNodeInserted.ViewGuildRelationships", e => { this.onPopout(e); });
+		$(document).on("contextmenu.ViewGuildRelationships", e => { this.onContextMenu(e); });
 	}
 	
 	onPopout(){
 		var button = $(".item-rK1j5B").last();
 		if(button.length && button[0].innerHTML.includes("Server") && !$("#vgr-servermenuitem").length){
 			$(`<div id="vgr-servermenuitem" class="item-rK1j5B"><div class="icon-3ICDZz" style="background-image: url(&quot;/assets/52bc30f8a2b1a51f808a785819ca00b5.svg&quot;);"></div><div class="label-HtH0tJ">View Relationships</div></div>`).insertBefore(button);
-			$("#vgr-servermenuitem").on("click", e => { this.getRelationships(e); });
+			$("#vgr-servermenuitem").on("click", e => { this.getRelationships(PluginUtilities.getCurrentServer(), ReactUtilities.getReactInstance($(".wrapperSelectedText-31jJa8")[0].parentElement).memoizedProps.children.props.channel.id, e); });
 		}
 	}
 	
-	getRelationships(){
+	onContextMenu(e){
+		var contextMenu = $(".contextMenu-uoJTbz"), itemGroups = contextMenu.find(".itemGroup-oViAgA");
+		if(e.target.parentElement.className == "guild-inner" && contextMenu.length && itemGroups.length && !$("#vgr-contextbutton").length){
+			var server = e.target.href.match(/\d+/);
+			if(server){
+				$(itemGroups[0]).append(`<div id="vgr-contextbutton" class="item-1XYaYf"><span>View Relationships</span></div>`);
+				$("#vgr-contextbutton").on("click", e => { this.getRelationships(server, server, e); });
+				return;
+			}
+		}
+	}
+	
+	getRelationships(serverID, channelID){
 		$(".menu-3BZuDT").remove();
-		var members = InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(PluginUtilities.getCurrentServer()), users = Array.from(members, x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
-		$(".theme-" + this.themeType).last().append(`<div id="vgr-relationshipswindow">
+		var context = $(".contextMenu-uoJTbz")[0];
+		if(context != null){
+			context.innerHTML = "";
+			context.className = "";
+		}
+		var members = InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(serverID), users = Array.from(members, x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
+		$(".app").last().append(`<div id="vgr-relationshipswindow">
 				<div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#vgr-relationshipswindow').remove();"></div>
 				<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
 					<div class="inner-1_1f7b">
@@ -213,16 +224,16 @@ class ViewGuildRelationships {
 			$(".vgr-friend-item").each(function(index){ $(this).find("p")[0].textContent = this.dataset["tag"]; });
 		else
 			$(".vgr-friend-item").each(function(index){ $(this).find("p")[0].textContent = this.dataset["name"]; });
-		$(".vgr-friend-item").on("contextmenu", e => { this.onFriendItemContext(e.target.dataset["id"], e); });
-		$(".vgr-friend-item > p, .vgr-friend-item > img").on("contextmenu", e => { this.onFriendItemContext(e.target.parentElement.dataset["id"], e); });
+		$(".vgr-friend-item").on("contextmenu", e => { this.onFriendItemContext(e.target.dataset["id"], channelID, e); });
+		$(".vgr-friend-item > p, .vgr-friend-item > img").on("contextmenu", e => { this.onFriendItemContext(e.target.parentElement.dataset["id"], channelID, e); });
 	}
 	
-	onFriendItemContext(id, e){
+	onFriendItemContext(userID, channelID, e){
 		var UserUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser", "getUsers"]),
 			ChannelUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel", "getDMFromUserId"]),
 			UserContextMenuUtils = InternalUtilities.WebpackModules.findByUniqueProperties(["openUserContextMenu"]),
-			user = UserUtils.getUser(id),
-			channel = ChannelUtils.getChannel(ReactUtilities.getReactInstance($(".wrapperSelectedText-31jJa8")[0].parentElement).memoizedProps.children.props.channel.id);
+			user = UserUtils.getUser(userID),
+			channel = ChannelUtils.getChannel(channelID);
 		if(user && channel)
 			UserContextMenuUtils.openUserContextMenu(e, user, channel);
 	}
@@ -244,6 +255,7 @@ class ViewGuildRelationships {
 	
     stop() {
 		$(".popouts").off("DOMNodeInserted.ViewGuildRelationships");
+		$(document).off("contextmenu.ViewGuildRelationships");
 		BdApi.clearCSS("ViewGuildRelationships");
 	}
 	

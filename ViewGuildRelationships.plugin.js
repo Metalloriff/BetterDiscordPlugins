@@ -7,8 +7,8 @@ class ViewGuildRelationships {
 	}
 	
     getName() { return "View Guild Relationships"; }
-    getDescription() { return "Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server. NOTE: It cannot see offline users in large servers."; }
-    getVersion() { return "0.1.1"; }
+    getDescription() { return "Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server."; }
+    getVersion() { return "0.1.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -115,7 +115,7 @@ class ViewGuildRelationships {
 	}
 	
 	getRelationships(){
-		var users = Array.from(PluginUtilities.getAllUsers(), x => x.user.id), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
+		var users = Array.from(InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(PluginUtilities.getCurrentServer()), x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
 		$(".theme-" + this.themeType).last().append(`<div id="vgr-relationshipswindow">
 				<div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#vgr-relationshipswindow').remove();"></div>
 				<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">

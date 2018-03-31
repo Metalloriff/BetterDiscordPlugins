@@ -5,8 +5,11 @@ class MentionAliases {
 	constructor() {
 		this.aliases = new Array();
 		this.usersInServer = new Array();
+		this.usersInDMs = new Array();
 		this.displayTags = true;
 		this.messageObserver = null;
+		this.userModule;
+		this.memberModule;
 	}
 	
 	get themeType(){
@@ -19,7 +22,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.0.5"; }
+    getVersion() { return "0.1.7"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -75,6 +78,8 @@ class MentionAliases {
 	
 	initialize(){
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/MentionAliases.plugin.js");
+		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
+		this.memberModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getMembers"]);
 		this.reset(false);
 		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.alises, displayTags : this.displayTags });
 		this.aliases = data["aliases"];
@@ -87,50 +92,90 @@ class MentionAliases {
 		var newAlias = $("#ma-aliasfield")[0].value;
 		for(var i = 0; i < this.aliases.length; i++){
 			if(this.aliases[i][0] == userID){
-				if(newAlias == ""){
+				if(newAlias == "")
 					this.aliases.splice(i, 1);
-					this.save(false);
-					return;
-				}
-				this.aliases[i] = [userID, newAlias];
-				this.save(false);
-				return;
+				else
+					this.aliases[i] = [userID, newAlias];
 			}
 		}
-		if(newAlias == "")
-			return;
-		this.aliases.push([userID, newAlias]);
+		if(newAlias != "")
+			this.aliases.push([userID, newAlias]);
 		this.save(false);
 		this.updateMessages();
+		this.scanMembers();
+	}
+	
+	scanMembers(){
+		var server = PluginUtilities.getCurrentServer();
+		if(server == null)
+			this.usersInServer = new Array();
+		else
+			this.usersInServer = Array.from(this.memberModule.getMembers(server), x => x.userId);
+		var dmAvatars = $(".member > .avatar-small, .avatar-large");
+		dmAvatars.each(i => {
+			if(dmAvatars[i].style.backgroundImage != undefined){
+				var id = dmAvatars[i].style.backgroundImage.match(/\d+/)[0];
+				if(id != undefined && !this.usersInDMs.includes(id))
+					this.usersInDMs.push(id);
+			}
+		});
 	}
 	
 	onSwitch(){
 		this.attach();
-		this.usersInServer = Array.from(PluginUtilities.getAllUsers(), x => x.user.id);
+		this.scanMembers();
 		var channelList = $(".scroller-fzNley.channel-members");
 		if(channelList.length){
 			channelList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
-				channelList.on("DOMNodeInserted.MentionAliases", e =>{
-					this.updateMember($(e.target), e);
+				channelList.on("DOMNodeInserted.MentionAliases", e => {
+					this.updateMember($(e.target));
 				});
-				for(var i = 0; i < channelList.length; i++)
-					this.updateMember($(channelList[i]));
+				var members = $(".member");
+				for(var i = 0; i < members.length; i++)
+					this.updateMember($(members[i]));
 			}
 		}
 		if($(".messages.scroller").length){
-			this.messageObserver = new MutationObserver(e => { this.updateMessages(e); });
+			this.messageObserver = new MutationObserver(() => { this.updateMessages(); this.scanMembers(); });
 			this.messageObserver.observe($(".messages.scroller")[0], { childList : true });
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
+		var dmList = $(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div");
+		if(dmList.length){
+			dmList.off("DOMNodeInserted.MentionAliases");
+			if(this.displayTags){
+				dmList.on("DOMNodeInserted.MentionAliases", e => {
+					this.updateMemberDM($(e.target));
+				});
+				var dms = $(".channel.private");
+				for(var i = 0; i < dms.length; i++)
+					this.updateMemberDM($(dms[i]));
+			}
+		}
 		this.updateMessages();
 	}
 	
 	updateMember(added){
 		if(added.length && added.find(".avatar-small").length){
-			var id = added.find(".avatar-small")[0].style["background-image"].match(/\d+/)[0], alias = this.aliases.find(x => x[0] == id), color = added.find(".member-username-inner")[0].style["color"];
-			if(alias != null && !added.find("#ma-usertag").length)
-				$(`<span id="ma-usertag" style="background-color: ` + color + `" class="botTagRegular-288-ZL botTag-1OwMgs">` + alias[1] + `</span>`).insertAfter(added.find(".member-username-inner"));
+			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
+				alias = this.aliases.find(x => x[0] == id),
+				color = added.find(".member-username-inner")[0].style.color;
+			added.find(".ma-usertag").remove();
+			if(alias != null && alias[1] != "")
+				$(`<span style="background-color: ` + color + `" class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(added.find(".member-username-inner"));
+		}
+	}
+	
+	updateMemberDM(added){
+		if(added.length && added.find(".avatar-small").length){
+			if(added[0].className != "channel private")
+				return;
+			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
+				alias = this.aliases.find(x => x[0] == id);
+			added.find(".ma-usertag").remove();
+			if(alias != null && alias[1] != "")
+				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(added.find(".channel-name"));
 		}
 	}
 	
@@ -144,8 +189,9 @@ class MentionAliases {
 				if(messages != null && msgs != null && msgs.length > 0)
 					id = msgs[0].author.id;
 				var alias = this.aliases.find(x => x[0] == id), username = $(messages[i]).find(".user-name");
-				if(id != "" && alias != null && !$(messages[i]).find("#ma-usertag").length && username.length){
-					$(`<span id="ma-usertag" style="background-color: ` + username[0].style["color"] + `" class="botTagRegular-288-ZL botTag-1OwMgs">` + alias[1] + `</span>`).insertAfter(username);
+				$(messages[i]).find(".ma-usertag").remove();
+				if(id != "" && alias != null && username.length && alias[1] != ""){
+					$(`<span style="background-color: ` + username[0].style["color"] + `" class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(username);
 				}
 			}
 		}
@@ -184,7 +230,7 @@ class MentionAliases {
 							i--;
 							continue;
 						}
-						if(chatboxValue.toLowerCase().includes(alias[1].toLowerCase()) && this.usersInServer.includes(alias[0])){
+						if(chatboxValue.toLowerCase().includes(alias[1].toLowerCase()) && (this.usersInServer.includes(alias[0])) || this.usersInDMs.includes(alias[0])){
 							var userTag = this.getUser(alias[0]).tag, chatboxValueWithoutMentions = chatboxValue.toLowerCase().split("@" + userTag.toLowerCase()).join("");
 							while(chatboxValueWithoutMentions.split(" ").includes("@" + alias[1].toLowerCase())){
 								chatboxValue = chatboxValue.replace(new RegExp("@" + alias[1], "ig"), "@" + userTag);
@@ -207,13 +253,14 @@ class MentionAliases {
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");
 		$(".scroller-fzNley.channel-members").off("DOMNodeInserted.MentionAliases");
+		$(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div").off("DOMNodeInserted.MentionAliases");
 		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
 		if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 	}
 	
 	getUser(id){
-		return InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]).getUser(id);
+		return this.userModule.getUser(id);
 	}
 	
 }

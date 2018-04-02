@@ -3,6 +3,7 @@
 class MentionAliases {
 	
 	constructor() {
+		this.initialized = false;
 		this.aliases = new Array();
 		this.usersInServer = new Array();
 		this.usersInDMs = new Array();
@@ -13,16 +14,15 @@ class MentionAliases {
 	}
 	
 	get themeType(){
-		if(!$(".theme-dark").length)
-			return "light";
-		else
+		if($(".theme-dark").length)
 			return "dark";
+		return "light";
 	}
 	
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.1.7"; }
+    getVersion() { return "0.1.8"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -84,8 +84,14 @@ class MentionAliases {
 		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.alises, displayTags : this.displayTags });
 		this.aliases = data["aliases"];
 		this.displayTags = data["displayTags"];
+		this.initialized = true;
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
+		BdApi.injectCSS("MentionAliases",
+		`.username-MwOsla, .channel-members .botTag-1OwMgs + .channel-members .botTag-1OwMgs { font-size: 15px; }
+		.memberInner-3XUq9K { width: 160px; }
+		.nameTag-26T3kW { white-space: normal; }
+		.member-2FrNV0 { height: auto; }`);
 	}
 	
 	updateAlias(userID){
@@ -122,6 +128,8 @@ class MentionAliases {
 	}
 	
 	onSwitch(){
+		if(!this.initialized)
+			return;
 		this.attach();
 		this.scanMembers();
 		var channelList = $(".scroller-fzNley.channel-members");
@@ -131,7 +139,7 @@ class MentionAliases {
 				channelList.on("DOMNodeInserted.MentionAliases", e => {
 					this.updateMember($(e.target));
 				});
-				var members = $(".member");
+				var members = $(".member-2FrNV0");
 				for(var i = 0; i < members.length; i++)
 					this.updateMember($(members[i]));
 			}
@@ -157,13 +165,15 @@ class MentionAliases {
 	}
 	
 	updateMember(added){
-		if(added.length && added.find(".avatar-small").length){
-			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
+		if(added.length && added.find(".image-EVRGPw.mask-2vyqAW").length){
+			var id = added.find(".image-EVRGPw.mask-2vyqAW")[0].style.backgroundImage.match(/\d+/)[0],
 				alias = this.aliases.find(x => x[0] == id),
-				color = added.find(".member-username-inner")[0].style.color;
+				color = added.find(".nameTag-3F0z_i.nameTag-26T3kW")[0].style.color;
 			added.find(".ma-usertag").remove();
-			if(alias != null && alias[1] != "")
-				$(`<span style="background-color: ` + color + `" class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(added.find(".member-username-inner"));
+			if(alias != null && alias[1] != ""){
+				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(added.find(".username-MwOsla"));
+				setTimeout(() => { added.find(".ma-usertag")[0].style.backgroundColor = color; }, 10);
+			}
 		}
 	}
 	
@@ -249,6 +259,7 @@ class MentionAliases {
 	}
 	
     stop() {
+		BdApi.clearCSS("MentionAliases");
 		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");

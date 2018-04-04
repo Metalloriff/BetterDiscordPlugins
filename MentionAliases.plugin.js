@@ -21,8 +21,8 @@ class MentionAliases {
 	
 	
     getName() { return "Mention Aliases"; }
-    getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in."; }
-    getVersion() { return "0.1.8"; }
+    getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
+    getVersion() { return "0.2.9"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -165,21 +165,21 @@ class MentionAliases {
 	}
 	
 	updateMember(added){
-		if(added.length && added.find(".image-EVRGPw.mask-2vyqAW").length){
-			var id = added.find(".image-EVRGPw.mask-2vyqAW")[0].style.backgroundImage.match(/\d+/)[0],
+		if(added.length && added.find(".image-EVRGPw").length){
+			var id = added.find(".image-EVRGPw")[0].style.backgroundImage.match(/\d+/)[0],
 				alias = this.aliases.find(x => x[0] == id),
 				color = added.find(".nameTag-3F0z_i.nameTag-26T3kW")[0].style.color;
 			added.find(".ma-usertag").remove();
 			if(alias != null && alias[1] != ""){
 				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias[1] + `</span>`).insertAfter(added.find(".username-MwOsla"));
-				setTimeout(() => { added.find(".ma-usertag")[0].style.backgroundColor = color; }, 10);
+				setTimeout(() => { added.find(".ma-usertag")[0].style.backgroundColor = color; }, 0);
 			}
 		}
 	}
 	
 	updateMemberDM(added){
 		if(added.length && added.find(".avatar-small").length){
-			if(added[0].className != "channel private")
+			if(added[0].className != "channel private" && added[0].className != "channel selected private")
 				return;
 			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
 				alias = this.aliases.find(x => x[0] == id);
@@ -245,6 +245,17 @@ class MentionAliases {
 							while(chatboxValueWithoutMentions.split(" ").includes("@" + alias[1].toLowerCase())){
 								chatboxValue = chatboxValue.replace(new RegExp("@" + alias[1], "ig"), "@" + userTag);
 								chatboxValueWithoutMentions = chatboxValueWithoutMentions.split("@" + alias[1].toLowerCase()).join("");
+							}
+						}
+					}
+					if(chatboxValue.toLowerCase().includes("@owner")){
+						var guild = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]).getGuild(PluginUtilities.getCurrentServer()), owner = undefined, 
+							chatboxValueWithoutMentions = chatboxValue.toLowerCase().split("@" + userTag.toLowerCase()).join("");
+						if(guild != undefined){
+							owner = this.getUser(guild.ownerId);
+							while(chatboxValueWithoutMentions.split(" ").includes("@owner")){
+								chatboxValue = chatboxValue.replace(new RegExp("@owner", "ig"), "@" + owner.tag);
+								chatboxValueWithoutMentions = chatboxValueWithoutMentions.split("@owner").join("");
 							}
 						}
 					}

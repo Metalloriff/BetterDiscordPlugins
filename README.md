@@ -41,3 +41,7 @@
 ## [View Guild Relationships](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ViewGuildRelationships.plugin.js)
 - Adds a 'View Relationships' button to the guild dropdown menu that opens a list of all friends, requested friends, and blocked users in the server.
 - [View Preview](https://imgur.com/a/agdcU)
+
+## [Guild And Friend Removal Alerts](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js)
+- Alerts you when a guild or friend is removed.
+- [View Preview](https://imgur.com/a/US7K9)

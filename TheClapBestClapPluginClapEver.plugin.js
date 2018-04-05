@@ -3,8 +3,8 @@
 class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
-    getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis. You can also do \"clapclap(some_emote_name):\"."; }
-    getVersion() { return "0.1.1"; }
+	getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis. You can also do \"clapclap(some_emote_name):\" to use custom emotes, and \"ra:\" to replace all characters with regional indicators."; }
+    getVersion() { return "0.2.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -46,6 +46,17 @@ class TheClapBestClapPluginClapEver {
 						chatboxValue = chatboxValue.replace(getClapClap, "").split(" ").join(emote);
 						if(chatboxValue.startsWith(emote))
 							chatboxValue += emote;
+					}
+					if(chatboxValue.startsWith("ra:")){
+						var alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", temp = chatboxValue;
+						temp = temp.split(" ").join("\t");
+						for(var i = 0; i < alphabet.length; i++)
+							temp = temp.replace("ra:", "").split(alphabet[i]).join("[a" + i + "]");
+						for(var i = 0; i < alphabet.length; i++)
+							temp = temp.split("[a" + i + "]").join(":regional_indicator_" + alphabet[i].toLowerCase() + ": ");
+						temp = temp.split("?").join(":question:");
+						console.log(temp);
+						chatboxValue = temp;
 					}
 					chatbox.focus();
 					chatbox.select();

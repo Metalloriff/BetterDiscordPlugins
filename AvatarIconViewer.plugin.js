@@ -9,7 +9,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.3.7"; }
+    getVersion() { return "0.4.9"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -35,63 +35,52 @@ class AvatarIconViewer {
 	
 	onContextMenu(e) {
 		if(this.clickedTooSoon == false){
-			var target = e.target, context = $(".contextMenu-uoJTbz")[0], messageGroup = null, userData = null, memberElement, createContext = false, viewLabel, copyLabel;
+			var target = e.target, context = $(".contextMenu-uoJTbz")[0], viewLabel, copyLabel;
 			if(context){
-				$(".member-2FrNV0").toArray().forEach(function(e){
-					if(e.outerHTML.includes(target.outerHTML))
-						memberElement = e;
-				});
-				if(memberElement == null){
-					$(".draggable-3SphXU").toArray().forEach(function(e){
-						if(e.outerHTML.includes(target.outerHTML))
-							memberElement = e;
-					});
-					$(".channel.private").toArray().forEach(function(e){
-						if(e.outerHTML.includes(target.outerHTML))
-							memberElement = e;
-					});
-					$(".message-group").toArray().forEach(function(e){
-						if(e.outerHTML.includes(target.outerHTML))
-							messageGroup = e;
-					});
-				}
-				if(messageGroup != null){
+				this.url = "";
+				if(target.className == "markup")
+					return;
+				var messageGroup = $(target).parents(".message-group"), ownerInstance = ReactUtilities.getOwnerInstance(target),
+					member = $(target).parents(".member-2FrNV0"), dm = $(target).parents(".channel.private");
+				if(messageGroup.length){
 					var messages = ReactUtilities.getReactInstance(messageGroup).return.memoizedProps.messages;
 					if(messages != null && messages.length > 0)
-						userData = messages[0].author;
+						this.url = messages[0].author.getAvatarURL();
+					if(ReactUtilities.getOwnerInstance(messageGroup).state.animatedAvatar)
+						this.url = this.url.replace(".png", ".gif");
+				}
+				if(member.length){
+					var user = ReactUtilities.getOwnerInstance(member).props.user;
+					this.url = user.getAvatarURL();
+					if(user.avatar.startsWith("a_"))
+						this.url = this.url.replace(".png", ".gif");
+				}
+				if(dm.length){
+					this.url = this.getBetween(dm.find(".avatar-small")[0].style.backgroundImage, "url(\"", "\")");
+					if(this.url.includes("/a_"))
+						this.url = this.url.replace(".png", ".gif");
 				}
 				if(target.style.backgroundImage.includes("/icons/")){
 					this.url = this.getBetween(target.outerHTML, "url(&quot;", "&quot;)") + "?size=2048";
 					viewLabel = "View Icon";
 					copyLabel = "Copy Icon URL";
-					createContext = true;
-				}else if(target.className.includes("avatar") || (userData != null && target.className == "user-name") || memberElement != null){
-					if(target.className.includes("avatar"))
-						this.url = this.getBetween(target.outerHTML, "url(&quot;", "&quot;)");
-					else if(userData != null)
-						this.url = userData.getAvatarURL();
-					else
-						this.url = this.getBetween(memberElement.outerHTML, "url(&quot;", "&quot;)");
+				}else if(target.className.includes("emoji")){
+					this.url = target.src;
+					viewLabel = "View Emote";
+				}else if(this.url != ""){
 					if(this.url.includes("?"))
 						this.url = this.url.substr(0, this.url.indexOf("?"));
 					this.url += "?size=2048";
 					viewLabel = "View Avatar";
 					copyLabel = "Copy Avatar URL";
-					createContext = true;
-				}else if(target.className.includes("emoji")){
-					this.url = target.src;
-					viewLabel = "View Emote";
-					createContext = true;
 				}
-				if(createContext){
-					if(viewLabel){
-						$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
-						$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
-					}
-					if(copyLabel){
-						$(context.firstChild).append(`<div id="aic-copy-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
-						$("#aic-copy-button").on("click", e => { this.copyURL(e); });
-					}
+				if(viewLabel){
+					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
+					$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
+				}
+				if(copyLabel){
+					$(context.firstChild).append(`<div id="aic-copy-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
+					$("#aic-copy-button").on("click", e => { this.copyURL(e); });
 				}
 			}
 			setTimeout(e => {

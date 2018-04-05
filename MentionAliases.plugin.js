@@ -22,7 +22,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.2.9"; }
+    getVersion() { return "0.2.10"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -88,7 +88,7 @@ class MentionAliases {
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
 		BdApi.injectCSS("MentionAliases",
-		`.username-MwOsla, .channel-members .botTag-1OwMgs + .channel-members .botTag-1OwMgs { font-size: 15px; }
+		`.username-MwOsla, .members-1bid1J .botTag-1OwMgs + .members-1bid1J .botTag-1OwMgs { font-size: 15px; }
 		.memberInner-3XUq9K { width: 160px; }
 		.nameTag-26T3kW { white-space: normal; }
 		.member-2FrNV0 { height: auto; }`);
@@ -132,7 +132,7 @@ class MentionAliases {
 			return;
 		this.attach();
 		this.scanMembers();
-		var channelList = $(".scroller-fzNley.channel-members");
+		var channelList = $(".scroller-fzNley.members-1bid1J");
 		if(channelList.length){
 			channelList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
@@ -274,7 +274,7 @@ class MentionAliases {
 		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");
-		$(".scroller-fzNley.channel-members").off("DOMNodeInserted.MentionAliases");
+		$(".scroller-fzNley.members-1bid1J").off("DOMNodeInserted.MentionAliases");
 		$(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div").off("DOMNodeInserted.MentionAliases");
 		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
 		if(this.messageObserver != null)

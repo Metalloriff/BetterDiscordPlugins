@@ -22,8 +22,8 @@
 - Allows you to set birthdays for users and get notified when it's a user's birthday.
 - [View Preview](https://imgur.com/a/ydrqP)
 
-## [Better Emote Sizes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)
-- Increases the size of emotes upon hovering over them, and allows you to set a default and hover size for large and small emotes.
+## [Emote Zoom](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)
+- Increases the size of emotes upon hovering over them.
 - [View Preview](https://imgur.com/a/r197T)
 
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)

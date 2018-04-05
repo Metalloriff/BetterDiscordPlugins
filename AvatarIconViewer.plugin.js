@@ -9,7 +9,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.4.9"; }
+    getVersion() { return "0.4.11"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -38,10 +38,10 @@ class AvatarIconViewer {
 			var target = e.target, context = $(".contextMenu-uoJTbz")[0], viewLabel, copyLabel;
 			if(context){
 				this.url = "";
-				if(target.className == "markup")
-					return;
 				var messageGroup = $(target).parents(".message-group"), ownerInstance = ReactUtilities.getOwnerInstance(target),
-					member = $(target).parents(".member-2FrNV0"), dm = $(target).parents(".channel.private");
+					member = $(target).parents(".member-2FrNV0"), dm = $(target).parents(".channel.private, .friends-row").add(".friends-row");
+				if(messageGroup.length && !(target.className.includes("avatar") || target.className.includes("user-name") || target.className.includes("emoji")))
+					return;
 				if(messageGroup.length){
 					var messages = ReactUtilities.getReactInstance(messageGroup).return.memoizedProps.messages;
 					if(messages != null && messages.length > 0)

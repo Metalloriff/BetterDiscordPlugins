@@ -12,7 +12,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.0.4"; }
+    getVersion() { return "1.0.5"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -42,7 +42,11 @@ class BetterEmoteSizes {
 				</button>
 				</div>
 			`);
-			$("#ez-reset-button").on("click", () => { this.setings = this.defaultSettings; });
+			$("#ez-reset-button").on("click", () => {
+				this.setings = this.defaultSettings;
+				$("#ez-hover-size")[0].value = "2";
+				$("#ez-trans-speed")[0].value = "0.5";
+			});
 			$("#ez-save-button").on("click", () => {
 				this.settings.hoverSize = $("#ez-hover-size")[0].value;
 				this.settings.transitionSpeed = $("#ez-trans-speed")[0].value;

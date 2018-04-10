@@ -15,7 +15,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.1.5"; }
+    getVersion() { return "1.1.7"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -130,11 +130,17 @@ class BetterEmoteSizes {
 				width: ` + this.settings.bdSize + `px;
 			}
 			
-			.message-group .emoji:hover, .emote:hover {
+			.message-group .emoji:hover, .emote:hover{
 				transform: scale(` + this.settings.hoverSize + `);
 				position: relative;
 				z-index: 1;
 			}
+			
+			.message-group:last-child > .comment > div:last-child > div.body > div > div.markup > span > img:hover, .message-group:last-child > .comment > div:last-child > div.body > div > div.markup > img:hover {
+				transform: scale(` + this.settings.hoverSize + `) translateY(-30%);
+			}
+
+			.tipsy { transform: translateY(-50px); }
 			
 			.message-group.hide-overflow { overflow: visible; }
 		`);

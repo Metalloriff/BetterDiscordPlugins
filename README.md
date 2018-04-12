@@ -45,3 +45,6 @@
 ## [Guild And Friend Removal Alerts](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js)
 - Alerts you when a guild or friend is removed.
 - [View Preview](https://imgur.com/a/US7K9)
+
+## [Customizable Avatar DPI](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/CustomizableAvatarDPI.plugin.js)
+- Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them.

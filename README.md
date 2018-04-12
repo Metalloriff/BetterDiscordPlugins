@@ -17,6 +17,11 @@
 ## [Discord Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DiscordLogger.plugin.js)
 - Notifies you and logs when you get kicked/banned from a server, when a server is deleted, and when a friend removes you. You can also record servers and it will log users leaving and joining, user nickname changes, role additions, removals, and changes, and channel additions, removals, and changes upon clicking into the server.
 - [View Preview](https://imgur.com/a/R95Hi)
+```diff
+-WARNING: I've abandoned this plugin for many reasons (too broken), and it is being remade as two separate plugins.
+One of them is already made, Guild And Friend Removal Alerts, and the other is still a work in progress.
+You can still use this terribly broken plugin if you wish, but it will never be updated.
+```
 
 ## [User Birthdays](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js)
 - Allows you to set birthdays for users and get notified when it's a user's birthday.

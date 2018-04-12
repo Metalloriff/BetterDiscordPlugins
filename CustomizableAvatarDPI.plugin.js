@@ -13,7 +13,7 @@ class CustomizableAvatarDPI {
 	
     getName() { return "Customizable Avatar DPI"; }
     getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -91,7 +91,7 @@ class CustomizableAvatarDPI {
 				</div>
 			`);
 			$("#cadpi-reset-button").on("click", () => {
-                this.setings = this.defaultSettings;
+                this.settings = this.defaultSettings;
                 $("#cadpi-small")[0].value = "128";
                 $("#cadpi-large")[0].value = "128";
                 $("#cadpi-popout")[0].value = "1024";

@@ -249,6 +249,7 @@ class GuildAndFriendRemovalAlerts {
 						icon : friend.avatar
 					});
 				}
+				save = true;
 			}
 		}
 		if(this.allFriends.length != friends.length){ save = true; }

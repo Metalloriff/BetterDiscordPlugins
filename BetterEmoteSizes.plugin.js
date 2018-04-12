@@ -8,14 +8,15 @@ class BetterEmoteSizes {
 			largeSize : 32,
 			bdSize : 28,
 			hoverSize : 2,
-			transitionSpeed : 0.5
+			transitionSpeed : 0.5,
+			reactionHoverSize : 2
 		};
 		this.settings = this.defaultSettings;
 	}
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.1.7"; }
+    getVersion() { return "1.2.7"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -43,6 +44,9 @@ class BetterEmoteSizes {
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Hover size multiplier:</p>
 				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				
+				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction hover size multiplier:</p>
+				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Transition speed (seconds):</p>
 				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
@@ -57,20 +61,28 @@ class BetterEmoteSizes {
 				</button>
 				</div>
 			`);
+			var hoverSize = document.getElementById("ez-hover-size"),
+				transitionSpeed = document.getElementById("ez-trans-speed"),
+				smallSize = document.getElementById("ez-small-size"),
+				largeSize = document.getElementById("ez-large-size"),
+				bdSize = document.getElementById("ez-bd-size"),
+				reactionHoverSize = document.getElementById("ez-react-hover-size");
 			$("#ez-reset-button").on("click", () => {
 				this.setings = this.defaultSettings;
-				$("#ez-hover-size")[0].value = "2";
-				$("#ez-trans-speed")[0].value = "0.5";
-				$("#ez-small-size")[0].value = "22";
-				$("#ez-large-size")[0].value = "32";
-				$("#ez-bd-size")[0].value = "28";
+				hoverSize.value = "2";
+				transitionSpeed.value = "0.5";
+				smallSize.value = "22";
+				largeSize.value = "32";
+				bdSize.value = "28";
+				reactionHoverSize.value = "2";
 			});
 			$("#ez-save-button").on("click", () => {
-				this.settings.hoverSize = $("#ez-hover-size")[0].value;
-				this.settings.transitionSpeed = $("#ez-trans-speed")[0].value;
-				this.settings.smallSize = $("#ez-small-size")[0].value;
-				this.settings.largeSize = $("#ez-large-size")[0].value;
-				this.settings.bdSize = $("#ez-bd-size")[0].value;
+				this.settings.hoverSize = hoverSize.value;
+				this.settings.transitionSpeed = transitionSpeed.value;
+				this.settings.smallSize = smallSize.value;
+				this.settings.largeSize = largeSize.value;
+				this.settings.bdSize = bdSize.value;
+				this.settings.reactionHoverSize = reactionHoverSize.value;
 				this.saveSettings();
 			});
 		}else
@@ -134,6 +146,15 @@ class BetterEmoteSizes {
 				transform: scale(` + this.settings.hoverSize + `);
 				position: relative;
 				z-index: 1;
+			}
+
+			.reaction .emoji:hover { transform: scale(1); }
+
+			.reaction { transition: transform ` + this.settings.transitionSpeed + `s; }
+
+			.reaction:hover {
+				transform:scale(` + this.settings.reactionHoverSize + `);
+				z-index: 1000;
 			}
 			
 			.message-group:last-child > .comment > div:last-child > div.body > div > div.markup > span > img:hover, .message-group:last-child > .comment > div:last-child > div.body > div > div.markup > img:hover {

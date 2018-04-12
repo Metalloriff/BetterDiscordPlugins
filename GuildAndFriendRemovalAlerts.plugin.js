@@ -20,14 +20,14 @@ class GuildAndFriendRemovalAlerts {
 	
     getName() { return "Guild And Friend Removal Alerts"; }
     getDescription() { return "Alerts you when a guild or friend is removed."; }
-    getVersion() { return "0.1.4"; }
+    getVersion() { return "0.1.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 	
 	getSettingsPanel(){
 		if(!$(".plugin-settings").length)
-			setTimeout(e => { this.getSettingsPanel(e); }, 100);
+			setTimeout(() => { this.getSettingsPanel(); }, 100);
 		else
 			this.createSettingsPanel();
 	}
@@ -91,8 +91,10 @@ class GuildAndFriendRemovalAlerts {
 	}
 	
 	save(){
-		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "guilds", this.settings.guildNotifications ? this.allGuilds : new Array());
-		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "friends", this.settings.friendNotifications ? this.allFriends : new Array());
+		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "data", {
+			guilds : (this.settings.guildNotifications ? this.allGuilds : new Array()),
+			friends : (this.settings.friendNotifications ? this.allFriends : new Array())
+		});
 	}
 
     start() {
@@ -111,8 +113,12 @@ class GuildAndFriendRemovalAlerts {
 	initialize(){
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/GuildAndFriendRemovalAlerts.plugin.js");
 		this.settings = PluginUtilities.loadSettings("GuildAndFriendRemovalAlerts", this.defaultSettings);
-		this.allGuilds = PluginUtilities.loadData("GuildAndFriendRemovalAlerts", "guilds", new Array());
-		this.allFriends = PluginUtilities.loadData("GuildAndFriendRemovalAlerts", "friends", new Array());
+		var data = PluginUtilities.loadData("GuildAndFriendRemovalAlerts", "data", {
+			guilds : new Array(),
+			friends : new Array()
+		});
+		this.allGuilds = data.guilds;
+		this.allFriends = data.friends;
 		this.guildsModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuilds"]);
 		this.friendsModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getFriendIDs"]);
 		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
@@ -121,13 +127,10 @@ class GuildAndFriendRemovalAlerts {
 			observer.observe($(".guilds.scroller")[0], { childList : true });
 			this.guildsObserver = observer;
 		}
-		this.checkLoop();
-	}
-	
-	checkLoop(){
-		this.checkGuilds();
-		this.checkFriends();
-		this.checkLoopFunc = setTimeout(() => { this.checkLoop(); }, 5000);
+		this.checkLoopFunc = setInterval(() => {
+			this.checkGuilds();
+			this.checkFriends();
+		}, 5000);
 	}
 	
 	getGuilds(){
@@ -261,7 +264,7 @@ class GuildAndFriendRemovalAlerts {
 		if(this.guildsObserver != undefined)
 			this.guildsObserver.disconnect();
 		if(this.checkLoopFunc != undefined)
-			clearTimeout(this.checkLoopFunc);
+			clearInterval(this.checkLoopFunc);
 	}
 	
 }

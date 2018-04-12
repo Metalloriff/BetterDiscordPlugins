@@ -8,7 +8,7 @@ class GuildAndFriendRemovalAlerts {
 			friendNotifications: true,
 			windowsNotifications : true
 		};
-		this.settings = this.defaultSettings;
+		this.settings;
 		this.allGuilds = new Array();
 		this.allFriends = new Array();
 		this.guildsModule;
@@ -20,7 +20,7 @@ class GuildAndFriendRemovalAlerts {
 	
     getName() { return "Guild And Friend Removal Alerts"; }
     getDescription() { return "Alerts you when a guild or friend is removed."; }
-    getVersion() { return "0.1.3"; }
+    getVersion() { return "0.1.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -79,15 +79,18 @@ class GuildAndFriendRemovalAlerts {
 					$("#ra-checkbox-ticked-2").hide();
 				if(this.settings.windowsNotifications == false)
 					$("#ra-checkbox-ticked-3").hide();
-				$("#ra-checkbox-1").on("click", e => { $("#ra-checkbox-ticked-1").toggle(); this.settings.guildNotifications = !this.settings.guildNotifications; this.save(); });
-				$("#ra-checkbox-2").on("click", e => { $("#ra-checkbox-ticked-2").toggle(); this.settings.friendNotifications = !this.settings.friendNotifications; this.save(); });
-				$("#ra-checkbox-3").on("click", e => { $("#ra-checkbox-ticked-3").toggle(); this.settings.windowsNotifications = !this.settings.windowsNotifications; this.save(); });
+				$("#ra-checkbox-1").on("click", e => { $("#ra-checkbox-ticked-1").toggle(); this.settings.guildNotifications = !this.settings.guildNotifications; this.saveSettings(); });
+				$("#ra-checkbox-2").on("click", e => { $("#ra-checkbox-ticked-2").toggle(); this.settings.friendNotifications = !this.settings.friendNotifications; this.saveSettings(); });
+				$("#ra-checkbox-3").on("click", e => { $("#ra-checkbox-ticked-3").toggle(); this.settings.windowsNotifications = !this.settings.windowsNotifications; this.saveSettings(); });
 		}else
 			this.getSettingsPanel();
 	}
+
+	saveSettings(){
+		PluginUtilities.saveSettings("GuildAndFriendRemovalAlerts", this.settings);
+	}
 	
 	save(){
-		PluginUtilities.saveSettings("GuildAndFriendRemovalAlerts", this.settings);
 		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "guilds", this.settings.guildNotifications ? this.allGuilds : new Array());
 		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "friends", this.settings.friendNotifications ? this.allFriends : new Array());
 	}
@@ -124,7 +127,6 @@ class GuildAndFriendRemovalAlerts {
 	checkLoop(){
 		this.checkGuilds();
 		this.checkFriends();
-		this.save();
 		this.checkLoopFunc = setTimeout(() => { this.checkLoop(); }, 5000);
 	}
 	
@@ -142,7 +144,7 @@ class GuildAndFriendRemovalAlerts {
 	checkGuilds(){
 		if(this.settings.guildNotifications == false)
 			return;
-		var guilds = this.getGuilds(), guildIDs = Array.from(guilds, x => x.id), app = $(".app").last();
+		var guilds = this.getGuilds(), guildIDs = Array.from(guilds, x => x.id), app = $(".app").last(), save = false;
 		if(guilds.length == 0){
 			setTimeout(() => this.checkGuilds(), 5000);
 			return;
@@ -186,9 +188,12 @@ class GuildAndFriendRemovalAlerts {
 						icon : guild.icon
 					});
 				}
+				save = true;
 			}
 		}
+		if(this.allGuilds.length != guilds.length){ save = true; }
 		this.allGuilds = guilds;
+		if(save == true){ this.save(); }
 	}
 	
 	getFriends(){
@@ -204,7 +209,7 @@ class GuildAndFriendRemovalAlerts {
 	checkFriends(){
 		if(this.settings.friendNotifications == false)
 			return;
-		var friends = this.getFriends(), friendIDs = Array.from(friends, x => x.id), app = $(".app").last();
+		var friends = this.getFriends(), friendIDs = Array.from(friends, x => x.id), app = $(".app").last(), save = false;
 		if(friends.length == 0){
 			setTimeout(() => this.checkFriends(), 5000);
 			return;
@@ -246,7 +251,9 @@ class GuildAndFriendRemovalAlerts {
 				}
 			}
 		}
+		if(this.allFriends.length != friends.length){ save = true; }
 		this.allFriends = friends;
+		if(save == true){ this.save(); }
 	}
 	
     stop() {

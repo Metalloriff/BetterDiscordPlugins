@@ -53,3 +53,7 @@ You can still use this terribly broken plugin if you wish, but it will never be 
 
 ## [Customizable Avatar DPI](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/CustomizableAvatarDPI.plugin.js)
 - Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them.
+
+## [Transitioning Backgrounds](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js)
+- Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random.
+- [View Preview](https://imgur.com/a/UdM2j)

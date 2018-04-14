@@ -3,6 +3,7 @@
 class CustomizableAvatarDPI {
 	
 	constructor() {
+        this.initialized = false;
 		this.defaultSettings = {
             popoutAvatarSize : 1024,
             largeAvatarSize : 128,
@@ -13,7 +14,7 @@ class CustomizableAvatarDPI {
 	
     getName() { return "Customizable Avatar DPI"; }
     getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -111,9 +112,12 @@ class CustomizableAvatarDPI {
 	initialize(){
         PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/CustomizableAvatarDPI.plugin.js");
         this.settings = PluginUtilities.loadSettings("CustomizableAvatarDPI", this.defaultSettings);
+        this.initialized = true;
 	}
 
     observer(e) {
+        if(!this.initialized)
+            return;
         var nodes = $(e.addedNodes),
             largeAvatars = nodes.find(".avatar-large"),
             popoutAvatars = nodes.find(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW"),

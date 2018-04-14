@@ -17,7 +17,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.3.7"; }
+    getVersion() { return "1.3.8"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -44,13 +44,13 @@ class BetterEmoteSizes {
 				<input id="ez-bd-size" value="` + this.settings.bdSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction intial size (px):</p>
-				<input id="ez-bd-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-react-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Hover size multiplier:</p>
 				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction hover size multiplier:</p>
-				<input id="ez-react-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Transition speed (seconds):</p>
 				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">

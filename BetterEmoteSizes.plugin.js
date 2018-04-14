@@ -7,6 +7,7 @@ class BetterEmoteSizes {
 			smallSize : 22,
 			largeSize : 32,
 			bdSize : 28,
+			reactionSize : 16,
 			hoverSize : 2,
 			transitionSpeed : 0.5,
 			reactionHoverSize : 2
@@ -16,7 +17,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.2.7"; }
+    getVersion() { return "1.3.7"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -41,12 +42,15 @@ class BetterEmoteSizes {
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">BD emote intial size (px):</p>
 				<input id="ez-bd-size" value="` + this.settings.bdSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+
+				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction intial size (px):</p>
+				<input id="ez-bd-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Hover size multiplier:</p>
 				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction hover size multiplier:</p>
-				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-react-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Transition speed (seconds):</p>
 				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
@@ -66,6 +70,7 @@ class BetterEmoteSizes {
 				smallSize = document.getElementById("ez-small-size"),
 				largeSize = document.getElementById("ez-large-size"),
 				bdSize = document.getElementById("ez-bd-size"),
+				reactionSize = document.getElementById("ez-react-size"),
 				reactionHoverSize = document.getElementById("ez-react-hover-size");
 			$("#ez-reset-button").on("click", () => {
 				this.setings = this.defaultSettings;
@@ -74,6 +79,7 @@ class BetterEmoteSizes {
 				smallSize.value = "22";
 				largeSize.value = "32";
 				bdSize.value = "28";
+				reactionSize.value = "16";
 				reactionHoverSize.value = "2";
 			});
 			$("#ez-save-button").on("click", () => {
@@ -82,6 +88,7 @@ class BetterEmoteSizes {
 				this.settings.smallSize = smallSize.value;
 				this.settings.largeSize = largeSize.value;
 				this.settings.bdSize = bdSize.value;
+				this.settings.reactionSize = reactionSize.value;
 				this.settings.reactionHoverSize = reactionHoverSize.value;
 				this.saveSettings();
 			});
@@ -135,6 +142,13 @@ class BetterEmoteSizes {
 				min-width: ` + this.settings.largeSize + `px;
 				height: ` + this.settings.largeSize + `px;
 				width: ` + this.settings.largeSize + `px;
+			}
+
+			.reaction .emoji, .reaction .reaction-me .emoji {
+				min-height: ` + this.settings.reactionSize + `px;
+				min-width: ` + this.settings.reactionSize + `px;
+				height: ` + this.settings.reactionSize + `px;
+				width: ` + this.settings.reactionSize + `px;
 			}
 
 			.emote {

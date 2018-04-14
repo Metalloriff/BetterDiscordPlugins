@@ -21,7 +21,7 @@ class TransitioningBackgrounds {
 	
     getName() { return "Transitioning Backgrounds"; }
     getDescription() { return "Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -236,6 +236,10 @@ class TransitioningBackgrounds {
                 </div>
                 </div>
                 </div>
+
+                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4" style="color: blueviolet;word-spacing: 5px;padding-top:30px;">Hint: you can edit the background element using the .transitioning-background class, and you can change the behaviour of each fade method with CSS as well.
+                
+                Search the inspector for "TransitioningBackgrounds" to see all available classes.</h5>
             `);
 
             var updateTransitionMethod = () => {
@@ -327,9 +331,10 @@ class TransitioningBackgrounds {
 			this.getSettingsPanel();
 	}
 
-    saveSettings(){
+    saveSettings(reload = true){
         PluginUtilities.saveSettings("TransitioningBackgrounds", this.settings);
-        this.apply();
+        if(reload)
+            this.apply();
     }
 	
 	initialize(){
@@ -337,6 +342,7 @@ class TransitioningBackgrounds {
         this.settings = PluginUtilities.loadSettings("TransitioningBackgrounds", this.defaultSettings);
         $(window).on("focus.TransitioningBackgrounds", () => { this.focused = true; });
         $(window).on("blur.TransitioningBackgrounds", () => { this.focused = false; });
+        $(document).on("contextmenu.TransitioningBackgrounds", e => { this.onContextMenu(e); })
         this.apply();
     }
     
@@ -407,12 +413,43 @@ class TransitioningBackgrounds {
         }
         this.index = nextIndex;
     }
+
+    onContextMenu(e){
+        var image = undefined, contextMenu = $(".contextMenu-uoJTbz"), elementURL = undefined;
+        if(e.target.localName == "a"){ elementURL = e.target.href; }
+        if(e.target.localName == "img"){ elementURL = e.target.src; }
+        if(elementURL.lastIndexOf("?") != -1){ elementURL = elementURL.substring(0, elementURL.lastIndexOf("?")); }
+        if(elementURL != undefined && (elementURL.endsWith(".jpg") || elementURL.endsWith(".png") || elementURL.endsWith(".gif") || elementURL.endsWith(".jpeg"))){
+            image = elementURL;
+        }
+        $("#tb-contextmenu-addremove").remove();
+        if(image != undefined && contextMenu.length){
+            if(this.settings.images.includes(image)){
+                contextMenu.prepend(`<div id="tb-contextmenu-addremove" class="itemGroup-oViAgA"><div class="item-1XYaYf"><span>Remove Background</span></div></div>`);
+                $("#tb-contextmenu-addremove").on("click", () => {
+                    this.settings.images.splice(this.settings.images.indexOf(image), 1);
+                    this.saveSettings(false);
+                    PluginUtilities.showToast("Image removed from background list!", { type : "success" });
+                    this.onContextMenu(e);
+                });
+            }else{
+                contextMenu.prepend(`<div id="tb-contextmenu-addremove" class="itemGroup-oViAgA"><div class="item-1XYaYf"><span>Add As Background</span></div></div>`);
+                $("#tb-contextmenu-addremove").on("click", () => {
+                    this.settings.images.push(image);
+                    this.saveSettings(false);
+                    PluginUtilities.showToast("Image added to background list!", { type : "success" });
+                    this.onContextMenu(e);
+                });
+            }
+        }
+    }
 	
     stop() {
         clearInterval(this.loop);
         clearTimeout(this.removeTimeout);
         $(window).off("focus.TransitioningBackgrounds");
         $(window).off("blur.TransitioningBackgrounds");
+        $(document).off("contextmenu.TransitioningBackgrounds");
         BdApi.clearCSS("TransitioningBackgroundsTransparency");
         BdApi.clearCSS("TransitioningBackgrounds");
     }

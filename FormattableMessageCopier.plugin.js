@@ -258,7 +258,7 @@ class FormattableMessageCopier {
     }
     
     onClick(e){
-        if(!e.target.className && !e.target.className.includes("message-group") && e.target.className != "old-h2")
+        if(!e.target.className || (!e.target.className.includes("message-group") && e.target.className != "old-h2"))
             return;
         var messageGroup = undefined;
         if(e.target.className.includes("message-group")){

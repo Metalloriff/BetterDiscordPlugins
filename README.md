@@ -60,5 +60,5 @@ You can still use this terribly broken plugin if you wish, but it will never be 
 
 ## [Formattable Message Copier](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/FormattableMessageCopier.plugin.js)
 - Allows you to select messages in a chat to copy them in a customizable format.
-Double click the top of a message group to select it, then shift click to the next point to append all message groups between, or ctrl click another message group to append a single group.
+Double click the top of a message group to select it, then shift click to the next point to select all message groups between, or ctrl click another message group to append a single group to the selection.
 - [View Preview](https://imgur.com/a/yvP73)

@@ -57,3 +57,8 @@ You can still use this terribly broken plugin if you wish, but it will never be 
 ## [Transitioning Backgrounds](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js)
 - Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random.
 - [View Preview](https://imgur.com/a/UdM2j)
+
+## [Formattable Message Copier](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/FormattableMessageCopier.plugin.js)
+- Allows you to select messages in a chat to copy them in a customizable format.
+Double click the top of a message group to select it, then shift click to the next point to append all message groups between, or ctrl click another message group to append a single group.
+- [View Preview](https://imgur.com/a/yvP73)

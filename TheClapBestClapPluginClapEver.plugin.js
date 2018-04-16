@@ -3,8 +3,8 @@
 class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
-	getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis. You can also do \"clapclap(some_emote_name):\" to use custom emotes, and \"ra:\" to replace all characters with regional indicators."; }
-    getVersion() { return "0.2.1"; }
+	getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis. You can also do \"clapclap(some_emote_name):\" to use custom emotes, \"ra:\" to replace all characters with regional indicators, and \"reverse:\" to reverse the message."; }
+    getVersion() { return "0.3.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -55,9 +55,10 @@ class TheClapBestClapPluginClapEver {
 						for(var i = 0; i < alphabet.length; i++)
 							temp = temp.split("[a" + i + "]").join(":regional_indicator_" + alphabet[i].toLowerCase() + ": ");
 						temp = temp.split("?").join(":question:");
-						console.log(temp);
 						chatboxValue = temp;
 					}
+					if(chatboxValue.startsWith("reverse:"))
+						chatboxValue = chatboxValue.replace("reverse:", "").split("").reverse().join("");
 					chatbox.focus();
 					chatbox.select();
 					document.execCommand("insertText", false, chatboxValue);

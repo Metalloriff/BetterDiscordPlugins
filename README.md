@@ -32,7 +32,7 @@ You can still use this terribly broken plugin if you wish, but it will never be 
 - [View Preview](https://imgur.com/a/r197T)
 
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
-- Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):".
+- Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "ra:" to replace all characters with regional indicators, and "reverse:" to reverse the message.
 - [View Preview](https://imgur.com/a/9nGWn)
 
 ## [Mention Aliases](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js)

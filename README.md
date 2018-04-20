@@ -66,5 +66,5 @@ Double click the top of a message group to select it, then shift click to the ne
 - [View Preview](https://imgur.com/a/yvP73)
 
 ## [Selected Channel Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SelectedChannelNotifications.plugin.js)
-- Plays a notification sound and shows a notification (both optional) when a message is recieved in the selected channel.
+- Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel.
 - [View Preview](https://i.imgur.com/roBx2GU.png)

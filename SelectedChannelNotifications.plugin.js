@@ -122,7 +122,7 @@ class SelectedChannelNotifications {
 	}
 	
     getName() { return "Selected Channel Notifications"; }
-    getDescription() { return "Plays a notification sound and shows a notification (both optional) when a message is recieved in the selected channel."; }
+    getDescription() { return "Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel."; }
     getVersion() { return "0.0.1"; }
     getAuthor() { return "Metalloriff"; }
 

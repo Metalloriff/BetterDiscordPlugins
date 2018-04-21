@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see."; }
-    getVersion() { return "0.1.1"; }
+    getVersion() { return "0.2.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -35,7 +35,11 @@ class SendBDEmotes {
 				if(e.which == 13 && !e.shiftKey && chatbox.value){
                     var chatboxValue = chatbox.value, words = chatboxValue.split(" "), lastWord = words[words.length - 1];
                     if(lastWord.startsWith("[") && lastWord.endsWith("]")){
-                        var emoteName = lastWord.substring(1, lastWord.length - 1), emote = window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.BTTV2[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.TwitchGlobal[emoteName];
+                        var emoteName = lastWord.substring(1, lastWord.length - 1), emote = window.bdEmotes.TwitchGlobal[emoteName] || window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.BTTV2[emoteName];
+						if(emoteName.includes(".")){
+							var sourceAndName = emoteName.split(".");
+							emote = window.bdEmotes[sourceAndName[0]][sourceAndName[1]];
+						}
                         if(emote != undefined){
                             var i = emote.lastIndexOf("1");
 

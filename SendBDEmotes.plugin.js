@@ -2,13 +2,9 @@
 
 class SendBDEmotes {
 	
-	constructor() {
-		this.emotes;
-	}
-	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -28,7 +24,6 @@ class SendBDEmotes {
 	
 	initialize(){
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SendBDEmotes.plugin.js");
-        this.emotes = InternalUtilities.WebpackModules.findByUniqueProperties(["bdEmotes"]).bdEmotes;
         this.onSwitch();
 	}
 
@@ -38,13 +33,15 @@ class SendBDEmotes {
 			var chatbox = chatboxJQ[0];
 			chatboxJQ.on("keydown.SendBDEmotes", e => {
 				if(e.which == 13 && !e.shiftKey && chatbox.value){
-                    var chatboxValue = chatbox.value;
-                    if(chatboxValue.startsWith("[") && chatboxValue.endsWith("]")){
-                        var emoteName = chatboxValue.substring(1, chatboxValue.length - 1), emote = this.emotes.TwitchSubscriber[emoteName] || this.emotes.BTTV[emoteName] || this.emotes.BTTV2[emoteName] || this.emotes.FrankerFaceZ[emoteName] || this.emotes.TwitchGlobal[emoteName];
+                    var chatboxValue = chatbox.value, words = chatboxValue.split(" "), lastWord = words[words.length - 1];
+                    if(lastWord.startsWith("[") && lastWord.endsWith("]")){
+                        var emoteName = lastWord.substring(1, lastWord.length - 1), emote = window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.BTTV2[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.TwitchGlobal[emoteName];
                         if(emote != undefined){
                             var i = emote.lastIndexOf("1");
 
-                            chatboxValue = emote.substring(0, i) + (emote.includes("cdn.frankerfacez.com") ? "4" : "3") + emote.substring(i + 1);
+							words[words.length - 1] = emote.substring(0, i) + (emote.includes("cdn.frankerfacez.com") ? "4" : "3") + emote.substring(i + 1);
+							
+							chatboxValue = words.join(" ");
 
                             chatbox.focus();
                             chatbox.select();

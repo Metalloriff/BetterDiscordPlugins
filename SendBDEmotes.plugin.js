@@ -44,7 +44,7 @@ class SendBDEmotes {
                         if(emote != undefined){
                             var i = emote.lastIndexOf("1");
 
-                            chatboxValue = emote.substring(0, i) + "3" + emote.substring(i + 1);
+                            chatboxValue = emote.substring(0, i) + (emote.includes("cdn.frankerfacez.com") ? "4" : "3") + emote.substring(i + 1);
 
                             chatbox.focus();
                             chatbox.select();

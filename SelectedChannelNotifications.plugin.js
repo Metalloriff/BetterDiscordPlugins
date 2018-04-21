@@ -123,7 +123,7 @@ class SelectedChannelNotifications {
 	
     getName() { return "Selected Channel Notifications"; }
     getDescription() { return "Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -171,10 +171,12 @@ class SelectedChannelNotifications {
             if(!this.focused){
                 var latestMessageGroupMessages = ReactUtilities.getOwnerInstance($(".message-group").last()[0]).props.messages,
                 latestMessage = latestMessageGroupMessages[latestMessageGroupMessages.length - 1];
-                if(this.settings.displayNotification == true){
-                    new Notification((latestMessage.nick == undefined ? latestMessage.author.username : latestMessage.nick) + " - #" + this.currentChannel.name, { silent : true, body : latestMessage.content, icon : latestMessage.author.getAvatarURL() });
+                if(latestMessage.author.id != PluginUtilities.getCurrentUser().id){
+                    if(this.settings.displayNotification == true){
+                        new Notification((latestMessage.nick == undefined ? latestMessage.author.username : latestMessage.nick) + " - #" + this.currentChannel.name, { silent : true, body : latestMessage.content, icon : latestMessage.author.getAvatarURL() });
+                    }
+                    if(this.settings.playSound == true){ this.audio.play(); }
                 }
-                if(this.settings.playSound == true){ this.audio.play(); }
             }
         });
         this.messageObserver.observe(messageScroller[0], { childList : true });

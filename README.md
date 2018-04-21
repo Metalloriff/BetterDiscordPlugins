@@ -68,3 +68,7 @@ Double click the top of a message group to select it, then shift click to the ne
 ## [Selected Channel Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SelectedChannelNotifications.plugin.js)
 - Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel.
 - [View Preview](https://i.imgur.com/roBx2GU.png)
+
+## [Send BD Emotes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SendBDEmotes.plugin.js)
+- Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see.
+- [View Preview](https://i.imgur.com/4y8A41g.gifv)

@@ -40,13 +40,16 @@ class SendBDEmotes {
 				if(e.which == 13 && !e.shiftKey && chatbox.value){
                     var chatboxValue = chatbox.value;
                     if(chatboxValue.startsWith("[") && chatboxValue.endsWith("]")){
-                        var emoteName = chatboxValue.substring(1, chatboxValue.length - 1), emote = this.emotes.TwitchSubscriber[emoteName] || this.emotes.BTTV[emoteName] || this.emotes.BTTV2[emoteName] || this.emotes.FrankerFaceZ[emoteName] || this.emotes.TwitchGlobal[emoteName], i = emote.lastIndexOf("1");
+                        var emoteName = chatboxValue.substring(1, chatboxValue.length - 1), emote = this.emotes.TwitchSubscriber[emoteName] || this.emotes.BTTV[emoteName] || this.emotes.BTTV2[emoteName] || this.emotes.FrankerFaceZ[emoteName] || this.emotes.TwitchGlobal[emoteName];
+                        if(emote != undefined){
+                            var i = emote.lastIndexOf("1");
 
-                        chatboxValue = emote.substring(0, i) + "3" + emote.substring(i + 1);
+                            chatboxValue = emote.substring(0, i) + "3" + emote.substring(i + 1);
 
-                        chatbox.focus();
-                        chatbox.select();
-                        document.execCommand("insertText", false, chatboxValue);
+                            chatbox.focus();
+                            chatbox.select();
+                            document.execCommand("insertText", false, chatboxValue);
+                        }
                     }
 				}
 			});

@@ -8,6 +8,7 @@ class MentionAliases {
 		this.usersInServer = new Array();
 		this.displayTags = true;
 		this.displayButton = true;
+		this.displayUpdateNotes = true;
 		this.messageObserver = null;
 		this.popoutObserver = null;
 		this.userModule;
@@ -24,7 +25,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.4.11"; }
+    getVersion() { return "0.5.12"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -41,9 +42,16 @@ class MentionAliases {
 				<div class="checkbox-inner"><input id="ma-displayButton" type="checkbox"` + (this.displayButton ? "checked" : "") + `><span></span></div>
 				<span style="color: rgb(255, 255, 255);">Display alias list button (you can still open the list with Ctrl+Shift+@)</span>
 			</div>
+			<div onclick="var e = $('#ma-displayUpdateNotes')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
+				<div class="checkbox-inner"><input id="ma-displayUpdateNotes" type="checkbox"` + (this.displayUpdateNotes ? "checked" : "") + `><span></span></div>
+				<span style="color: rgb(255, 255, 255);">Display new changes for every update</span>
+			</div>
 			<div style="text-align: center;">
 				<br>
-				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button onclick="BdApi.getPlugin('Mention Aliases').createChangeWindow();" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+					<div class="contents-4L4hQM">View Changelog</div>
+				</button>
+				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
 					<div class="contents-4L4hQM">Reset All Aliases & Settings</div>
 				</button>
 				<button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
@@ -70,9 +78,11 @@ class MentionAliases {
 		this.aliases = new Array();
 		this.displayTags = true;
 		this.displayButton = true;
+		this.displayUpdateNotes = true;
 		if(fromSettings){
 			document.getElementById("ma-displayTags").checked = true;
 			document.getElementById("ma-displayButton").checked = true;
+			document.getElementById("ma-displayUpdateNotes").checked = true;
 			this.save(true);
 		}
 	}
@@ -81,8 +91,9 @@ class MentionAliases {
 		if(fromSettings === true){
 			this.displayTags = document.getElementById("ma-displayTags").checked;
 			this.displayButton = document.getElementById("ma-displayButton").checked;
+			this.displayUpdateNotes = document.getElementById("ma-displayUpdateNotes").checked;
 		}
-		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton });
+		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayUpdateNotes : this.displayUpdateNotes });
 	}
 	
 	initialize(){
@@ -91,7 +102,7 @@ class MentionAliases {
 		this.memberModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getMembers"]);
 		this.guildModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]);
 		this.reset(false);
-		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton });
+		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayUpdateNotes : this.displayUpdateNotes });
 		this.aliases = data.aliases;
 		var updatedAliases = new Object();
 		if(this.aliases.length != undefined){
@@ -102,6 +113,7 @@ class MentionAliases {
 		}
 		this.displayTags = data.displayTags;
 		this.displayButton = data.displayButton;
+		this.displayUpdateNotes = data.displayUpdateNotes;
 		this.initialized = true;
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
@@ -193,7 +205,7 @@ class MentionAliases {
 			}
 		});
 		this.popoutObserver.observe(document.getElementsByClassName("popouts-1TN9u9")[0], { childList : true });
-		this.compareVersions();
+		if(this.displayUpdateNotes == true){ this.compareVersions(); }
 	}
 	
 	updateAlias(userID, newAlias){
@@ -224,8 +236,14 @@ class MentionAliases {
 
 	onWindowResize(){
 		var chatbox = $(".inner-3if5cm")[0];
-		chatbox.style.width = "";
-		chatbox.style.width = (chatbox.getBoundingClientRect().width - 40) + "px";
+		if(chatbox != undefined){
+			chatbox.style.width = "";
+			chatbox.style.width = (chatbox.getBoundingClientRect().width - 40) + "px";
+		}else{
+			setTimeout(() => {
+				this.onWindowResize();
+			}, 1000);
+		}
 		if($(".ma-alias-menu").length){ $(".ma-alias-menu")[0].style.left = ($(".ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
 	}
 	
@@ -233,8 +251,10 @@ class MentionAliases {
 		if(!this.initialized)
 			return;
 		$(".ma-alias-menu").remove();
+
 		this.attach();
 		this.scanMembers();
+
 		var channelList = $(".scroller-fzNley.members-1bid1J");
 		if(channelList.length){
 			channelList.off("DOMNodeInserted.MentionAliases");
@@ -247,11 +267,13 @@ class MentionAliases {
 					this.updateMember($(members[i]));
 			}
 		}
+
 		if($(".messages.scroller").length){
 			this.messageObserver = new MutationObserver(() => { this.updateMessages(); this.scanMembers(); });
 			this.messageObserver.observe($(".messages.scroller")[0], { childList : true });
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
+		
 		var dmList = $(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div");
 		if(dmList.length){
 			dmList.off("DOMNodeInserted.MentionAliases");
@@ -264,13 +286,15 @@ class MentionAliases {
 					this.updateMemberDM($(dms[i]));
 			}
 		}
+
 		this.updateMessages();
+
 		if(this.displayButton){
 			if(!$(".ma-aliases-button").length){
 				$(`<div class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`).insertAfter(".inner-3if5cm");
 				$(".ma-aliases-button").on("click", () => { this.toggleAliasList(); });
-				this.onWindowResize();
 			}
+			this.onWindowResize();
 		}else{
 			$(".ma-aliases-button").remove();
 			$(".inner-3if5cm")[0].style.width = "";
@@ -396,9 +420,12 @@ class MentionAliases {
 		if(added.length && added.find(".avatar-small").length){
 			if(added[0].className != "channel private" && added[0].className != "channel selected private")
 				return;
+			
 			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
 				alias = this.aliases[id];
+			
 			added.find(".ma-usertag").remove();
+			
 			if(alias != undefined)
 				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter(added.find(".channel-name"));
 		}
@@ -515,6 +542,12 @@ class MentionAliases {
 				Added the alias box to user popouts.
 				Added the owner of the selected server at the top of the alias list.
 				Fixed @owner tag.
+			`,
+			"0.5.12" : 
+			`
+				Fixed the alias list button deciding to take up half the window when it felt like it.
+				Added a view changelog button.
+				Added a setting for displaying the changelog upon update.
 			`
 		}
 	}
@@ -558,7 +591,7 @@ class MentionAliases {
 				color: white;
 				font-size: 25px;
 				opacity: 0.75;
-				line-height: 45px;
+				line-height: 25px;
 			}
 
 			</style>
@@ -582,18 +615,19 @@ class MentionAliases {
 			</div>
 		</div>
 		`);
-		if(newUpdateData != undefined){
-			$(".metalloriff-changelog-backdrop").on("click", () => {
-				PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), newUpdateData);
-				$(".metalloriff-changelog-backdrop").parent().remove();
-			});
-		}
+		$(".metalloriff-changelog-backdrop").on("click", () => {
+			if(newUpdateData != undefined){ PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), newUpdateData); }
+			$(".metalloriff-changelog-backdrop").parent().remove();
+		});
 		var scroller = $("#" + this.getSpacelessName() + "-changelog-scroller");
+		if(changes == undefined){
+			changes = Object.keys(this.getChanges());
+		}
 		for(var i in changes){
 			scroller.append(`
 			<div class="metalloriff-update-item">
 				<p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
-					+ this.getChanges()[changes[i]].split("\n").join("<br>") +
+					+ this.getChanges()[changes[i]].split("\n").join("<br><br>") +
 				`</p>
 			</div>
 			`);

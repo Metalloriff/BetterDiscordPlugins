@@ -9,6 +9,7 @@ class MentionAliases {
 		this.displayTags = true;
 		this.displayButton = true;
 		this.messageObserver = null;
+		this.popoutObserver = null;
 		this.userModule;
 		this.memberModule;
 		this.guildModule;
@@ -23,7 +24,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.3.11"; }
+    getVersion() { return "0.4.11"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -38,7 +39,7 @@ class MentionAliases {
 			</div>
 			<div onclick="var e = $('#ma-displayButton')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
 				<div class="checkbox-inner"><input id="ma-displayButton" type="checkbox"` + (this.displayButton ? "checked" : "") + `><span></span></div>
-				<span style="color: rgb(255, 255, 255);">Display alias list button</span>
+				<span style="color: rgb(255, 255, 255);">Display alias list button (you can still open the list with Ctrl+Shift+@)</span>
 			</div>
 			<div style="text-align: center;">
 				<br>
@@ -110,9 +111,89 @@ class MentionAliases {
 			.memberInner-3XUq9K { width: 160px; }
 			.nameTag-26T3kW { white-space: normal; }
 			.member-2FrNV0 { height: auto; }
+
+			.ma-aliases-button {
+				width: 30px;
+				height: 30px;
+				position: absolute;
+				right: 0px;
+				top: 7px;
+				opacity: 0.3;
+				cursor: pointer;
+				transition: all 0.3s;
+			}
+
+			.ma-aliases-button:hover {
+				transform: scale(1.2);
+				opacity: 1;
+			}
+
+			.ma-aliases-button > img {
+				width: 100%;
+				height: 100%;
+			}
+
+			.ma-no-aliases-defined-label {
+				text-align: center;
+				color: white;
+				opacity: 0.4;
+				line-height: 600px;
+			}
+
+			.ma-alias-menu {
+				z-index: 1000;
+				position: absolute;
+				left: 45%;
+				bottom: 8%;
+			}
+
+			.ma-alias-list {
+				max-height: 560px;
+			}
+
+			.ma-action-buttons > * {
+				opacity: 1 !important;
+			}
+
+			.ma-not-in-server {
+				filter: grayscale(100%) brightness(0.5);
+				transition: filter 0.3s;
+			}
+
+			.ma-not-in-server:hover {
+				filter: none;
+			}
+
+			.ma-alias-list-field {
+				background-color: transparent;
+				color: white;
+				border: none;
+				flex: auto;
+			}
 		
 		`);
 		$(window).on("resize.MentionAliases", () => this.onWindowResize());
+		$(document).on("keydown.MentionAliases", e => this.onKeyDown(e));
+		this.popoutObserver = new MutationObserver(e => {
+			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-11hFKo").length > 0){
+				if(this.aliases == undefined)
+					this.aliases = new Object();
+				var popout = $(".userPopout-11hFKo"), userID = "";
+				if(popout.length && popout[0].getElementsByClassName("discriminator").length > 0)
+					userID = ReactUtilities.getOwnerInstance(popout[0]).props.user.id;
+				if(popout.length && userID != "" && !$("#ma-aliasfield").length){
+					$(`<div class="body-3ljq11"><div class="bodyTitle-18hsd9 marginBottom8-1mABJ4 size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-3rIr6P"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 22px;"></textarea></div></div>`).insertAfter($(popout.find(".body-3ljq11").last()));
+					var field = $("#ma-aliasfield");
+					if(field.length){
+						field.on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
+						field.on("focusout", () => { this.updateAlias(userID, field[0].value); });
+						if(this.aliases[userID] != undefined){ field[0].value = this.aliases[userID]; }
+					}
+				}
+			}
+		});
+		this.popoutObserver.observe(document.getElementsByClassName("popouts-1TN9u9")[0], { childList : true });
+		this.compareVersions();
 	}
 	
 	updateAlias(userID, newAlias){
@@ -185,160 +266,117 @@ class MentionAliases {
 		}
 		this.updateMessages();
 		if(this.displayButton){
-			if(!document.getElementById("MentionAliasesList")){
-				BdApi.injectCSS("MentionAliasesList", `
-
-					.ma-aliases-button {
-						width: 30px;
-						height: 30px;
-						position: absolute;
-						right: 0px;
-						top: 7px;
-						opacity: 0.3;
-						cursor: pointer;
-						transition: all 0.3s;
-					}
-
-					.ma-aliases-button:hover {
-						transform: scale(1.2);
-						opacity: 1;
-					}
-
-					.ma-aliases-button > img {
-						width: 100%;
-						height: 100%;
-					}
-
-					.ma-no-aliases-defined-label {
-						text-align: center;
-						color: white;
-						opacity: 0.4;
-						line-height: 600px;
-					}
-
-					.ma-alias-menu {
-						z-index: 1000;
-						position: absolute;
-						left: 45%;
-						bottom: 8%;
-					}
-
-					.ma-alias-list {
-						max-height: 560px;
-					}
-
-					.ma-action-buttons > * {
-						opacity: 1 !important;
-					}
-
-					.ma-not-in-server {
-						filter: grayscale(100%) brightness(0.5);
-						transition: filter 0.3s;
-					}
-
-					.ma-not-in-server:hover {
-						filter: none;
-					}
-
-					.ma-alias-list-field {
-						background-color: transparent;
-						color: white;
-						border: none;
-						flex: auto;
-					}
-
-				`);
-			}
 			if(!$(".ma-aliases-button").length){
 				$(`<div class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`).insertAfter(".inner-3if5cm");
-				$(".ma-aliases-button").on("click", () => {
-					if($(".ma-alias-menu").length){
-						$(".ma-alias-menu").remove();
-						return;
-					}
-					$(".app").last().append(`
-
-					<div class="popout popout-bottom-right no-arrow no-shadow ma-alias-menu">
-						<div class="messages-popout-wrap themed-popout recent-mentions-popout" style="height: 600px;width: 500px;">
-							<div class="header" style="padding-bottom: 12px;">
-								<div class="title" style="text-align: center;transform: translateY(6px);">Defined User Aliases</div>
-							</div>
-							<div class="scroller-wrap dark">
-								<div class="messages-popout scroller ma-alias-list">
-									<div class="ma-no-aliases-defined-label">No user aliases defined. View a user's profile to define an alias.</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					
-					`);
-					$(".ma-alias-menu")[0].style.left = ($(".ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px";
-					var sortedKeys = Object.keys(this.aliases).sort((x, y) => {
-						if(this.aliases[x].toLowerCase() < this.aliases[y].toLowerCase()){ return -1; }
-						if(this.aliases[x].toLowerCase() > this.aliases[y].toLowerCase()){ return 1; }
-						return 0;
-					}), populate = (i) => {
-						var list = $(".ma-alias-list"), user = this.getUser(i), alias = this.aliases[i];
-						if(user == undefined){
-							user = {
-								getAvatarURL : () => { return ""; },
-								tag : "User not found"
-							};
-						}
-						$(".ma-no-aliases-defined-label").remove();
-						list.append(`
-						
-						<div class="message-group hide-overflow">
-							<div class="avatar-large stop-animation" style="background-image: url('` + user.getAvatarURL() + `');"></div>
-							<div class="comment" style="line-height: 40px;">
-								<div class="message first">
-									<div class="body">
-										<h2 class="old-h2"><span class="username-wrapper"><input class="ma-alias-list-field" maxlength="30" value="` + alias + `"></input><span class="ma-alias-list-field ma-span" style="display:none;"></span></span><span class="highlight-separator"> - </span><span class="timestamp ma-alias-menu-user-tag">` + user.tag + `</span></h2>
-									</div>
-								</div>
-							</div>
-							<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: relative;">
-								<div class="closeButton-2Rx3ov"></div>
-							</div>
-						</div>
-						
-						`);
-						list.find(".closeButton-2Rx3ov").last().on("click", e => {
-							$(e.target).parents(".message-group").remove();
-							this.updateAlias(i, "");
-							PluginUtilities.showToast("Alias removed!", { type : "success" });
-						});
-						if(!this.usersInServer.includes(i)){ list.find(".message-group").last()[0].classList.add("ma-not-in-server"); }
-						list.find(".message-group").last().on("dblclick", e => {
-							var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h")[0], chatboxValue = chatbox.value;
-							chatbox.focus();
-							chatbox.select();
-							document.execCommand("insertText", false, chatboxValue + " @" + this.getUser($(e.currentTarget).find(".ma-alias-list-field").data("user-id")).tag);
-							$(".ma-alias-menu").remove();
-						});
-						var updateFieldSize = (e) => {
-							var span = $(e.parentElement).find("span");
-							span.text(e.value);
-							if(span.width() > 20){ e.style.width = span.width() + "px"; }
-							else{ e.style.width = "20px"; }
-						}, field = list.find(".ma-alias-list-field:not(.ma-span)").last();
-						field.on("input", e => { updateFieldSize(e.target); });
-						field.data("user-id", i);
-						field.on("focusout", e => { this.updateAlias($(e.target).data("user-id"), e.target.value); })
-						updateFieldSize(field[0]);	
-					};
-					var sortedInServer = Array.filter(sortedKeys, x => this.usersInServer.includes(x)),
-					sortedNotInServer = Array.filter(sortedKeys, x => !this.usersInServer.includes(x));
-					for(var idx in sortedInServer){ populate(sortedInServer[idx]); }
-					for(var idx in sortedNotInServer){ populate(sortedNotInServer[idx]); }
-				});
+				$(".ma-aliases-button").on("click", () => { this.toggleAliasList(); });
 				this.onWindowResize();
 			}
 		}else{
-			BdApi.clearCSS("MentionAliasesList");
 			$(".ma-aliases-button").remove();
 			$(".inner-3if5cm")[0].style.width = "";
 		}
+	}
+
+	onKeyDown(e) {
+		if(e.key == "Escape" && $(".ma-alias-menu").length){
+			$(".ma-alias-menu").remove();
+			return;
+		}
+		if(e.ctrlKey && e.shiftKey && e.key == "@") {
+			this.toggleAliasList();
+		}
+	}
+
+	toggleAliasList() {
+		if($(".ma-alias-menu").length){
+			$(".ma-alias-menu").remove();
+			return;
+		}
+		$(".app").last().append(`
+
+		<div class="popout popout-bottom-right no-arrow no-shadow ma-alias-menu">
+			<div class="messages-popout-wrap themed-popout recent-mentions-popout" style="height: 600px;width: 500px;">
+				<div class="header" style="padding-bottom: 12px;">
+					<div class="title" style="text-align: center;transform: translateY(6px);">Defined User Aliases</div>
+					<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: absolute;top: 5px;">
+						<div class="closeButton-2Rx3ov" onclick="$('.ma-alias-menu').remove();"></div>
+					</div>
+				</div>
+				<div class="scroller-wrap dark">
+					<div class="messages-popout scroller ma-alias-list">
+						<div class="ma-no-aliases-defined-label">No user aliases defined. View a user's profile to define an alias.</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		`);
+		if($(".ma-aliases-button").length){ $(".ma-alias-menu")[0].style.left = ($(".ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
+		else {
+			var menu = $(".ma-alias-menu")[0], menuRect = menu.getBoundingClientRect();
+			menu.style.left =  (($(document).width() - menuRect.width) / 2) + "px";
+			menu.style.top = (($(document).height() - menuRect.height) / 2) + "px";
+		}
+		var sortedKeys = Object.keys(this.aliases).sort((x, y) => {
+			if(this.aliases[x].toLowerCase() < this.aliases[y].toLowerCase()){ return -1; }
+			if(this.aliases[x].toLowerCase() > this.aliases[y].toLowerCase()){ return 1; }
+			return 0;
+		}), populate = (i) => {
+			var list = $(".ma-alias-list"), user = this.getUser(i), alias = this.aliases[i];
+			if(user == undefined){
+				user = {
+					getAvatarURL : () => { return ""; },
+					tag : "User not found"
+				};
+			}
+			if(alias == undefined){ alias = "@owner"; }
+			$(".ma-no-aliases-defined-label").remove();
+			list.append(`
+			
+			<div class="message-group hide-overflow">
+				<div class="avatar-large stop-animation" style="background-image: url('` + user.getAvatarURL() + `');"></div>
+				<div class="comment" style="line-height: 40px;">
+					<div class="message first">
+						<div class="body">
+							<h2 class="old-h2"><span class="username-wrapper"><input class="ma-alias-list-field" maxlength="30" value="` + alias + `"></input><span class="ma-alias-list-field ma-span" style="display:none;"></span></span><span class="highlight-separator"> - </span><span class="timestamp ma-alias-menu-user-tag">` + user.tag + `</span></h2>
+						</div>
+					</div>
+				</div>
+				<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: relative;">
+					<div class="closeButton-2Rx3ov"></div>
+				</div>
+			</div>
+			
+			`);
+			list.find(".closeButton-2Rx3ov").last().on("click", e => {
+				$(e.target).parents(".message-group").remove();
+				this.updateAlias(i, "");
+				PluginUtilities.showToast("Alias removed!", { type : "success" });
+			});
+			if(!this.usersInServer.includes(i)){ list.find(".message-group").last()[0].classList.add("ma-not-in-server"); }
+			list.find(".message-group").last().on("click", e => {
+				var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h")[0], chatboxValue = chatbox.value;
+				chatbox.focus();
+				chatbox.select();
+				document.execCommand("insertText", false, chatboxValue + " @" + this.getUser($(e.currentTarget).find(".ma-alias-list-field").data("user-id")).tag);
+			});
+			var updateFieldSize = (e) => {
+				var span = $(e.parentElement).find("span");
+				span.text(e.value);
+				if(span.width() > 20){ e.style.width = span.width() + "px"; }
+				else{ e.style.width = "20px"; }
+			}, field = list.find(".ma-alias-list-field:not(.ma-span)").last();
+			field.on("input", e => { updateFieldSize(e.target); });
+			field.data("user-id", i);
+			field.on("focusout", e => { this.updateAlias($(e.target).data("user-id"), e.target.value); })
+			updateFieldSize(field[0]);	
+		};
+		var currentServer = PluginUtilities.getCurrentServer();
+		if(currentServer != undefined && currentServer.ownerId != undefined){ populate(currentServer.ownerId); }
+		var sortedInServer = Array.filter(sortedKeys, x => this.usersInServer.includes(x)),
+		sortedNotInServer = Array.filter(sortedKeys, x => !this.usersInServer.includes(x));
+		for(var idx in sortedInServer){ populate(sortedInServer[idx]); }
+		for(var idx in sortedNotInServer){ populate(sortedNotInServer[idx]); }
 	}
 	
 	updateMember(added){
@@ -422,13 +460,12 @@ class MentionAliases {
 						}
 					}
 					if(chatboxValue.toLowerCase().includes("@owner")){
-						var guild = PluginUtilities.getCurrentServer(), owner = undefined, 
-							chatboxValueWithoutMentions = chatboxValue.toLowerCase().split("@" + userTag.toLowerCase()).join("");
+						var guild = PluginUtilities.getCurrentServer(), owner = undefined;
 						if(guild != undefined){
 							owner = this.getUser(guild.ownerId);
-							while(chatboxValueWithoutMentions.split(" ").includes("@owner")){
+							while(chatboxValue.split(" ").includes("@owner")){
 								chatboxValue = chatboxValue.replace(new RegExp("@owner", "ig"), "@" + owner.tag);
-								chatboxValueWithoutMentions = chatboxValueWithoutMentions.split("@owner").join("");
+								chatboxValueWithoutMentions = chatboxValue.split("@owner").join("");
 							}
 						}
 					}
@@ -444,7 +481,6 @@ class MentionAliases {
 	
     stop() {
 		BdApi.clearCSS("MentionAliases");
-		BdApi.clearCSS("MentionAliasesList");
 		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");
@@ -455,12 +491,113 @@ class MentionAliases {
 		$(".ma-alias-menu").remove();
 		$(".inner-3if5cm")[0].style.width = "";
 		$(window).off("resize.MentionAliases");
+		$(document).off("keydown.MentionAliases");
 		if(this.messageObserver != null)
 			this.messageObserver.disconnect();
+		if(this.popoutObserver != null)
+			this.popoutObserver.disconnect();
 	}
 	
 	getUser(id){
 		return this.userModule.getUser(id);
+	}
+
+	getSpacelessName() { return this.getName().split(" ").join(""); }
+
+	getChanges() {
+		return {
+			"0.4.11" :
+			`
+				Added this neato burrito crappy little change log. There will be settings for it soon. (disabling it, viewing the full change log)
+				Added a keybind for opening the alias list. (Ctrl + Shift + @)
+				Added an X button to close out of the aliases list.
+				You can now close the alias list with escape.
+				Added the alias box to user popouts.
+				Added the owner of the selected server at the top of the alias list.
+				Fixed @owner tag.
+			`
+		}
+	}
+
+	compareVersions() {
+		var updateData = PluginUtilities.loadData("MetalloriffUpdateData", this.getSpacelessName(), new Object()), unreadChanges = new Array(), thisUpdateData = updateData[this.getSpacelessName()];
+		if(thisUpdateData != undefined){
+			if(thisUpdateData.readChanges == undefined){
+				thisUpdateData.readChanges = new Array();
+			}
+			for(var i in this.getChanges()){
+				if(!thisUpdateData.readChanges.includes(i)){
+					unreadChanges.push(i);
+					thisUpdateData.readChanges.push(i);
+				}
+			}
+			if(unreadChanges.length > 0){ this.createChangeWindow(unreadChanges, updateData); }
+		}else{
+			//updateData[this.getSpacelessName()] = { readChanges : Object.keys(this.getChanges()) };
+			updateData[this.getSpacelessName()] = { readChanges : new Array() };
+			PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), updateData);
+		}
+	}
+
+	createChangeWindow(changes, newUpdateData) {
+		$("#"+ this.getSpacelessName() + "-changelog").remove();
+		$(".app").last().append(`
+			<div id="` + this.getSpacelessName() + `-changelog" class="">
+			<style>
+
+			.metalloriff-update-item {
+				padding: 10px;
+			}
+
+			.metalloriff-update-label {
+				color: white;
+				font-size: 35px;
+			}
+			
+			.metalloriff-update-note {
+				color: white;
+				font-size: 25px;
+				opacity: 0.75;
+				line-height: 45px;
+			}
+
+			</style>
+			<div class="backdrop-2ohBEd metalloriff-changelog-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
+			<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
+			<div class="inner-1_1f7b">
+				<div class="wrapper-2PXjeM">
+					<div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+						<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">
+						<div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;text-align: center;">
+							<h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">` + this.getName() + ` Update Notes</h2>
+							<br>
+						</div>
+						</div>
+						<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW">
+							<div id="` + this.getSpacelessName() + `-changelog-scroller" class="scroller-fzNley inner-tqJwAU marginBottom8-1mABJ4"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		`);
+		if(newUpdateData != undefined){
+			$(".metalloriff-changelog-backdrop").on("click", () => {
+				PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), newUpdateData);
+				$(".metalloriff-changelog-backdrop").parent().remove();
+			});
+		}
+		var scroller = $("#" + this.getSpacelessName() + "-changelog-scroller");
+		for(var i in changes){
+			scroller.append(`
+			<div class="metalloriff-update-item">
+				<p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
+					+ this.getChanges()[changes[i]].split("\n").join("<br>") +
+				`</p>
+			</div>
+			`);
+		}
 	}
 	
 }

@@ -25,7 +25,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.5.12"; }
+    getVersion() { return "0.5.13"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -279,11 +279,11 @@ class MentionAliases {
 			dmList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
 				dmList.on("DOMNodeInserted.MentionAliases", e => {
-					this.updateMemberDM($(e.target));
+					this.updateMemberDM(e.target);
 				});
 				var dms = $(".channel.private");
 				for(var i = 0; i < dms.length; i++)
-					this.updateMemberDM($(dms[i]));
+					this.updateMemberDM(dms[i]);
 			}
 		}
 
@@ -405,7 +405,7 @@ class MentionAliases {
 	
 	updateMember(added){
 		if(added.length && added.find(".image-EVRGPw").length){
-			var id = added.find(".image-EVRGPw")[0].style.backgroundImage.match(/\d+/)[0],
+			var id = ReactUtilities.getOwnerInstance(added[0]).props.user.id,
 				alias = this.aliases[id],
 				color = added.find(".nameTag-3F0z_i.nameTag-26T3kW")[0].style.color;
 			added.find(".ma-usertag").remove();
@@ -417,18 +417,18 @@ class MentionAliases {
 	}
 	
 	updateMemberDM(added){
-		if(added.length && added.find(".avatar-small").length){
-			if(added[0].className != "channel private" && added[0].className != "channel selected private")
-				return;
-			
-			var id = added.find(".avatar-small")[0].style.backgroundImage.match(/\d+/)[0],
-				alias = this.aliases[id];
-			
-			added.find(".ma-usertag").remove();
-			
-			if(alias != undefined)
-				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter(added.find(".channel-name"));
-		}
+		if(added.className == "channel-name"){ added = $(added).parents(".channel.private")[0]; }
+
+		if(added.className != "channel private" && added.className != "channel selected private"){ return; }
+		
+		var user = ReactUtilities.getOwnerInstance(added)._reactInternalFiber.return.memoizedState.user, alias = undefined;
+
+		if(user != undefined){ alias = this.aliases[user.id]; }
+		else{ return; }
+		
+		$(added).find(".ma-usertag").remove();
+		
+		if(alias != undefined){ $(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter($(added).find(".channel-name")); }
 	}
 	
 	updateMessages(){
@@ -548,6 +548,11 @@ class MentionAliases {
 				Fixed the alias list button deciding to take up half the window when it felt like it.
 				Added a view changelog button.
 				Added a setting for displaying the changelog upon update.
+			`,
+			"0.5.13" : 
+			`
+				Fixed alias tags not showing next to users with default profile pictures.
+				Fixed alias tags in the DM list moving to the left when a user started or stopped playing a game.
 			`
 		}
 	}

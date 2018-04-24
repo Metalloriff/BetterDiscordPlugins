@@ -8,7 +8,7 @@ class ViewGuildRelationships {
 	
     getName() { return "View Guild Relationships"; }
     getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-    getVersion() { return "0.1.4"; }
+    getVersion() { return "0.1.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -111,7 +111,7 @@ class ViewGuildRelationships {
 	onContextMenu(e){
 		var contextMenu = $(".contextMenu-uoJTbz"), itemGroups = contextMenu.find(".itemGroup-oViAgA");
 		if(e.target.parentElement.className == "guild-inner" && contextMenu.length && itemGroups.length && !$("#vgr-contextbutton").length){
-			var server = e.target.href.match(/\d+/);
+			var server = e.target.href.match(/\d+/)[0];
 			if(server){
 				$(itemGroups[0]).append(`<div id="vgr-contextbutton" class="item-1XYaYf"><span>View Relationships</span></div>`);
 				$("#vgr-contextbutton").on("click", e => { this.getRelationships(server, server, e); });
@@ -136,7 +136,7 @@ class ViewGuildRelationships {
 							<div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
 								<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">
 									<div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;">
-										<h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">Relationships in ` + ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]).getGuild(PluginUtilities.getCurrentServer()).name + `</h2>
+										<h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">Relationships in ` + ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]).getGuild(serverID).name + `</h2>
 									</div>
 								</div>
 								<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW">

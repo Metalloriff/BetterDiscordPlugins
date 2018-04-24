@@ -26,7 +26,32 @@ class MentionAliases {
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
     getVersion() { return "0.5.13"; }
-    getAuthor() { return "Metalloriff"; }
+	getAuthor() { return "Metalloriff"; }
+	getChanges() {
+		return {
+			"0.4.11" :
+			`
+				Added this neato burrito crappy little change log. There will be settings for it soon. (disabling it, viewing the full change log)
+				Added a keybind for opening the alias list. (Ctrl + Shift + @)
+				Added an X button to close out of the aliases list.
+				You can now close the alias list with escape.
+				Added the alias box to user popouts.
+				Added the owner of the selected server at the top of the alias list.
+				Fixed @owner tag.
+			`,
+			"0.5.12" : 
+			`
+				Fixed the alias list button deciding to take up half the window when it felt like it.
+				Added a view changelog button.
+				Added a setting for displaying the changelog upon update.
+			`,
+			"0.5.13" : 
+			`
+				Fixed alias tags not showing next to users with default profile pictures.
+				Fixed alias tags in the DM list moving to the left when a user started or stopped playing a game.
+			`
+		};
+	}
 
     load() {}
 	
@@ -48,7 +73,7 @@ class MentionAliases {
 			</div>
 			<div style="text-align: center;">
 				<br>
-				<button onclick="BdApi.getPlugin('Mention Aliases').createChangeWindow();" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button onclick="Metalloriff.Changelog.createChangeWindow('Mention Aliases', new Array(), BdApi.getPlugin('Mention Aliases').getChanges());" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
 					<div class="contents-4L4hQM">View Changelog</div>
 				</button>
 				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
@@ -72,6 +97,7 @@ class MentionAliases {
 		}
 		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
 		else libraryScript.addEventListener("load", () => { this.initialize(); });
+
 	}
 	
 	reset(fromSettings){
@@ -205,7 +231,22 @@ class MentionAliases {
 			}
 		});
 		this.popoutObserver.observe(document.getElementsByClassName("popouts-1TN9u9")[0], { childList : true });
-		if(this.displayUpdateNotes == true){ this.compareVersions(); }
+
+		var lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined){
+			lib = document.createElement("script");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			document.head.appendChild(lib);
+			lib.addEventListener("load", () => { this.onLibLoaded(); });
+		}else{ this.onLibLoaded(); }
+	}
+
+	onLibLoaded() {
+		if(this.displayUpdateNotes == true){
+			Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+		}
 	}
 	
 	updateAlias(userID, newAlias){
@@ -527,116 +568,6 @@ class MentionAliases {
 	
 	getUser(id){
 		return this.userModule.getUser(id);
-	}
-
-	getSpacelessName() { return this.getName().split(" ").join(""); }
-
-	getChanges() {
-		return {
-			"0.4.11" :
-			`
-				Added this neato burrito crappy little change log. There will be settings for it soon. (disabling it, viewing the full change log)
-				Added a keybind for opening the alias list. (Ctrl + Shift + @)
-				Added an X button to close out of the aliases list.
-				You can now close the alias list with escape.
-				Added the alias box to user popouts.
-				Added the owner of the selected server at the top of the alias list.
-				Fixed @owner tag.
-			`,
-			"0.5.12" : 
-			`
-				Fixed the alias list button deciding to take up half the window when it felt like it.
-				Added a view changelog button.
-				Added a setting for displaying the changelog upon update.
-			`,
-			"0.5.13" : 
-			`
-				Fixed alias tags not showing next to users with default profile pictures.
-				Fixed alias tags in the DM list moving to the left when a user started or stopped playing a game.
-			`
-		}
-	}
-
-	compareVersions() {
-		var updateData = PluginUtilities.loadData("MetalloriffUpdateData", this.getSpacelessName(), new Object()), unreadChanges = new Array(), thisUpdateData = updateData[this.getSpacelessName()];
-		if(thisUpdateData != undefined){
-			if(thisUpdateData.readChanges == undefined){
-				thisUpdateData.readChanges = new Array();
-			}
-			for(var i in this.getChanges()){
-				if(!thisUpdateData.readChanges.includes(i)){
-					unreadChanges.push(i);
-					thisUpdateData.readChanges.push(i);
-				}
-			}
-			if(unreadChanges.length > 0){ this.createChangeWindow(unreadChanges, updateData); }
-		}else{
-			//updateData[this.getSpacelessName()] = { readChanges : Object.keys(this.getChanges()) };
-			updateData[this.getSpacelessName()] = { readChanges : new Array() };
-			PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), updateData);
-		}
-	}
-
-	createChangeWindow(changes, newUpdateData) {
-		$("#"+ this.getSpacelessName() + "-changelog").remove();
-		$(".app").last().append(`
-			<div id="` + this.getSpacelessName() + `-changelog" class="">
-			<style>
-
-			.metalloriff-update-item {
-				padding: 10px;
-			}
-
-			.metalloriff-update-label {
-				color: white;
-				font-size: 35px;
-			}
-			
-			.metalloriff-update-note {
-				color: white;
-				font-size: 25px;
-				opacity: 0.75;
-				line-height: 25px;
-			}
-
-			</style>
-			<div class="backdrop-2ohBEd metalloriff-changelog-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
-			<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
-			<div class="inner-1_1f7b">
-				<div class="wrapper-2PXjeM">
-					<div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-						<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">
-						<div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;text-align: center;">
-							<h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">` + this.getName() + ` Update Notes</h2>
-							<br>
-						</div>
-						</div>
-						<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW">
-							<div id="` + this.getSpacelessName() + `-changelog-scroller" class="scroller-fzNley inner-tqJwAU marginBottom8-1mABJ4"></div>
-						</div>
-					</div>
-				</div>
-			</div>
-			</div>
-		</div>
-		`);
-		$(".metalloriff-changelog-backdrop").on("click", () => {
-			if(newUpdateData != undefined){ PluginUtilities.saveData("MetalloriffUpdateData", this.getSpacelessName(), newUpdateData); }
-			$(".metalloriff-changelog-backdrop").parent().remove();
-		});
-		var scroller = $("#" + this.getSpacelessName() + "-changelog-scroller");
-		if(changes == undefined){
-			changes = Object.keys(this.getChanges());
-		}
-		for(var i in changes){
-			scroller.append(`
-			<div class="metalloriff-update-item">
-				<p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
-					+ this.getChanges()[changes[i]].split("\n").join("<br><br>") +
-				`</p>
-			</div>
-			`);
-		}
 	}
 	
 }

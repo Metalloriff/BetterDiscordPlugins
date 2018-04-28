@@ -27,31 +27,31 @@ class SelectedChannelNotifications {
 				<br><br>
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Message notification sound:</p>
-                <input id="scn-messageSound" value="` + this.settings.messageSound + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+                <input id="scn-messageSound" value="` + this.settings.messageSound + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
                 
                 
                 <div style="padding-top: 20px;">
-                <div id="scn-checkbox-list" class="radioGroup-2P3MJo">
+                <div id="scn-checkbox-list" class="radioGroup-1GBvlr">
 
-                <div data-key="playSound" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC" style="padding: 10px;border-radius: 0px !important;">
-                    <label class="checkboxWrapper-2Yvr_Y">
-                        <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                        <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                <div data-key="playSound" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx" style="padding: 10px;border-radius: 0px !important;">
+                    <label class="checkboxWrapper-SkhIWG">
+                        <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                        <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                         </div>
                     </label>
-                    <div class="info-1Z508c">
-                        <div class="title-1M-Ras">Play sound</div>
+                    <div class="info-3LOr12">
+                        <div class="title-3BE6m5">Play sound</div>
                     </div>
                 </div>
 
-                <div data-key="displayNotification" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC" style="padding: 10px;border-radius: 0px !important;">
-                    <label class="checkboxWrapper-2Yvr_Y">
-                        <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                        <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                <div data-key="displayNotification" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx" style="padding: 10px;border-radius: 0px !important;">
+                    <label class="checkboxWrapper-SkhIWG">
+                        <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                        <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                         </div>
                     </label>
-                    <div class="info-1Z508c">
-                        <div class="title-1M-Ras">Display notification</div>
+                    <div class="info-3LOr12">
+                        <div class="title-3BE6m5">Display notification</div>
                     </div>
                 </div>
 
@@ -60,10 +60,10 @@ class SelectedChannelNotifications {
 
 				<div style="text-align: center;">
 				<br>
-				<button id="scn-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="scn-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Reset Settings</div>
 				</button>
-				<button id="scn-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="scn-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Save Settings</div>
 				</button>
                 </div>
@@ -123,7 +123,7 @@ class SelectedChannelNotifications {
 	
     getName() { return "Selected Channel Notifications"; }
     getDescription() { return "Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -154,7 +154,7 @@ class SelectedChannelNotifications {
 
     onSwitch(){
         this.currentGuild = PluginUtilities.getCurrentServer();
-        var messageScroller = $(".messages.scroller"), selectedChannel = $(".wrapperSelectedText-31jJa8");
+        var messageScroller = $(".messages.scroller"), selectedChannel = $(".wrapperSelectedText-3dSUjC");
 
         if(this.messageObserver != undefined){ this.messageObserver.disconnect(); }
 
@@ -171,9 +171,9 @@ class SelectedChannelNotifications {
             if(!this.focused){
                 var latestMessageGroupMessages = ReactUtilities.getOwnerInstance($(".message-group").last()[0]).props.messages,
                 latestMessage = latestMessageGroupMessages[latestMessageGroupMessages.length - 1];
-                if(latestMessage.author.id != PluginUtilities.getCurrentUser().id){
+                if(latestMessage.author.id != PluginUtilities.getCurrentUser().id && latestMessage.mentioned == false){
                     if(this.settings.displayNotification == true){
-                        new Notification((latestMessage.nick == undefined ? latestMessage.author.username : latestMessage.nick) + " - #" + this.currentChannel.name, { silent : true, body : latestMessage.content, icon : latestMessage.author.getAvatarURL() });
+                        var notif = new Notification((latestMessage.nick == undefined ? latestMessage.author.username : latestMessage.nick) + " - #" + this.currentChannel.name, { silent : true, body : latestMessage.content, icon : latestMessage.author.getAvatarURL() });
                     }
                     if(this.settings.playSound == true){ this.audio.play(); }
                 }

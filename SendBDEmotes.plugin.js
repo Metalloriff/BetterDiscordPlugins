@@ -3,8 +3,8 @@
 class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
-    getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see."; }
-    getVersion() { return "0.2.2"; }
+    getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]."; }
+    getVersion() { return "0.2.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -28,7 +28,7 @@ class SendBDEmotes {
 	}
 
     onSwitch(){
-		var chatboxJQ = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatboxJQ = $("textarea");
 		if(chatboxJQ.length){
 			var chatbox = chatboxJQ[0];
 			chatboxJQ.on("keydown.SendBDEmotes", e => {
@@ -58,7 +58,7 @@ class SendBDEmotes {
     }
 	
     stop() {
-		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatbox = $("textarea");
 		if(chatbox)
 			chatbox.off("keydown.SendBDEmotes");
     }

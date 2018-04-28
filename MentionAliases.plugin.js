@@ -25,7 +25,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.5.13"; }
+    getVersion() { return "0.5.14"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -73,13 +73,13 @@ class MentionAliases {
 			</div>
 			<div style="text-align: center;">
 				<br>
-				<button onclick="Metalloriff.Changelog.createChangeWindow('Mention Aliases', new Array(), BdApi.getPlugin('Mention Aliases').getChanges());" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button onclick="Metalloriff.Changelog.createChangeWindow('Mention Aliases', new Array(), BdApi.getPlugin('Mention Aliases').getChanges());" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">View Changelog</div>
 				</button>
-				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Reset All Aliases & Settings</div>
 				</button>
-				<button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Save Settings</div>
 				</button>
 			</div>
@@ -97,7 +97,6 @@ class MentionAliases {
 		}
 		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
 		else libraryScript.addEventListener("load", () => { this.initialize(); });
-
 	}
 	
 	reset(fromSettings){
@@ -145,10 +144,10 @@ class MentionAliases {
 		this.onSwitch();
 		BdApi.injectCSS("MentionAliases", `
 
-			.username-MwOsla, .members-1bid1J .botTag-1OwMgs + .members-1bid1J .botTag-1OwMgs { font-size: 15px; }
+			.username-1cB_5E, .members-1bid1J .botTag-1OwMgs + .members-1bid1J .botTag-1OwMgs { font-size: 15px; }
 			.memberInner-3XUq9K { width: 160px; }
 			.nameTag-26T3kW { white-space: normal; }
-			.member-2FrNV0 { height: auto; }
+			.member-3W1lQa { height: auto; }
 
 			.ma-aliases-button {
 				width: 30px;
@@ -213,14 +212,14 @@ class MentionAliases {
 		$(window).on("resize.MentionAliases", () => this.onWindowResize());
 		$(document).on("keydown.MentionAliases", e => this.onKeyDown(e));
 		this.popoutObserver = new MutationObserver(e => {
-			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-11hFKo").length > 0){
+			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-3XzG_A").length > 0){
 				if(this.aliases == undefined)
 					this.aliases = new Object();
-				var popout = $(".userPopout-11hFKo"), userID = "";
+				var popout = $(".userPopout-3XzG_A"), userID = "";
 				if(popout.length && popout[0].getElementsByClassName("discriminator").length > 0)
 					userID = ReactUtilities.getOwnerInstance(popout[0]).props.user.id;
 				if(popout.length && userID != "" && !$("#ma-aliasfield").length){
-					$(`<div class="body-3ljq11"><div class="bodyTitle-18hsd9 marginBottom8-1mABJ4 size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-3rIr6P"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 22px;"></textarea></div></div>`).insertAfter($(popout.find(".body-3ljq11").last()));
+					$(`<div class="body-3iLsc4"><div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Alias</div><div class="note-3kmerW note-3HfJZ5"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 22px;"></textarea></div></div>`).insertAfter($(popout.find(".body-3iLsc4").last()));
 					var field = $("#ma-aliasfield");
 					if(field.length){
 						field.on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
@@ -230,7 +229,7 @@ class MentionAliases {
 				}
 			}
 		});
-		this.popoutObserver.observe(document.getElementsByClassName("popouts-1TN9u9")[0], { childList : true });
+		this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined){
@@ -276,7 +275,7 @@ class MentionAliases {
 	}
 
 	onWindowResize(){
-		var chatbox = $(".inner-3if5cm")[0];
+		var chatbox = $(".inner-zqa7da")[0];
 		if(chatbox != undefined){
 			chatbox.style.width = "";
 			chatbox.style.width = (chatbox.getBoundingClientRect().width - 40) + "px";
@@ -296,14 +295,14 @@ class MentionAliases {
 		this.attach();
 		this.scanMembers();
 
-		var channelList = $(".scroller-fzNley.members-1bid1J");
+		var channelList = $(".scroller-2FKFPG.members-1998pB");
 		if(channelList.length){
 			channelList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
 				channelList.on("DOMNodeInserted.MentionAliases", e => {
 					this.updateMember($(e.target));
 				});
-				var members = $(".member-2FrNV0");
+				var members = $(".member-3W1lQa");
 				for(var i = 0; i < members.length; i++)
 					this.updateMember($(members[i]));
 			}
@@ -315,7 +314,7 @@ class MentionAliases {
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 		
-		var dmList = $(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div");
+		var dmList = $(".private-channels .scroller-2FKFPG");
 		if(dmList.length){
 			dmList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
@@ -332,13 +331,13 @@ class MentionAliases {
 
 		if(this.displayButton){
 			if(!$(".ma-aliases-button").length){
-				$(`<div class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`).insertAfter(".inner-3if5cm");
+				$(`<div class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`).insertAfter(".inner-zqa7da");
 				$(".ma-aliases-button").on("click", () => { this.toggleAliasList(); });
 			}
 			this.onWindowResize();
 		}else{
 			$(".ma-aliases-button").remove();
-			$(".inner-3if5cm")[0].style.width = "";
+			$(".inner-zqa7da")[0].style.width = "";
 		}
 	}
 
@@ -420,7 +419,7 @@ class MentionAliases {
 			});
 			if(!this.usersInServer.includes(i)){ list.find(".message-group").last()[0].classList.add("ma-not-in-server"); }
 			list.find(".message-group").last().on("click", e => {
-				var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h")[0], chatboxValue = chatbox.value;
+				var chatbox = $("textarea")[0], chatboxValue = chatbox.value;
 				chatbox.focus();
 				chatbox.select();
 				document.execCommand("insertText", false, chatboxValue + " @" + this.getUser($(e.currentTarget).find(".ma-alias-list-field").data("user-id")).tag);
@@ -445,13 +444,13 @@ class MentionAliases {
 	}
 	
 	updateMember(added){
-		if(added.length && added.find(".image-EVRGPw").length){
+		if(added.length && added.find(".image-33JSyf").length){
 			var id = ReactUtilities.getOwnerInstance(added[0]).props.user.id,
 				alias = this.aliases[id],
-				color = added.find(".nameTag-3F0z_i.nameTag-26T3kW")[0].style.color;
+				color = added.find(".nameTag-m8r81H")[0].style.color;
 			added.find(".ma-usertag").remove();
 			if(alias != undefined){
-				$(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter(added.find(".username-MwOsla"));
+				$(`<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter(added.find(".username-1cB_5E"));
 				setTimeout(() => { added.find(".ma-usertag")[0].style.backgroundColor = color; }, 0);
 			}
 		}
@@ -469,7 +468,7 @@ class MentionAliases {
 		
 		$(added).find(".ma-usertag").remove();
 		
-		if(alias != undefined){ $(`<span class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter($(added).find(".channel-name")); }
+		if(alias != undefined){ $(`<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter($(added).find(".channel-name")); }
 	}
 	
 	updateMessages(){
@@ -486,7 +485,7 @@ class MentionAliases {
 				var alias = this.aliases[id], username = $(messages[i]).find(".user-name");
 				$(messages[i]).find(".ma-usertag").remove();
 				if(id != "" && alias != null && username.length && alias != ""){
-					$(`<span style="background-color: ` + username[0].style["color"] + `" class="botTagRegular-288-ZL botTag-1OwMgs ma-usertag">` + alias + `</span>`).insertAfter(username);
+					$(`<span style="background-color: ` + username[0].style["color"] + `" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter(username);
 				}
 			}
 		}
@@ -495,11 +494,11 @@ class MentionAliases {
 	onPopout(){
 		if(this.aliases == undefined)
 			this.aliases = new Object();
-		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1_1f7b"), userID = "";
-		if(popout.length && $(".discriminator.discriminator-3KVlLu.size14-1wjlWP").length)
+		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1JeGVc"), userID = "";
+		if(popout.length && popout.find(".discriminator").length)
 			userID = ZeresLibrary.ReactUtilities.getReactInstance(popout[0]).child.memoizedProps.user.id;
 		if(popout.length && userID != "" && !$("#ma-aliasfield").length){
-			$(`<div class="userInfoSection-2WJxMm"><div class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Alias</div><div class="note-2AtC_s note-39NEdV"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
+			$(`<div class="userInfoSection-2acyCx"><div class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Alias</div><div class="note-3kmerW note-QfFU8y"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-2FKFPG").find(".userInfoSection-2acyCx")[0]));
 			var field = $("#ma-aliasfield");
 			if(field.length){
 				field.on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
@@ -510,7 +509,7 @@ class MentionAliases {
 	}
 	
 	attach(){
-		var chatboxJQ = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatboxJQ = $("textarea");
 		if(chatboxJQ.length){
 			var chatbox = chatboxJQ[0];
 			chatboxJQ.off("keydown.MentionAliases");
@@ -549,15 +548,15 @@ class MentionAliases {
 	
     stop() {
 		BdApi.clearCSS("MentionAliases");
-		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatbox = $("textarea");
 		if(chatbox)
 			chatbox.off("keydown.MentionAliases");
-		$(".scroller-fzNley.members-1bid1J").off("DOMNodeInserted.MentionAliases");
-		$(".private-channels > div.scrollerWrap-2uBjct.scrollerThemed-19vinI.themeGhostHairline-2H8SiW.scrollerFade-28dRsO > div").off("DOMNodeInserted.MentionAliases");
+		$(".scroller-2FKFPG.members-1998pB").off("DOMNodeInserted.MentionAliases");
+		$(".private-channels > div.scrollerWrap-2lJEkd scrollerThemed-2oenus themeGhostHairline-DBD-2d scrollerFade-1Ijw5y > div").off("DOMNodeInserted.MentionAliases");
 		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
 		$(".ma-aliases-button").remove();
 		$(".ma-alias-menu").remove();
-		$(".inner-3if5cm")[0].style.width = "";
+		$(".inner-zqa7da")[0].style.width = "";
 		$(window).off("resize.MentionAliases");
 		$(document).off("keydown.MentionAliases");
 		if(this.messageObserver != null)

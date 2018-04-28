@@ -17,7 +17,7 @@ class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.3.9"; }
+    getVersion() { return "1.3.10"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -35,32 +35,32 @@ class BetterEmoteSizes {
 				<br><br>
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Small emote intial size (px):</p>
-				<input id="ez-small-size" value="` + this.settings.smallSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-small-size" value="` + this.settings.smallSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Large emote intial size (px):</p>
-				<input id="ez-large-size" value="` + this.settings.largeSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-large-size" value="` + this.settings.largeSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">BD emote intial size (px):</p>
-				<input id="ez-bd-size" value="` + this.settings.bdSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-bd-size" value="` + this.settings.bdSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction intial size (px):</p>
-				<input id="ez-react-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-react-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Hover size multiplier:</p>
-				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 				
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction hover size multiplier:</p>
-				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<p style="color: rgb(255, 255, 255); font-size: 20px;">Transition speed (seconds):</p>
-				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<div style="text-align: center;">
 				<br>
-				<button id="ez-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="ez-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Reset Settings</div>
 				</button>
-				<button id="ez-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="ez-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Save and Apply</div>
 				</button>
 				</div>
@@ -142,6 +142,7 @@ class BetterEmoteSizes {
 				min-width: ` + this.settings.largeSize + `px;
 				height: ` + this.settings.largeSize + `px;
 				width: ` + this.settings.largeSize + `px;
+				z-index: 1;
 			}
 
 			.reaction .emoji, .reaction .reaction-me .emoji {
@@ -167,7 +168,7 @@ class BetterEmoteSizes {
 			.reaction { transition: transform ` + this.settings.transitionSpeed + `s; }
 
 			.reaction:hover {
-				transform:scale(` + this.settings.reactionHoverSize + `);
+				transform:scale(` + this.settings.reactionHoverSize + `) !important;
 				z-index: 1000;
 			}
 			

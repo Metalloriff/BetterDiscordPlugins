@@ -9,7 +9,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.4.11"; }
+    getVersion() { return "0.4.12"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -35,11 +35,11 @@ class AvatarIconViewer {
 	
 	onContextMenu(e) {
 		if(this.clickedTooSoon == false){
-			var target = e.target, context = $(".contextMenu-uoJTbz")[0], viewLabel, copyLabel;
+			var target = e.target, context = $(".contextMenu-HLZMGh")[0], viewLabel, copyLabel;
 			if(context){
 				this.url = "";
 				var messageGroup = $(target).parents(".message-group"), ownerInstance = ReactUtilities.getOwnerInstance(target),
-					member = $(target).parents(".member-2FrNV0"), dm = $(target).parents(".channel.private, .friends-row").add(".friends-row");
+					member = $(target).parents(".member-3W1lQa"), dm = $(target).parents(".channel.private, .friends-row").add(".friends-row");
 				if(messageGroup.length && !(target.className.includes("avatar") || target.className.includes("user-name") || target.className.includes("emoji")))
 					return;
 				if(messageGroup.length){
@@ -75,11 +75,11 @@ class AvatarIconViewer {
 					copyLabel = "Copy Avatar URL";
 				}
 				if(viewLabel){
-					$(context.firstChild).append(`<div id="aic-view-button" class="item-1XYaYf"><span>` + viewLabel + `</span></div>`);
+					$(context.firstChild).append(`<div id="aic-view-button" class="item-1Yvehc"><span>` + viewLabel + `</span></div>`);
 					$("#aic-view-button").on("click", e => { this.createImagePreview(e); });
 				}
 				if(copyLabel){
-					$(context.firstChild).append(`<div id="aic-copy-button" class="item-1XYaYf"><span>` + copyLabel + `</span></div>`);
+					$(context.firstChild).append(`<div id="aic-copy-button" class="item-1Yvehc"><span>` + copyLabel + `</span></div>`);
 					$("#aic-copy-button").on("click", e => { this.copyURL(e); });
 				}
 			}
@@ -93,9 +93,9 @@ class AvatarIconViewer {
 	createImagePreview() {
 		if(document.getElementById("avatar-img-preview") == null){
 			$(document).on("keyup.AvatarIconViewer", e => { this.onEscape(e); });
-			this.closeContextMenu();
+			$(".contextMenu-HLZMGh").hide();
 			var app = $(".app").last(), scale = window.innerHeight - 160;
-			app.append(`<div id="aiv-preview-window" class=""><div id="aiv-preview-backdrop" class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div><div class="imageWrapper-38T7d9" style="width: ` + scale + `px; height: ` + scale + `px;"><img src="` + this.url + `" style="width: 100%; height: 100%;"></div><div style="text-align: center; padding-top: 5px;"><button id="aiv-preview-copy" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Copy URL</div></button><button id="aiv-preview-close" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Close</div></button><button id="aiv-preview-open" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Open Externally</div></button></div></div></div></div></div>`);
+			app.append(`<div id="aiv-preview-window"><div id="aiv-preview-backdrop" class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div><div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1JeGVc"><div><div class="imageWrapper-2p5ogY" style="width: ` + scale + `px; height: ` + scale + `px;"><img src="` + this.url + `" style="width: 100%; height: 100%;"></div><div style="text-align: center; padding-top: 5px;"><button id="aiv-preview-copy" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Copy URL</div></button><button id="aiv-preview-close" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Close</div></button><button id="aiv-preview-open" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Open Externally</div></button></div></div></div></div></div>`);
 			$("#aiv-preview-backdrop").on("click", e => { this.destroyPreview(e); });
 			$("#aiv-preview-copy").on("click", e => { this.copyURL(e); });
 			$("#aiv-preview-close").on("click", e => { this.destroyPreview(e); });
@@ -113,16 +113,8 @@ class AvatarIconViewer {
 		$(document).off("keyup.AvatarIconViewer");
 	}
 	
-	closeContextMenu(){
-		var context = $(".contextMenu-uoJTbz")[0];
-		if(context != null){
-			context.innerHTML = "";
-			context.className = "";
-		}
-	}
-	
 	copyURL() {
-		this.closeContextMenu();
+		$(".contextMenu-HLZMGh").hide();
 		document.body.insertAdjacentHTML("beforeend", "<textarea class=\"temp-clipboard-data\" width=\"0\">" + this.url + "</textarea>");
 		var qs = document.querySelector(".temp-clipboard-data");
 		qs.select();

@@ -8,7 +8,7 @@ class ViewGuildRelationships {
 	
     getName() { return "View Guild Relationships"; }
     getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-    getVersion() { return "0.1.5"; }
+    getVersion() { return "0.1.6"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -39,36 +39,36 @@ class ViewGuildRelationships {
 			panel.append(`<h style="color: white;font-size: 30px;font-weight: bold;">View Guild Relationships by Metalloriff</h>
 				<div style="padding: 20px;">
 					<h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Discriminator Display Type</h5>
-					<div id="vgr-settings-radiogroup" class="radioGroup-2P3MJo">
-						<div id="vgr-radiobutton-1" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-							<label class="checkboxWrapper-2Yvr_Y">
-								<input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-								<div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+					<div id="vgr-settings-radiogroup" class="radioGroup-1GBvlr">
+						<div id="vgr-radiobutton-1" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+							<label class="checkboxWrapper-SkhIWG">
+								<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+								<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
 								</div>
 							</label>
-							<div class="info-1Z508c">
-								<div class="title-1M-Ras">Never display</div>
+							<div class="info-3LOr12">
+								<div class="title-3BE6m5">Never display</div>
 							</div>
 						</div>
-						<div id="vgr-radiobutton-2" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-							<label class="checkboxWrapper-2Yvr_Y">
-								<input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on" style="
+						<div id="vgr-radiobutton-2" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+							<label class="checkboxWrapper-SkhIWG">
+								<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on" style="
 									">
-								<div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+								<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
 								</div>
 							</label>
-							<div class="info-1Z508c">
-								<div class="title-1M-Ras">Display on hover</div>
+							<div class="info-3LOr12">
+								<div class="title-3BE6m5">Display on hover</div>
 							</div>
 						</div>
-						<div id="vgr-radiobutton-3" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-							<label class="checkboxWrapper-2Yvr_Y">
-								<input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on" style="
+						<div id="vgr-radiobutton-3" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx vgr-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+							<label class="checkboxWrapper-SkhIWG">
+								<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on" style="
 									">
-								<div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4"></div>
+								<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp"></div>
 							</label>
-							<div class="info-1Z508c">
-								<div class="title-1M-Ras">Always display</div>
+							<div class="info-3LOr12">
+								<div class="title-3BE6m5">Always display</div>
 							</div>
 						</div>
 					</div>
@@ -104,16 +104,16 @@ class ViewGuildRelationships {
 		var button = $(".item-rK1j5B").last();
 		if(button.length && button[0].innerHTML.includes("Server") && !$("#vgr-servermenuitem").length){
 			$(`<div id="vgr-servermenuitem" class="item-rK1j5B"><div class="icon-3ICDZz" style="background-image: url(&quot;/assets/52bc30f8a2b1a51f808a785819ca00b5.svg&quot;);"></div><div class="label-HtH0tJ">View Relationships</div></div>`).insertBefore(button);
-			$("#vgr-servermenuitem").on("click", e => { this.getRelationships(PluginUtilities.getCurrentServer(), ReactUtilities.getReactInstance($(".wrapperSelectedText-31jJa8")[0].parentElement).memoizedProps.children.props.channel.id, e); });
+			$("#vgr-servermenuitem").on("click", e => { this.getRelationships(PluginUtilities.getCurrentServer(), ReactUtilities.getReactInstance($(".wrapperSelectedText-3dSUjC")[0].parentElement).memoizedProps.children.props.channel.id, e); });
 		}
 	}
 	
 	onContextMenu(e){
-		var contextMenu = $(".contextMenu-uoJTbz"), itemGroups = contextMenu.find(".itemGroup-oViAgA");
+		var contextMenu = $(".contextMenu-HLZMGh"), itemGroups = contextMenu.find(".itemGroup-1tL0uz");
 		if(e.target.parentElement.className == "guild-inner" && contextMenu.length && itemGroups.length && !$("#vgr-contextbutton").length){
 			var server = e.target.href.match(/\d+/)[0];
 			if(server){
-				$(itemGroups[0]).append(`<div id="vgr-contextbutton" class="item-1XYaYf"><span>View Relationships</span></div>`);
+				$(itemGroups[0]).append(`<div id="vgr-contextbutton" class="item-1Yvehc"><span>View Relationships</span></div>`);
 				$("#vgr-contextbutton").on("click", e => { this.getRelationships(server, server, e); });
 				return;
 			}
@@ -122,31 +122,52 @@ class ViewGuildRelationships {
 	
 	getRelationships(serverID, channelID){
 		$(".menu-3BZuDT").remove();
-		var context = $(".contextMenu-uoJTbz")[0];
+		var context = $(".contextMenu-HLZMGh")[0];
 		if(context != null){
 			context.innerHTML = "";
 			context.className = "";
 		}
 		var members = InternalUtilities.WebpackModules.findByUniqueProperties(["getMember", "getMembers"]).getMembers(serverID), users = Array.from(members, x => x.userId), allRelationships = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getRelationships"]).getRelationships(), relationships = new Array(), userModule = ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
 		$(".app").last().append(`<div id="vgr-relationshipswindow">
-				<div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#vgr-relationshipswindow').remove();"></div>
-				<div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);">
-					<div class="inner-1_1f7b">
-						<div class="wrapper-2PXjeM">
+
+				<style>
+				.vgr-separator {
+					font-weight: bold;
+					color: white;
+					background-color: rgba(0, 0, 0, 0.3);
+					padding: 10px;
+					cursor: pointer;
+				}
+				.vgr-nonefound {
+					font-weight: bold;
+					color: white;
+					padding: 15px;
+					opacity: 0.6;
+					background-color: rgba(0, 0, 0, 0.1);
+				}
+				.vgr-title {
+					font-size: 20px;
+					color: white;
+					padding: 10px;
+					text-align: center;
+				}
+				#vgr-scroller {
+					max-height: 760px;
+				}
+				</style>
+
+				<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$('#vgr-relationshipswindow').remove();"></div>
+				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
+					<div class="inner-1JeGVc">
+						<div class="body-3ND3kc" style="width:800px;height:800px;">
 							<div class="modal-3HOjGZ modal-_aE5JX sizeSmall-1sh0-r" style="width: 800px; min-height: 800px; max-height: 800px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
 								<div class="flex-lFgbSz flex-3B1Tl4 horizontal-2BEEBe horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ justifyStart-2yIZo0 alignCenter-3VxkQP noWrap-v6g9vO header-3sp3cE" style="flex: 0 0 auto;">
 									<div class="flex-lFgbSz flex-3B1Tl4 vertical-3X17r5 flex-3B1Tl4 directionColumn-2h-LPR justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO" style="flex: 1 1 auto;">
-										<h2 class="h2-2ar_1B title-1pmpPr size16-3IvaX_ height20-165WbF weightSemiBold-T8sxWH defaultColor-v22dK1 marginBottom4-_yArcI">Relationships in ` + ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]).getGuild(serverID).name + `</h2>
+										<h2 class="vgr-title">Relationships in ${ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]).getGuild(serverID).name}</h2>
 									</div>
 								</div>
 								<div class="scrollerWrap-2uBjct content-1Cut5s scrollerThemed-19vinI themeGhostHairline-2H8SiW">
-									<div id="vgr-scroller" class="scroller-fzNley inner-tqJwAU marginBottom8-1mABJ4"></div>
-								</div>
-								<div class="flex-lFgbSz flex-3B1Tl4 horizontalReverse-2LanvO horizontalReverse-k5PqxT flex-3B1Tl4 directionRowReverse-2eZTxP justifyStart-2yIZo0 alignStretch-1hwxMa noWrap-v6g9vO footer-1PYmcw" style="flex: 0 0 auto;">
-									<button onclick="$('#vgr-relationshipswindow').remove();" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u" type="button">
-										<div class="contents-4L4hQM">Close</div>
-									</button>
-									<div style="width: 15px; display: inline-block; height: auto;"></div>
+									<div id="vgr-scroller" class="scroller-2FKFPG inner-tqJwAU marginBottom8-1mABJ4"></div>
 								</div>
 							</div>
 						</div>
@@ -157,23 +178,23 @@ class ViewGuildRelationships {
 			if(users.includes(key))
 				relationships.push([key, allRelationships[key]]);
 			$("#vgr-scroller").append(`<div id="vgr-friends-separator">
-					<div style="font-weight: bold;color: white;background-color: rgba(0, 0, 0, 0.3);padding: 10px;">Friends</div>
-					<div id="vgr-friends-nonefound" style="font-weight: bold;color: white;padding: 15px;opacity: 0.6;background-color: rgba(0, 0, 0, 0.1);">No friends found here.</div>
+					<div class="vgr-separator">Friends</div>
+					<div id="vgr-friends-nonefound" class="vgr-nonefound">No friends found here.</div>
 				</div>
 				<br>
 				<div id="vgr-blocked-separator">
-					<div style="font-weight: bold;color: white;background-color: rgba(0, 0, 0, 0.3);padding: 10px;">Blocked Users</div>
-					<div id="vgr-blocked-nonefound" style="font-weight: bold;color: white;padding: 15px;opacity: 0.6;background-color: rgba(0, 0, 0, 0.1);">No blocked users found here.</div>
+					<div class="vgr-separator">Blocked Users</div>
+					<div id="vgr-blocked-nonefound" class="vgr-nonefound">No blocked users found here.</div>
 				</div>
 				<br>
 				<div id="vgr-incoming-separator">
-					<div style="font-weight: bold;color: white;background-color: rgba(0, 0, 0, 0.3);padding: 10px;">Incoming Friend Requests</div>
-					<div id="vgr-incoming-nonefound" style="font-weight: bold;color: white;padding: 15px;opacity: 0.6;background-color: rgba(0, 0, 0, 0.1);">No incoming friend requests found here.</div>
+					<div class="vgr-separator">Incoming Friend Requests</div>
+					<div id="vgr-incoming-nonefound" class="vgr-nonefound">No incoming friend requests found here.</div>
 				</div>
 				<br>
 				<div id="vgr-outgoing-separator">
-					<div style="font-weight: bold;color: white;background-color: rgba(0, 0, 0, 0.3);padding: 10px;">Outgoing Friend Requests</div>
-					<div id="vgr-outgoing-nonefound" style="font-weight: bold;color: white;padding: 15px;opacity: 0.6;background-color: rgba(0, 0, 0, 0.1);">No outgoing friend requests found here.</div>
+					<div class="vgr-separator">Outgoing Friend Requests</div>
+					<div id="vgr-outgoing-nonefound" class="vgr-nonefound">No outgoing friend requests found here.</div>
 				</div>`);
 		for(var i = 0; i < relationships.length; i++){
 			var member = members[i], user = userModule.getUser(relationships[i][0]), relationship = relationships[i][1], item =

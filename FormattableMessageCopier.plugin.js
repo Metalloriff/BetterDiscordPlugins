@@ -46,7 +46,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Header format:</p>
                 </div>
 
-				<input data-var="headerFormat" value="` + this.settings.headerFormat + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="headerFormat" value="` + this.settings.headerFormat + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Header variables:<br><br>
                 $channel - The name of the selected channel<br>
@@ -60,7 +60,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Message group format:</p>
                 </div>
 
-				<input data-var="groupFormat" value="` + this.settings.groupFormat + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="groupFormat" value="` + this.settings.groupFormat + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Message group variables:<br><br>
                 $time - Message group timestamp<br>
@@ -74,7 +74,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Message format:</p>
                 </div>
 
-				<input data-var="messageFormat" value="` + this.settings.messageFormat + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="messageFormat" value="` + this.settings.messageFormat + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Message variables:<br><br>
                 $time - Message timestamp<br>
@@ -86,7 +86,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Attachment format:</p>
                 </div>
 
-				<input data-var="attachmentFormat" value="` + this.settings.attachmentFormat + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="attachmentFormat" value="` + this.settings.attachmentFormat + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Attachment variables:<br><br>
                 $filename - Name of the uploaded file<br>
@@ -98,7 +98,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Reaction format:</p>
                 </div>
 
-				<input data-var="reactionFormat" value="` + this.settings.reactionFormat + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="reactionFormat" value="` + this.settings.reactionFormat + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Reaction variables:<br><br>
                 $emoji - Reaction's emoji<br>
@@ -110,7 +110,7 @@ class FormattableMessageCopier {
 				    <p class="mc-label-label" style="padding-top: 15px;">Selection color (R, G, B):</p>
                 </div>
 
-				<input data-var="selectionColor" value="` + this.settings.selectionColor + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input data-var="selectionColor" value="` + this.settings.selectionColor + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <h5 style="padding-top:30px;">Reaction variables:<br><br>
                 $emoji - Reaction's emoji<br>
@@ -209,8 +209,8 @@ class FormattableMessageCopier {
 	}
 	
     getName() { return "Formattable Message Copier"; }
-    getDescription() { return "Allows you to select messages in a chat to copy them in a customizable format. Double click the top of a message group to select it, then shift click to the next point to append all message groups between, or ctrl click another message group to append a single group."; }
-    getVersion() { return "0.0.1"; }
+    getDescription() { return "Allows you to select messages in a chat to copy them in a customizable format. Double click the top of a message group to select it, then shift click to the next point to select all message groups between, or ctrl click another message group to append a single group to the selection."; }
+    getVersion() { return "0.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -309,7 +309,7 @@ class FormattableMessageCopier {
         }
         $("#mc-copy-button").remove();
         if(this.selection.length > 0){
-            $(this.selection[this.selection.length - 1]).append(`<button id="mc-copy-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u"><div class="contents-4L4hQM">Copy Selection</div></button>`);
+            $(this.selection[this.selection.length - 1]).append(`<button id="mc-copy-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN"><div class="contents-4L4hQM">Copy Selection (${this.selection.length})</div></button>`);
             $("#mc-copy-button").on("click", () => { this.copySelection(); });
         }
     }
@@ -392,4 +392,4 @@ class FormattableMessageCopier {
         BdApi.clearCSS("FormattableMessageCopier");
     }
 	
-}
+}//

@@ -14,7 +14,7 @@ class CustomizableAvatarDPI {
 	
     getName() { return "Customizable Avatar DPI"; }
     getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-    getVersion() { return "0.0.3"; }
+    getVersion() { return "0.0.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -65,28 +65,28 @@ class CustomizableAvatarDPI {
                 <p class="cadpi-label-label cadpi-hint">Member list, DM list, etc.</p>
                 </div>
 
-				<input id="cadpi-small" value="` + this.settings.smallAvatarSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="cadpi-small" value="` + this.settings.smallAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <div class="cadpi-label">
 				    <p class="cadpi-label-label">Large avatar size:</p>
                     <p class="cadpi-label-label cadpi-hint">Chat avatars.</p>
                 </div>
 
-				<input id="cadpi-large" value="` + this.settings.largeAvatarSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="cadpi-large" value="` + this.settings.largeAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
                 <div class="cadpi-label">
 				    <p class="cadpi-label-label">Popout avatar size:</p>
                     <p class="cadpi-label-label cadpi-hint">User popouts, user profiles.</p>
                 </div>
 
-				<input id="cadpi-popout" value="` + this.settings.popoutAvatarSize + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+				<input id="cadpi-popout" value="` + this.settings.popoutAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 
 				<div style="text-align: center;">
 				<br>
-				<button id="cadpi-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="cadpi-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Reset</div>
 				</button>
-				<button id="cadpi-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+				<button id="cadpi-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
 					<div class="contents-4L4hQM">Save</div>
 				</button>
 				</div>
@@ -120,7 +120,7 @@ class CustomizableAvatarDPI {
             return;
         var nodes = $(e.addedNodes),
             largeAvatars = nodes.find(".avatar-large"),
-            popoutAvatars = nodes.find(".image-EVRGPw.maskProfile-MeBve8.mask-2vyqAW"),
+            popoutAvatars = nodes.find(".image-33JSyf.maskProfile-MeBve8.mask-2vyqAW"),
             smallAvatars = nodes.find(".avatar-small:not(a), .avatar-1BXaQj.small-TEeAkX > .mask-2vyqAW, .avatarContainer-303pFz.margin-reset > div");
         largeAvatars.each(i => 
             largeAvatars[i].style.backgroundImage = largeAvatars[i].style.backgroundImage.substring(0, largeAvatars[i].style.backgroundImage.indexOf("?size=")) + "?size=" + this.settings.largeAvatarSize

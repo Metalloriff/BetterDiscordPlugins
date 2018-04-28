@@ -5,11 +5,12 @@ class UserBirthdays {
 	constructor(){
 		this.birthdays = new Array();
 		this.checkLoop;
+		this.popoutObserver;
 	}
 	
     getName() { return "User Birthdays"; }
     getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday."; }
-    getVersion() { return "0.0.4"; }
+    getVersion() { return "0.0.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -53,6 +54,20 @@ class UserBirthdays {
 		this.birthdays = data["birthdays"];
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.UserBirthdays", e => { this.onThemeDarkChange(e); });
 		this.checkForBirthdays();
+		this.popoutObserver = new MutationObserver(e => {
+			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-3XzG_A").length > 0){
+				var popout = $(".userPopout-3XzG_A"), userID = "";
+				if(popout.length && popout[0].getElementsByClassName("discriminator").length > 0)
+					userID = ReactUtilities.getOwnerInstance(popout[0]).props.user.id;
+				var birthday = "", birthdayItem = this.birthdays.find(x => x[0] == userID);
+				if(birthdayItem) birthday = birthdayItem[2];
+				if(popout.length && userID != "" && !$("#ub-birthdayfield").length){
+					$(`<div class="body-3iLsc4"><div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Birthday</div><div class="note-3kmerW note-3HfJZ5"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 35px;">${birthday}</textarea></div></div>`).insertAfter($(popout.find(".body-3iLsc4").last()));
+					$("#ub-birthdayfield").on("focusout", () => { this.updateBirthday(userID); });
+				}
+			}
+		});
+		this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
 	}
 	
 	checkForBirthdays(){
@@ -69,23 +84,23 @@ class UserBirthdays {
 					continue;
 				}
 				if(user.id == "264163473179672576")
-					$(".theme-" + this.themeType).last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.tag + `'s birthday today!<div id="dl-servermessagelabel" class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH" style="color: rgb(150, 150, 150); padding-top: 20px">It's the plugin developer's birthday! Go tell him happy birthday, he's lonely!</div></span></div></div></header></div></div></div></div>`);
+					$(".app").last().append(`<div id="ub-bday-alert"><div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1JeGVc"><div class="topSectionNormal-2-vo2m" custom-editusers="true"><header class="header-QKLPzZ flex-1O1GKY alignCenter-1dQNNs"><div class="avatar-16XVId profile-ZOdGIb avatar-3EQepX"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-30uryT"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi">It's ` + user.tag + `'s birthday today!<div id="dl-servermessagelabel" class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="color: rgb(150, 150, 150); padding-top: 20px">It's the plugin developer's birthday! Go tell him happy birthday, he's lonely!</div></span></div></div></header></div></div></div></div>`);
 				else
-					$(".theme-" + this.themeType).last().append(`<div id="ub-bday-alert"><div class="backdrop-2ohBEd" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-2LIEKY" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1_1f7b"><div class="topSectionNormal-2LlRG1" custom-editusers="true"><header class="header-2Lg0Oe flex-3B1Tl4 alignCenter-3VxkQP"><div class="avatar-1BXaQj profile-3z9uol avatar-4g_GO6"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-Gkqcz9"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-24t9uh size18-ZM4Qv- weightSemiBold-T8sxWH">It's ` + user.username +`'s birthday today!</span></div></div></header></div></div></div></div>`);
+					$(".app").last().append(`<div id="ub-bday-alert"><div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="var a = document.getElementById('ub-bday-alert'); a.parentNode.removeChild(a);"></div><div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);"><div class="inner-1JeGVc"><div class="topSectionNormal-2-vo2m" custom-editusers="true"><header class="header-QKLPzZ flex-1O1GKY alignCenter-1dQNNs"><div class="avatar-16XVId profile-ZOdGIb avatar-3EQepX"><img src="` + user.getAvatarURL() + `" height="90" width="90" style="center center / cover;"></div><div class="headerInfo-30uryT"><div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW"><span class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi">It's ` + user.username +`'s birthday today!</span></div></div></header></div></div></div></div>`);
 				this.birthdays[i][3] = today.getFullYear();
 				this.save();
 			}
 		}
-		this.checkLoop = setTimeout(e => { this.checkForBirthdays(e); }, 60000);
+		this.checkLoop = setTimeout(() => { this.checkForBirthdays(); }, 60000);
 	}
 	
 	onThemeDarkChange(){
-		var userInfo = $(".theme-" + this.themeType).last().find(".inner-1_1f7b"), userID = "";
-		if(userInfo.length && $(".discriminator.discriminator-3KVlLu.size14-1wjlWP").length)
+		var userInfo = $(".theme-" + this.themeType).last().find(".inner-1JeGVc"), userID = "";
+		if(userInfo.length && $(".nameTag-2IFDfL.userSelectText-1o1dQ7.nameTag-m8r81H").length)
 			userID = ZeresLibrary.ReactUtilities.getReactInstance(userInfo[0]).child.memoizedProps.user.id;
 		if(userID != "" && userInfo.length && !document.getElementById("ub-birthdayfield")){
-			$(`<div class="userInfoSection-2WJxMm"><div id="ub-birthdaylabel" class="userInfoSectionHeader-pmdPGs size12-1IGJl9 weightBold-2qbcng">Birthday</div><div class="note-2AtC_s note-39NEdV"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 5/20 or May 20" maxlength="20" class="scrollbarGhostHairline-D_btXm scrollbar-11WJwo" style="height: 24px;"></textarea></div></div>`).insertAfter($(userInfo.find(".scroller-fzNley").find(".userInfoSection-2WJxMm")[0]));
-			$("#ub-birthdayfield").on("focusout", e => { this.updateBirthday(e); });
+			$(`<div class="userInfoSection-2acyCx"><div id="ub-birthdaylabel" class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Birthday</div><div class="note-3kmerW note-QfFU8y"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="20" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;"></textarea></div></div>`).insertAfter($(userInfo.find(".scroller-2FKFPG").find(".userInfoSection-2acyCx").first()));
+			$("#ub-birthdayfield").on("focusout", () => { this.updateBirthday(ZeresLibrary.ReactUtilities.getReactInstance($(".inner-1JeGVc")[0]).child.memoizedProps.user.id); });
 			for(var i = 0; i < this.birthdays.length; i++){
 				if(this.birthdays[i][0] == userID)
 					$("#ub-birthdayfield")[0].value = this.birthdays[i][2];
@@ -93,8 +108,8 @@ class UserBirthdays {
 		}
 	}
 	
-	updateBirthday(){
-		var userID = ZeresLibrary.ReactUtilities.getReactInstance($(".inner-1_1f7b")[0]).child.memoizedProps.user.id, birthdayDate = $("#ub-birthdayfield")[0].value + " " + new Date().getFullYear();
+	updateBirthday(userID){
+		var birthdayDate = $("#ub-birthdayfield")[0].value + " " + new Date().getFullYear();
 		var birthday = new Date(birthdayDate);
 		if(birthday && birthday != "Invalid Date"){
 			var birthdayString = birthday.toLocaleDateString("en-us", {day: "numeric", month: "numeric"});
@@ -119,6 +134,7 @@ class UserBirthdays {
     stop() {
 		clearTimeout(this.checkLoop);
 		$(".theme-" + this.themeType).last().off("DOMNodeInserted.UserBirthdays");
+		if(this.popoutObserver != undefined) this.popoutObserver.disconnect();
 	}
 	
 	getUser(id){

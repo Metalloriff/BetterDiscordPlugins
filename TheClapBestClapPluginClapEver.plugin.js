@@ -4,7 +4,7 @@ class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
 	getDescription() { return "Literally the most useless plugin ever. Put \"clapclap:\" at the first of your message to replace spaces with clap emojis. You can also do \"clapclap(some_emote_name):\" to use custom emotes, \"ra:\" to replace all characters with regional indicators, and \"reverse:\" to reverse the message."; }
-    getVersion() { return "0.3.1"; }
+    getVersion() { return "0.3.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -32,7 +32,7 @@ class TheClapBestClapPluginClapEver {
 	}
 	
 	attach(){
-		var chatboxJQ = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatboxJQ = $("textarea");
 		if(chatboxJQ.length){
 			var chatbox = chatboxJQ[0];
 			chatboxJQ.on("keydown.ClapClap", e => {
@@ -68,7 +68,7 @@ class TheClapBestClapPluginClapEver {
 	}
 	
     stop() {
-		var chatbox = $(".textAreaEnabled-2vOfh8, .textAreaEnabledNoAttach-1zE_2h");
+		var chatbox = $("textarea");
 		if(chatbox)
 			chatbox.off("keydown.ClapClap");
 	}

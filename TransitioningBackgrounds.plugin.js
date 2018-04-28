@@ -10,7 +10,8 @@ class TransitioningBackgrounds {
             transitionTime : 3,
             randomize : false,
             onlyRunWhileFocused : false,
-            forceTransparency : false
+            forceTransparency : false,
+            backgroundDarkness : 0.5
         }
         this.settings;
         this.loop;
@@ -21,7 +22,7 @@ class TransitioningBackgrounds {
 	
     getName() { return "Transitioning Backgrounds"; }
     getDescription() { return "Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random."; }
-    getVersion() { return "0.1.1"; }
+    getVersion() { return "0.1.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -58,186 +59,207 @@ class TransitioningBackgrounds {
                     width: 60%;
                     border-radius: 3px;
                 }
+                .tb-label {
+                    color: white;
+                    padding-bottom: 5px;
+                    font-size: 20px;
+                }
                 </style>
 
                 <div class="plugin-settings" id="plugin-settings-Transitioning Backgrounds">
                 <h style="color: white;font-size: 30px;font-weight: bold;">Transitioning Backgrounds by Metalloriff</h>
 
                 <div style="padding-top: 20px;">
-                <h5 id="tb-images-label" class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Background images</h5>
-                <div class="radioGroup-2P3MJo">
+                <h5 id="tb-images-label" class="tb-label">Background images</h5>
+                <div class="radioGroup-1GBvlr">
                 <div id="tb-image-array">
                 </div>
                 <div style="text-align: center;">
-                    <button id="tb-add-image-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+                    <button id="tb-add-image-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
                         <div class="contents-4L4hQM">Add</div>
                     </button>
-                    <button id="tb-clear-images-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+                    <button id="tb-clear-images-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
                         <div class="contents-4L4hQM">Clear</div>
                     </button>
                 </div>
                 </div>
 
                 <div style="padding-top: 20px;">
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Transition speed (seconds)</h5>
-                </div><input id="tb-transition-time" value="` + this.settings.transitionTime + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+                <h5 class="tb-label">Transition speed (seconds)</h5>
+                </div><input id="tb-transition-time" value="` + this.settings.transitionTime + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
                 </div>
 
                 <div style="padding-top: 20px;">
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Time between transitions (seconds)</h5>
-                </div><input id="tb-transition-delay" value="` + this.settings.changeDelay + `" type="number" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY">
+                <h5 class="tb-label">Time between transitions (seconds)</h5>
+                </div><input id="tb-transition-delay" value="` + this.settings.changeDelay + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
                 </div>
 
                 <div style="padding-top: 20px;">
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Transition type</h5>
-                <div id="tb-trans-method-group" class="radioGroup-2P3MJo">
-                    <div data-method="fade" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                <h5 class="tb-label">Transition type</h5>
+                <div id="tb-trans-method-group" class="radioGroup-1GBvlr">
+                    <div data-method="none" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Fade</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">None</div>
                         </div>
                     </div>
-                    <div data-method="slide-left" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="fade" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Slide left</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Fade</div>
                         </div>
                     </div>
-                    <div data-method="slide-right" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="slide-left" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Slide right</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Slide left</div>
                         </div>
                     </div>
-                    <div data-method="slide-up" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="slide-right" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Slide up</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Slide right</div>
                         </div>
                     </div>
-                    <div data-method="slide-down" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="slide-up" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Slide down</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Slide up</div>
                         </div>
                     </div>
-                    <div data-method="shrink" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="slide-down" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Shrink</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Slide down</div>
                         </div>
                     </div>
-                    <div data-method="rotate-x" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="shrink" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Rotate horizontally</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Shrink</div>
                         </div>
                     </div>
-                    <div data-method="rotate-y" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="rotate-x" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Rotate vertically</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Rotate horizontally</div>
                         </div>
                     </div>
-                    <div data-method="zoom-fade" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="rotate-y" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Zoom and fade</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Rotate vertically</div>
                         </div>
                     </div>
-                </div>
-                </div>
-
-                <div style="padding-top: 20px;">
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Image selection type</h5>
-                <div id="tb-selection-type" class="radioGroup-2P3MJo">
-                    <div data-value="false" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                    <div data-method="zoom-fade" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                             </div>
                         </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">In order</div>
-                        </div>
-                    </div>
-                    <div data-value="true" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                        <label class="checkboxWrapper-2Yvr_Y">
-                            <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                            <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
-                            </div>
-                        </label>
-                        <div class="info-1Z508c">
-                            <div class="title-1M-Ras">Randomized</div>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Zoom and fade</div>
                         </div>
                     </div>
                 </div>
                 </div>
 
                 <div style="padding-top: 20px;">
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4">Other settings</h5>
-                <div id="tb-other-settings" class="radioGroup-2P3MJo">
-                <div data-key="onlyRunWhileFocused" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                    <label class="checkboxWrapper-2Yvr_Y">
-                        <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                        <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                <h5 class="tb-label">Image selection type</h5>
+                <div id="tb-selection-type" class="radioGroup-1GBvlr">
+                    <div data-value="false" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
+                            </div>
+                        </label>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">In order</div>
+                        </div>
+                    </div>
+                    <div data-value="true" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                        <label class="checkboxWrapper-SkhIWG">
+                            <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                            <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
+                            </div>
+                        </label>
+                        <div class="info-3LOr12">
+                            <div class="title-3BE6m5">Randomized</div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <div style="padding-top: 20px;">
+                <h5 class="tb-label">Other settings</h5>
+                <div id="tb-other-settings" class="radioGroup-1GBvlr">
+                <div data-key="onlyRunWhileFocused" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                    <label class="checkboxWrapper-SkhIWG">
+                        <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                        <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                         </div>
                     </label>
-                    <div class="info-1Z508c">
-                        <div class="title-1M-Ras">Only run while Discord is focused</div>
+                    <div class="info-3LOr12">
+                        <div class="title-3BE6m5">Only run while Discord is focused</div>
                     </div>
                 </div>
-                <div data-key="forceTransparency" class="item-2zi_5J marginBottom8-1mABJ4 horizontal-2VE-Fw flex-3B1Tl4 directionRow-yNbSvJ cardPrimaryEditable-2IQ7-V card-3DrRmC tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
-                    <label class="checkboxWrapper-2Yvr_Y">
-                        <input type="checkbox" class="inputDefault-2tiBIA input-oWyROL" value="on">
-                        <div class="checkbox-1QwaS4 flexCenter-28Hs0n flex-3B1Tl4 justifyCenter-29N31w alignCenter-3VxkQP box-XhjOl4">
+                <div data-key="forceTransparency" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx tb-radiobutton" style="padding: 10px;border-radius: 0px !important;">
+                    <label class="checkboxWrapper-SkhIWG">
+                        <input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
+                        <div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
                         </div>
                     </label>
-                    <div class="info-1Z508c">
-                        <div class="title-1M-Ras">Force transparency (may look bad. only use this if you have a theme with no background, or no theme.)</div>
+                    <div class="info-3LOr12">
+                        <div class="title-3BE6m5">Force transparency (may look bad. only use this if you have a theme with no background, or no theme.)</div>
                     </div>
-                </div>
                 </div>
                 </div>
                 </div>
 
-                <h5 class="h5-3KssQU title-1pmpPr size12-1IGJl9 height16-1qXrGy weightSemiBold-T8sxWH defaultMarginh5-2UwwFY marginBottom8-1mABJ4" style="color: blueviolet;word-spacing: 5px;padding-top:30px;">Hint: you can edit the background element using the .transitioning-background class, and you can change the behaviour of each fade method with CSS as well.
+                <div style="padding-top: 20px;">
+                <h5 class="tb-label">Force transparency background darkness</h5>
+                </div><input id="tb-background-darkness" value="${this.settings.backgroundDarkness}" min="0" max="1" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+                </div>
+
+                </div>
+
+                <h5 class="tb-label" style="color: blueviolet;word-spacing: 5px;padding-top:30px;">Hint: you can edit the background element using the .transitioning-background class, and you can change the behaviour of each fade method with CSS as well.
                 
                 Search the inspector for "TransitioningBackgrounds" to see all available classes.</h5>
             `);
@@ -292,8 +314,8 @@ class TransitioningBackgrounds {
                     $("#tb-image-array").append(`
 
                         <div class="tb-image-array-item" style="padding-bottom: 10px;">
-                            <input value="` + this.settings.images[i] + `" class="inputDefault-Y_U37D input-2YozMi size16-3IvaX_ multiInputField-3ZB4zY" style="display: inline-block;width: 500px;background-image: url('` + this.settings.images[i] + `');background-size: cover;">
-                            <button id="tb-remove-image-button-` + i + `" style="display: inline-block;margin-right: 25px;float: right;" type="button" class="button-2t3of8 lookFilled-luDKDo colorBrand-3PmwCE sizeMedium-2VGNaF grow-25YQ8u">
+                            <input value="` + this.settings.images[i] + `" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5" style="display: inline-block;width: 500px;background-image: url('` + this.settings.images[i] + `');background-size: cover;">
+                            <button id="tb-remove-image-button-` + i + `" style="display: inline-block;margin-right: 25px;float: right;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
                             <div class="contents-4L4hQM">Remove</div>
                             </button>
                         </div>
@@ -319,12 +341,17 @@ class TransitioningBackgrounds {
             });
 
             $("#tb-transition-time").on("focusout", () => {
-                this.settings.transitionTime = document.getElementById("tb-transition-time").value;
+                this.settings.transitionTime = document.getElementById("tb-transition-time").value + 0;
                 this.saveSettings();
             });
 
             $("#tb-transition-delay").on("focusout", () => {
-                this.settings.changeDelay = document.getElementById("tb-transition-delay").value;
+                this.settings.changeDelay = document.getElementById("tb-transition-delay").value + 0;
+                this.saveSettings();
+            });
+
+            $("#tb-background-darkness").on("focusout", () => {
+                this.settings.backgroundDarkness = document.getElementById("tb-background-darkness").value + 0;
                 this.saveSettings();
             });
 		}else
@@ -383,9 +410,27 @@ class TransitioningBackgrounds {
         if(this.settings.forceTransparency){
             BdApi.injectCSS("TransitioningBackgroundsTransparency", `
 
-                #app-mount, .layer-kosS71, .layers-20RVFW, .messages-wrapper, .container-2OU7Cz, .guilds-wrapper, .channels-3g2vYe, .chat, .chat > .content, .members-1bid1J, .container-RYiLUQ, .chat form, .title-qAcLxz, .layer-kosS71, .layers-20RVFW, .ui-standard-sidebar-view, .uploadArea-23on8q, .content-region, .sidebar-region, #friends, .friends-table, .headerBar-cxbhPD {
+                .container-2lgZY8, .layer-3QrUeG, .ui-standard-sidebar-view {
+                    background: rgba(0, 0, 0, ${this.settings.backgroundDarkness}) !important;
+                }
+
+                .layer-3QrUeG, .layers-3iHuyZ, .guilds-wrapper, .channels-Ie2l6A, .chat, .title-3qD0b-, .content, .messages-wrapper, .chat form, .sidebar-region, .content-region, .scroller-2FKFPG, .container-PNkimc, .container-PNkimc, #friends, .headerBar-UHpsPw, .friends-table, .typing-2GQL18 {
                     background: transparent !important;
                     background-color: transparent !important;
+                }
+
+                ::-webkit-scrollbar-track-piece {
+                    background: rgba(0, 0, 0, ${this.settings.backgroundDarkness}) !important;
+                    border: none !important;
+                }
+
+                ::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.15) !important;
+                    border: none !important;
+                }
+
+                ::-webkit-scrollbar-thumb:hover {
+                    background: #7289da !important;
                 }
 
             `);
@@ -415,17 +460,16 @@ class TransitioningBackgrounds {
     }
 
     onContextMenu(e){
-        var image = undefined, contextMenu = $(".contextMenu-uoJTbz"), elementURL = undefined;
+        var image = undefined, elementURL = undefined, itemGroups = $(".itemGroup-1tL0uz");
         if(e.target.localName == "a"){ elementURL = e.target.href; }
         if(e.target.localName == "img"){ elementURL = e.target.src; }
+        if(elementURL == undefined){ return; }
         if(elementURL.lastIndexOf("?") != -1){ elementURL = elementURL.substring(0, elementURL.lastIndexOf("?")); }
-        if(elementURL != undefined && (elementURL.endsWith(".jpg") || elementURL.endsWith(".png") || elementURL.endsWith(".gif") || elementURL.endsWith(".jpeg"))){
-            image = elementURL;
-        }
+        if(elementURL.endsWith(".jpg") || elementURL.endsWith(".png") || elementURL.endsWith(".gif") || elementURL.endsWith(".jpeg")){ image = elementURL; }
         $("#tb-contextmenu-addremove").remove();
-        if(image != undefined && contextMenu.length){
+        if(image != undefined && itemGroups.length){
             if(this.settings.images.includes(image)){
-                contextMenu.prepend(`<div id="tb-contextmenu-addremove" class="itemGroup-oViAgA"><div class="item-1XYaYf"><span>Remove Background</span></div></div>`);
+                $(`<div id="tb-contextmenu-addremove" class="itemGroup-1tL0uz"><div class="item-1Yvehc"><span>Remove Background</span></div></div>`).insertBefore(itemGroups.first());
                 $("#tb-contextmenu-addremove").on("click", () => {
                     this.settings.images.splice(this.settings.images.indexOf(image), 1);
                     this.saveSettings(false);
@@ -433,7 +477,7 @@ class TransitioningBackgrounds {
                     this.onContextMenu(e);
                 });
             }else{
-                contextMenu.prepend(`<div id="tb-contextmenu-addremove" class="itemGroup-oViAgA"><div class="item-1XYaYf"><span>Add As Background</span></div></div>`);
+                $(`<div id="tb-contextmenu-addremove" class="itemGroup-1tL0uz"><div class="item-1Yvehc"><span>Add As Background</span></div></div>`).insertBefore(itemGroups.first());
                 $("#tb-contextmenu-addremove").on("click", () => {
                     this.settings.images.push(image);
                     this.saveSettings(false);

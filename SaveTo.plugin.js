@@ -72,8 +72,6 @@ class SaveTo {
 	initialize() {
 
         PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SaveTo.plugin.js");
-        
-        $("#NeatoBurritoLibrary").remove();
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {

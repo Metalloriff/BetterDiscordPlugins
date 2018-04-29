@@ -43,7 +43,7 @@ class ShareButton {
 	
 	initialize() {
 
-		//PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/ShareButton.plugin.js");
+		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/ShareButton.plugin.js");
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {

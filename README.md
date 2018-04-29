@@ -76,3 +76,7 @@ Double click the top of a message group to select it, then shift click to the ne
 ## [Share Button](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ShareButton.plugin.js)
 - Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu.
 - [View Preview](https://imgur.com/a/uyWaxqT)
+
+## [Save To](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SaveTo.plugin.js)
+- Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu.
+- [View Preview](https://imgur.com/a/Ej9w3df)

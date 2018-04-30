@@ -16,7 +16,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -267,7 +267,7 @@ class ShareButton {
                     recentChannels = $("#sb-recent-channels");
                 }
 
-                $(`<div class="sb-channel-item-button sb-button" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(recentChannels.find(".sb-label"));
+                $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(recentChannels.find(".sb-label"));
 
             }
 
@@ -294,7 +294,7 @@ class ShareButton {
                     pinnedChannels = $("#sb-pinned-channels");
                 }
 
-                $(`<div class="sb-channel-item-button sb-button" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(pinnedChannels.find(".sb-label"));
+                $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(pinnedChannels.find(".sb-label"));
 
             }
 
@@ -317,9 +317,15 @@ class ShareButton {
 
         var channelClickEvent = e => {
 
-            var $targ = $(e.currentTarget), item = e.currentTarget.querySelector(".sb-channel-item");
+            var $targ = $(e.currentTarget), item = e.currentTarget.querySelector(".sb-channel-item"), lastServer = PluginUtilities.getCurrentServer();
+
+            DiscordModules.GuildActions.selectGuild($targ.data("guild-id"));
+
+            DiscordModules.ChannelActions.selectChannel($targ.data("guild-id"), $targ.data("channel-id"));
 
             DiscordModules.MessageActions.sendMessage($targ.data("channel-id"), { content : $targ.data("content") });
+
+            DiscordModules.GuildActions.selectGuild(lastServer.id);
 
             item.innerText = "Sent!";
             $targ[0].style.backgroundColor = "#43b581";
@@ -397,7 +403,7 @@ class ShareButton {
 
                         }
 
-                        channelsParent.append(`<div class="sb-channel-item-button sb-button" data-channel-id="${allChannels[i].id}" data-content="${fileURL}"><div class="sb-channel-item">#${allChannels[i].name}</div></div>`);
+                        channelsParent.append(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${allChannels[i].id}" data-content="${fileURL}"><div class="sb-channel-item">#${allChannels[i].name}</div></div>`);
 
                     }
 

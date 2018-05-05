@@ -11,7 +11,8 @@ class SaveTo {
 
         this.defaultSettings = {
             fileNameType : "original",
-            sortMode : "a-z"
+            sortMode : "a-z",
+            displayUpdateNotes : true
         };
         this.settings;
 
@@ -22,7 +23,7 @@ class SaveTo {
 	
     getName() { return "Save To"; }
     getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.2.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -30,9 +31,18 @@ class SaveTo {
             `
                 Added sort mode settings, including custom sorting.
                 You can now add, remove and modify folders via the settings menu.
+            `,
+            "0.2.2" :
+            `
+                Instead of just random numbers, the random file names are now random characters.
+                Added a changelog toggle setting.
+                Added a view changelog button.
             `
 		};
     }
+
+    saveSettings() { PluginUtilities.saveSettings("SaveTo", this.settings); }
+    saveData() { PluginUtilities.saveData("SaveTo", "data", this.data); }
     
     getSettingsPanel() {
 
@@ -56,7 +66,7 @@ class SaveTo {
                             this.data.folders[i].name = name;
                         }
                         refreshFolders();
-                        PluginUtilities.saveData("SaveTo", "data", this.data);
+                        this.saveData();
                     }, "focusout", "5px");
 
                     textField.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Browse", e => {
@@ -71,14 +81,14 @@ class SaveTo {
                             $("#st-folder-upload").remove();
                         });
                         refreshFolders();
-                        PluginUtilities.saveData("SaveTo", "data", this.data);
+                        this.saveData();
                     }, "float:right;"));
 
                     var positionField = Metalloriff.Settings.Elements.createTextField("", "number", this.data.folders[i].position, e => {
                         if(e.target.value.length == 0) e.target.value = this.data.folders[i].position;
                         else this.data.folders[i].position = e.target.value;
                         refreshFolders();
-                        PluginUtilities.saveData("SaveTo", "data", this.data);
+                        this.saveData();
                     }, "focusout", "", { withParent : false }).querySelector("input");
 
                     positionField.style.paddingRight = "10px";
@@ -122,11 +132,11 @@ class SaveTo {
             Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createRadioGroup("st-file-name-type", "File name type:", [
                 { title : "Original", value : "original", description : `Example: unknown.png` },
                 { title : "Date", value : "date", description : `Example: ${date.toLocaleDateString().split("/").join("-")} ${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}.png` },
-                { title : "Random numbers", value : "random", description : `Example: ${date.getMonth()}${date.getDay()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}.png` },
-                { title : "Original + random numbers", value : "original+random", description : `Example: unknown ${date.getMonth()}${date.getDay()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}.png` }
+                { title : "Random", value : "random", description : `Example: ${Math.random().toString(36).substring(10)}.png` },
+                { title : "Original + random", value : "original+random", description : `Example: unknown ${Math.random().toString(36).substring(10)}.png` }
             ], this.settings.fileNameType, (e, choiceItem) => {
                 this.settings.fileNameType = choiceItem.value;
-                PluginUtilities.saveSettings("SaveTo", this.settings);
+                this.saveSettings();
             }), this.getName());
 
             Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createRadioGroup("st-sort-type", "Sort by:", [
@@ -138,7 +148,7 @@ class SaveTo {
             ], this.settings.sortMode, (e, choiceItem) => {
                 this.settings.sortMode = choiceItem.value;
                 refreshFolders();
-                PluginUtilities.saveSettings("SaveTo", this.settings);
+                this.saveSettings();
             }), this.getName());
 
             var folderLabels = document.createElement("div");
@@ -168,12 +178,14 @@ class SaveTo {
             buttonParent.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Remove Selected Folder", () => {
                 this.data.folders.splice(this.selectedFolder, 1);
                 refreshFolders();
-                PluginUtilities.saveData("SaveTo", "data", this.data);
+                this.saveData();
             }, "margin-left:15px;", { id : "st-settings-remove-folder" }));
 
             buttonParent.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Open Selected Folder", () => {
                 window.open(`file:///${this.data.folders[this.selectedFolder].path}`);
             }, "margin-left:15px;", { id : "st-settings-open-folder"}));
+
+            Metalloriff.Settings.pushChangelogElements(this);
 
         }, 0);
 
@@ -324,14 +336,14 @@ class SaveTo {
 
         if(this.settings.fileNameType == "date") fileName = `${date.toLocaleDateString().split("/").join("-")} ${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}${fileExtension}`;
 
-        if(this.settings.fileNameType == "random") fileName = `${date.getMonth()}${date.getDay()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}${fileExtension}`;
+        if(this.settings.fileNameType == "random") fileName = `${Math.random().toString(36).substring(10)}${fileExtension}`;
 
-        if(this.settings.fileNameType == "original+random") fileName = fileName.replace(fileExtension, "") + ` ${date.getMonth()}${date.getDay()}${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}${fileExtension}`;
+        if(this.settings.fileNameType == "original+random") fileName = fileName.replace(fileExtension, "") + ` ${Math.random().toString(36).substring(10)}${fileExtension}`;
         
         var options = new PluginContextMenu.Menu(false);
         options.addItems(new PluginContextMenu.TextItem("Remove Folder", { callback : e => {
             this.data.folders.splice(this.data.folders.findIndex(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]), 1);
-            PluginUtilities.saveData("SaveTo", "data", this.data);
+            this.saveData();
             $(e.currentTarget.parentElement.parentElement).remove();
         }})).addItems(new PluginContextMenu.TextItem("Open Folder", { callback : e => {
             window.open("file:///" + this.data.folders.find(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]).path);
@@ -405,7 +417,7 @@ class SaveTo {
                     position : this.data.folders.length
                 });
 
-                PluginUtilities.saveData("SaveTo", "data", this.data);
+                this.saveData();
 
             }
 

@@ -23,7 +23,7 @@ class SaveTo {
 	
     getName() { return "Save To"; }
     getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-    getVersion() { return "0.2.2"; }
+    getVersion() { return "0.3.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -37,6 +37,11 @@ class SaveTo {
                 Instead of just random numbers, the random file names are now random characters.
                 Added a changelog toggle setting.
                 Added a view changelog button.
+            `,
+            "0.3.2" :
+            `
+                Fixed the context menu being slightly delayed, causing an ugly flash effect.
+                Added a "Save and Open File" choice to the folder submenus.
             `
 		};
     }
@@ -263,9 +268,8 @@ class SaveTo {
         this.classes = Metalloriff.getClasses(["contextMenu", "member"]);
         
         $(document).on("contextmenu.SaveTo", e => {
-            setTimeout(() => {
-                this.onContextMenu(e);
-            }, 0);
+            if(document.getElementsByClassName(this.classes.contextMenu).length == 0) setTimeout(() => this.onContextMenu(e), 0);
+            else this.onContextMenu(e);
         });
 
         Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
@@ -349,6 +353,9 @@ class SaveTo {
             window.open("file:///" + this.data.folders.find(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]).path);
         }})).addItems(new PluginContextMenu.TextItem("Save To Folder", { callback : e => {
             e.target.parentElement.click();
+        }})).addItems(new PluginContextMenu.TextItem("Save and Open File", { callback : e => {
+            var path = this.data.folders.find(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]).path;
+            Metalloriff.downloadFile(url, path, fileName, p => window.open("file:///" + p));
         }}));
 
         var sorted = this.data.folders;

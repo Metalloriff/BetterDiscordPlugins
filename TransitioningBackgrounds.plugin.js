@@ -22,7 +22,7 @@ class TransitioningBackgrounds {
 	
     getName() { return "Transitioning Backgrounds"; }
     getDescription() { return "Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.1.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -341,17 +341,17 @@ class TransitioningBackgrounds {
             });
 
             $("#tb-transition-time").on("focusout", () => {
-                this.settings.transitionTime = document.getElementById("tb-transition-time").value + 0;
+                this.settings.transitionTime = document.getElementById("tb-transition-time").value;
                 this.saveSettings();
             });
 
             $("#tb-transition-delay").on("focusout", () => {
-                this.settings.changeDelay = document.getElementById("tb-transition-delay").value + 0;
+                this.settings.changeDelay = document.getElementById("tb-transition-delay").value;
                 this.saveSettings();
             });
 
             $("#tb-background-darkness").on("focusout", () => {
-                this.settings.backgroundDarkness = document.getElementById("tb-background-darkness").value + 0;
+                this.settings.backgroundDarkness = document.getElementById("tb-background-darkness").value;
                 this.saveSettings();
             });
 		}else
@@ -431,6 +431,18 @@ class TransitioningBackgrounds {
 
                 ::-webkit-scrollbar-thumb:hover {
                     background: #7289da !important;
+                }
+
+                #app-mount .message-group .comment .markup, .nameUnreadText-DfkrI4, .nameUnreadVoice-EVo-wI {
+                    color: white;
+                }
+
+                .nameDefaultText-24KCy5, .nameDefaultVoice-3WUH7s, .nameLockedText-3pqQcL, .nameLockedVoice-26MhB1 {
+                    color: rgba(255, 255, 255, 0.75);
+                }
+
+                .icon-sxakjD, .icon-sxakjD path {
+                    opacity: 1;
                 }
 
             `);

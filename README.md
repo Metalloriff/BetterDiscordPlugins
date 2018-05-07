@@ -81,6 +81,6 @@ Double click the top of a message group to select it, then shift click to the ne
 - Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu.
 - [View Preview](https://imgur.com/a/Ej9w3df)
 
-## [Voice Chat Notifications](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VoiceChatNotifications.plugin.js)
+## [Voice Chat Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js)
 - Displays notifications when users connect to/disconnect from voice channels, mute/unmute themselves and deafen/undeafen themselves (all optional) in the selected server.
 - [View Preview](https://imgur.com/a/YP8DkZI)

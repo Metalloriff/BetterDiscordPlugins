@@ -3,7 +3,7 @@
 
 ## If you need any help or have any suggestions, feel free to message me, Metalloriff#2891.
 
-## If you would rather [join my Discord server](https://discord.gg/GyPaSWB), or just want to, feel free to. Please keep in mind that it's not specifically a support server for my plugins, but I will provide help and take suggestions there.
+## If you wish to join my support server to suggest anything, recieve help with anything, or just see all of my plugins, themes, CSS snippets, and bots, feel free to. https://discord.gg/yNqzuJa
 
 
 ## [User Avatar And Server Icon Viewer](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js)

@@ -3,8 +3,8 @@
 class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
-    getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]."; }
-    getVersion() { return "0.3.4"; }
+    getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
+    getVersion() { return "0.3.5"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -73,20 +73,35 @@ class SendBDEmotes {
 				if(e.which == 13 && !e.shiftKey && chatbox.value){
                     var words = chatbox.value.split(" "), lastWord = words[words.length - 1];
                     if(lastWord.startsWith("[") && lastWord.endsWith("]")){
-                        var emoteName = lastWord.substring(1, lastWord.length - 1), emote = window.bdEmotes.TwitchGlobal[emoteName] || window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.BTTV2[emoteName];
+						var emoteName = lastWord.substring(1, lastWord.length - 1), size = this.settings.emoteSize, animated = false;
+
+						if(emoteName.includes(":")) {
+							var trySize = parseInt(emoteName.substring(emoteName.indexOf(":") + 1, emoteName.length));
+							if(trySize != NaN) {
+								size = trySize;
+								emoteName = emoteName.substring(0, emoteName.indexOf(":"));
+							}
+						}
+
+						if(emoteName.endsWith("_a")) {
+							animated = true;
+							emoteName = emoteName.replace("_a", "");
+						}
+
+						var emote = window.bdEmotes.TwitchGlobal[emoteName] || window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.BTTV2[emoteName];
 						if(emoteName.includes(".")){
 							var sourceAndName = emoteName.split(".");
 							emote = window.bdEmotes[sourceAndName[0]][sourceAndName[1]];
 						}
 
                         if(emote != undefined){
-							var i = emote.lastIndexOf("1"), size = this.settings.emoteSize, selectedChannelId = Metalloriff.getSelectedChannel().id;
+							var i = emote.lastIndexOf("1"), selectedChannelId = Metalloriff.getSelectedChannel().id;
 
                             chatbox.focus();
                             chatbox.select();
 							document.execCommand("insertText", false, chatbox.value.split(lastWord).join(""));
 							
-							var request = () => Metalloriff.requestFile(emote.substring(0, i) + size + emote.substring(i + 1), emoteName + ".png", file => {
+							var request = () => Metalloriff.requestFile(emote.substring(0, i) + size + emote.substring(i + 1), emoteName + (animated ? ".gif" : ".png"), file => {
 								if(file.size < 100) {
 									if(size > 1) {
 										size--;

@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "0.3.5"; }
+    getVersion() { return "0.4.5"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -35,6 +35,11 @@ class SendBDEmotes {
 				this.saveSettings();
 			}), this.getName());
 
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Send as link", this.settings.sendAsLink, () => {
+				this.settings.sendAsLink = !this.settings.sendAsLink;
+				this.saveSettings();
+			}), this.getName());
+
 		}, 0);
 
 		return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
@@ -57,9 +62,11 @@ class SendBDEmotes {
 		
 		this.hasPermission = InternalUtilities.WebpackModules.findByUniqueProperties(["can"]).can;
 		this.uploadFile = InternalUtilities.WebpackModules.findByUniqueProperties(["upload"]).upload;
+		this.messageModule = InternalUtilities.WebpackModules.findByUniqueProperties(["sendMessage"]);
 
 		this.settings = PluginUtilities.loadSettings("SendBDEmotes", {
-			emoteSize : 4
+			emoteSize : 4,
+			sendAsLink : false
 		});
 
 		this.onSwitch();
@@ -95,13 +102,15 @@ class SendBDEmotes {
 						}
 
                         if(emote != undefined){
-							var i = emote.lastIndexOf("1"), selectedChannelId = Metalloriff.getSelectedChannel().id;
+							var i = emote.lastIndexOf("1"), selectedChannelId = Metalloriff.getSelectedChannel().id, message = chatbox.value.split(lastWord).join("");
 
                             chatbox.focus();
                             chatbox.select();
-							document.execCommand("insertText", false, chatbox.value.split(lastWord).join(""));
+							document.execCommand("insertText", false, "");
 							
-							var request = () => Metalloriff.requestFile(emote.substring(0, i) + size + emote.substring(i + 1), emoteName + (animated ? ".gif" : ".png"), file => {
+							var request = this.settings.sendAsLink ? () => {
+								this.messageModule.sendMessage(selectedChannelId, { content : message + emote.substring(0, i) + size + emote.substring(i + 1) });
+							} : () => Metalloriff.requestFile(emote.substring(0, i) + size + emote.substring(i + 1), emoteName + (animated ? ".gif" : ".png"), file => {
 								if(file.size < 100) {
 									if(size > 1) {
 										size--;
@@ -109,7 +118,7 @@ class SendBDEmotes {
 									}
 									return;
 								}
-								this.uploadFile(selectedChannelId, file);
+								this.uploadFile(selectedChannelId, file, { content : message, tts : false });
 							});
 
 							request();

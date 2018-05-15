@@ -84,3 +84,9 @@ Double click the top of a message group to select it, then shift click to the ne
 ## [Voice Chat Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js)
 - Displays notifications when users connect to/disconnect from voice channels, mute/unmute themselves and deafen/undeafen themselves (all optional) in the selected server.
 - [View Preview](https://imgur.com/a/YP8DkZI)
+
+## [Send Links Directly](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SendLinksDirectly.plugin.js)
+- Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
+    Usage: [link] or [link, filename.fileformat]
+    Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]
+- [View Preview](https://cdn-b-east.streamable.com/video/mp4/vqfgr.mp4?token=YBDPYSdt0FOoy95ICSq7oA&expires=1526432832)

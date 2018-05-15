@@ -12,7 +12,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -141,7 +141,7 @@ class ShareButton {
 
             for(let i = 0; i < this.pinnedChannels.length; i++) {
 
-                var channel = this.channelModule.getChannel(this.pinnedChannels[i]);
+                let channel = this.channelModule.getChannel(this.pinnedChannels[i]);
 
                 pinnedChannelsItem.addItems(new PluginContextMenu.TextItem(`#${channel.name}`, {
                     callback : ce => channelClick(channel, ce),
@@ -152,7 +152,7 @@ class ShareButton {
 
             for(let i = 0; i < this.recentChannels.length; i++) {
 
-                var channel = this.channelModule.getChannel(this.recentChannels[i]);
+                let channel = this.channelModule.getChannel(this.recentChannels[i]);
 
                 recentChannelsItem.addItems(new PluginContextMenu.TextItem(`#${channel.name}`, {
                     callback : ce => channelClick(channel, ce),
@@ -316,7 +316,7 @@ class ShareButton {
 
         var message = ReactUtilities.getOwnerInstance(e.target).props.message;
         
-        if(fileURL == undefined || fileURL.length == 0) fileURL = `'${message.content}' - ${message.author.username}`;
+        if(fileURL == undefined || fileURL.length == 0) fileURL = `"${message.content}" - ${message.author.username}`;
         
         if(fileName != undefined && fileName != "") { menu.querySelector(".title").innerText += ` "${fileName}"`; }
 
@@ -351,7 +351,11 @@ class ShareButton {
                     recentChannels = $("#sb-recent-channels");
                 }
 
-                $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(recentChannels.find(".sb-label"));
+                var $channelItem = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`);
+
+                $channelItem.data("content", fileURL);
+
+                $channelItem.insertAfter(recentChannels.find(".sb-label"));
 
             }
 
@@ -369,7 +373,7 @@ class ShareButton {
 
             for(let i = 0; i < this.pinnedChannels.length; i++) {
 
-                var channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
+                let channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
 
                 if(channel == undefined || guild == undefined) { continue; }
 
@@ -378,7 +382,9 @@ class ShareButton {
                     pinnedChannels = $("#sb-pinned-channels");
                 }
 
-                $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}" data-content="${fileURL}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`).insertAfter(pinnedChannels.find(".sb-label"));
+                let $channelItem = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`);
+
+                $channelItem.insertAfter(pinnedChannels.find(".sb-label"));
 
             }
 
@@ -416,16 +422,22 @@ class ShareButton {
                             var dm = this.channelModule.getChannel(allDMs[i]);
 
                             if(dm.recipients.length > 1) {
+
+                                let $item = $(`<div data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="height: auto;width:0px"><div class="sb-server-item-label" style="pointer-events:none;">${Array.from(dm.recipients, x => this.userModule.getUser(x).username).join(", ")}</div></div></div>`);
+
+                                $item.data("content", fileURL);
         
-                                channelsParent.append(`<div data-content="${fileURL}" data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="height: auto;width:0px"><div class="sb-server-item-label" style="pointer-events:none;">${Array.from(dm.recipients, x => this.userModule.getUser(x).username).join(", ")}</div></div></div>`);
+                                channelsParent.append($item);
 
                             } else {
         
-                                var user = this.userModule.getUser(dm.recipients[0]);
+                                let user = this.userModule.getUser(dm.recipients[0]), $item = $(`<div data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="background-image: url('${user.getAvatarURL()}');"><div class="sb-server-item-label" style="pointer-events:none;">${user.username}</div></div></div>`);
+
+                                $item.data("content", fileURL);
 
                                 if(user == undefined) continue;
         
-                                channelsParent.append(`<div data-content="${fileURL}" data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="background-image: url('${user.getAvatarURL()}');"><div class="sb-server-item-label" style="pointer-events:none;">${user.username}</div></div></div>`);
+                                channelsParent.append($item);
 
                             }
         
@@ -540,7 +552,11 @@ class ShareButton {
 
                         }
 
-                        channelsParent.append(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${allChannels[i].id}" data-content="${fileURL}"><div class="sb-channel-item">#${allChannels[i].name}</div></div>`);
+                        let $item = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${allChannels[i].id}"><div class="sb-channel-item">#${allChannels[i].name}</div></div>`);
+
+                        $item.data("content", fileURL);
+
+                        channelsParent.append($item);
 
                     }
 

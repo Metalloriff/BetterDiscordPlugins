@@ -2,10 +2,6 @@
 
 class SendLinksDirectly {
 	
-	constructor() {
-		
-	}
-	
     getName() { return "SendLinksDirectly"; }
     getDescription() { return `Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
     Usage: [link] or [link, filename.fileformat]

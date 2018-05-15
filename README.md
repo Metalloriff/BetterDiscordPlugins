@@ -87,6 +87,6 @@ Double click the top of a message group to select it, then shift click to the ne
 
 ## [Send Links Directly](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SendLinksDirectly.plugin.js)
 - Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
-    Usage: [link] or [link, filename.fileformat]
-    Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]
+-    Usage: [link] or [link, filename.fileformat]
+-    Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]
 - [View Preview](https://cdn-b-east.streamable.com/video/mp4/vqfgr.mp4?token=YBDPYSdt0FOoy95ICSq7oA&expires=1526432832)

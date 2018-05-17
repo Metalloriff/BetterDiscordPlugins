@@ -89,4 +89,10 @@ Double click the top of a message group to select it, then shift click to the ne
 - Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
 -    Usage: [link] or [link, filename.fileformat]
 -    Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]
-- [View Preview](https://cdn-b-east.streamable.com/video/mp4/vqfgr.mp4?token=YBDPYSdt0FOoy95ICSq7oA&expires=1526432832)
+- [View Preview](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VideoExamples/SendLinksDirectly.mp4)
+
+## [Message Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MessageLogger.plugin.js)
+- Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and all direct messages.
+- Keybind: Ctrl + M
+- [View Preview](https://imgur.com/a/wxTZpym)
+- [View Video Preview](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VideoExamples/MessageLogger.mp4)

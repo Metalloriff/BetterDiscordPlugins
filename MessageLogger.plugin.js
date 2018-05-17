@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -136,7 +136,7 @@ class MessageLogger {
 
 		this.$document = $(document);
 		this.$document.on("contextmenu.MessageLogger", e => {
-			if(e.target.parentElement.classList.contains("guild-inner")) this.onGuildContext();
+			if(e.target.parentElement.classList.contains("guild-inner")) this.onGuildContext(e);
 			if(e.target.parentElement.classList.contains("message-text")) this.onMessageContext();
 		});
 
@@ -480,7 +480,7 @@ class MessageLogger {
 		return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
 	}
 
-	onGuildContext() {
+	onGuildContext(e) {
 
 		if(this.settings.type == "all") return;
 

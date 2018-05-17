@@ -3,7 +3,7 @@
 class MessageLogger {
 	
     getName() { return "MessageLogger"; }
-    getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers."; }
+    getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
     getVersion() { return "0.0.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
@@ -171,9 +171,13 @@ class MessageLogger {
 
 			if(this.settings.ignoreMuted && channel != undefined && (this.isMuted(data.channelId) || this.isMuted(channel.guild_id))) return;
 
-			if(this.settings.type == "whitelist" && !this.settings.list.includes(channel.guild_id)) return;
+			if(channel.type == 0) {
 
-			if(this.settings.type == "blacklist" && this.settings.list.includes(channel.guild_id)) return;
+				if(this.settings.type == "whitelist" && !this.settings.list.includes(channel.guild_id)) return;
+
+				if(this.settings.type == "blacklist" && this.settings.list.includes(channel.guild_id)) return;
+
+			}
 				
 			let timestamp = new Date().toLocaleTimeString();
 			data.timestamp = timestamp;

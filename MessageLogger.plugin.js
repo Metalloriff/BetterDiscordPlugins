@@ -4,11 +4,17 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.1.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+			"0.1.2" : 
+			`
+				Added an "ignore bots" setting.
+				Added a filter to the log.
+				Added a help button.
+				You can now right click on users.
+			`
 		};
 	}
 
@@ -35,6 +41,11 @@ class MessageLogger {
 
 			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Ignore muted channels and servers", this.settings.ignoreMuted, () => {
 				this.settings.ignoreMuted = !this.settings.ignoreMuted;
+				this.saveSettings();
+			}), this.getName());
+
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Ignore bots", this.settings.ignoreBots, () => {
+				this.settings.ignoreBots = !this.settings.ignoreBots;
 				this.saveSettings();
 			}), this.getName());
 
@@ -101,6 +112,7 @@ class MessageLogger {
 		this.settings = PluginUtilities.loadSettings(this.getName(), {
 			displayUpdateNotes : true,
 			ignoreMuted : true,
+			ignoreBots : true,
 			cap : 50,
 			reverseOrder : true,
 			type : "all",
@@ -115,7 +127,8 @@ class MessageLogger {
 				edited : false,
 				deleted : false
 			},
-			disableKeybind : false
+			disableKeybind : false,
+			displayUpdateNotes : true
 		});
 
 		let data = PluginUtilities.loadData(this.getName(), "data", {
@@ -132,7 +145,11 @@ class MessageLogger {
 		this.getServer = DiscordModules.GuildStore.getGuild;
 		this.getChannel = DiscordModules.ChannelStore.getChannel;
 
+		this.openUserContextMenu = InternalUtilities.WebpackModules.findByUniqueProperties(["openUserContextMenu"]).openUserContextMenu;
+
 		this.isMuted = InternalUtilities.WebpackModules.findByUniqueProperties(["isMuted"]).isMuted;
+
+		this.filter = "";
 
 		this.$document = $(document);
 		this.$document.on("contextmenu.MessageLogger", e => {
@@ -141,8 +158,14 @@ class MessageLogger {
 		});
 
 		this.$document.on("keydown.MessageLogger", e => {
+
 			if(e.key == "Escape") $(".ml-backdrop").click();
-			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("ghostpings");
+
+			let server = PluginUtilities.getCurrentServer();
+			if(server && !this.settings.disableKeybind && e.ctrlKey && e.altKey && e.key == "m") this.filter = "server: " + server.name;
+
+			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("created");
+
 		});
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
@@ -155,6 +178,25 @@ class MessageLogger {
 		}
         if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
 		else lib.addEventListener("load", () => { this.onLibLoaded(); });
+
+		this.helpMessage = 
+		`
+			Filter help:
+
+			"server: <servername or serverid>" - Filter results with the specified server name or id.
+			"channel: <channelname or channelid>" - Filter results with the specified channel name or id.
+			"user: <username, nickname or userid>" - Filter results with the specified username, nickname or userid.
+			"message: <search>" or "content: <search>" - Filter results with the specified message content.
+
+			Separate the search tags with commas.
+			Example: server: tom's bd stuff, message: heck
+
+
+			Shortcut help:
+
+			"Ctrl + M" - Open message log.
+			"Ctrl + Alt + M" - Open message log with selected server filtered.
+		`;
 		
 	}
 
@@ -178,6 +220,10 @@ class MessageLogger {
 				if(this.settings.type == "blacklist" && this.settings.list.includes(channel.guild_id)) return;
 
 			}
+
+			let user = data.message == undefined || data.message.author == undefined ? undefined : this.getUser(data.message.author.id);
+
+			if(user && user.bot && this.settings.ignoreBots) return;
 				
 			let timestamp = new Date().toLocaleTimeString();
 			data.timestamp = timestamp;
@@ -263,7 +309,9 @@ class MessageLogger {
 			
 			this.saveData();
 
-        }, this.getName());
+		}, this.getName());
+		
+		if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
 
 	}
 
@@ -318,7 +366,7 @@ class MessageLogger {
 
 		.ml-scroller {
 			width: 100%;
-			max-height: 700px;
+			max-height: 663px;
 			overflow-y: scroll;
 			overflow-x: hidden;
 		}
@@ -342,11 +390,11 @@ class MessageLogger {
 			transition: all 0.3s;
 		}
 
-		.ml-tab-button:hover {
+		.ml-tab-button:hover, .ml-filter-help-button:hover {
 			background-color: rgba(150, 150, 150, 0.3);
 		}
 
-		.ml-tab-button.selected {
+		.ml-tab-button.selected, ml-tab-button:active, .ml-filter-help-button:active {
 			background-color: #7289da;
 			transform: scale(1.1);
 		}
@@ -362,12 +410,48 @@ class MessageLogger {
 			opacity: 1;
 		}
 
+		.ml-filter-field {
+			background-color: rgba(0, 0, 0, 0.2);
+			border: none;
+			border-radius: 5px;
+			height: 25px;
+			line-height: 25px;
+			width: 80%;
+			margin-top: 10px;
+			color: white;
+			padding: 0px 5px;
+		}
+
+		.ml-label span {
+			vertical-align: middle;
+			marign-left: 10px;
+		}
+
+		.ml-filter-help-button {
+			display: inline-block;
+			background-color: rgba(0, 0, 0, 0.2);
+			border: none;
+			border-radius: 5px;
+			height: 25px;
+			line-height: 25px;
+			width: 8%;
+			margin-top: 10px;
+			color: white;
+			padding: 0px 5px;
+			cursor: pointer;
+			font-size: 15px;
+			transition: all 0.3s;
+		}
+
         </style>
 
         <div class="ml-backdrop"></div>
             <div class="ml-scroller-wrapper">
                 <div class="ml-label">
 					<h2>Message Logger</h2>
+					<span>Filter:</span>
+					<input id="ml-filter" class="ml-filter-field" value="${this.filter}"></input>
+					<div class="ml-filter-help-button">Help</div>
 					<div style="text-align:center">
 						<div class="ml-tab-button created">Sent Messages</div>
 						<div class="ml-tab-button removed">Deleted Messages</div>
@@ -383,6 +467,10 @@ class MessageLogger {
 
 		$tabs.off("click");
 		$tabs.on("click", e => {
+
+			if(e.currentTarget.classList.contains("help")) {
+				return;
+			}
 
 			if(e.currentTarget.classList.contains("selected")) {
 				this.settings.reverseOrder = !this.settings.reverseOrder;
@@ -402,17 +490,32 @@ class MessageLogger {
 		let backdrop = document.getElementsByClassName("ml-backdrop")[0], $backdrop = $(backdrop);
 
 		$backdrop.off("click");
-		$backdrop.on("click", () => { document.getElementById("message-logger-window").outerHTML = ""; });
+		$backdrop.on("click", () => {
+			document.getElementById("message-logger-window").outerHTML = "";
+			this.filter = "";
+			if(this.updateWindow) clearInterval(this.updateWindow);
+		});
+
+		document.getElementsByClassName("ml-filter-help-button")[0].onclick = () => {
+
+			BdApi.getCore().alert("Help", this.helpMessage.split("\n").join("<br><br>"));
+
+			$backdrop.click();
+
+		};
 		
-		let scroller = document.getElementById("message-logger-scroller"), messages, my = PluginUtilities.getCurrentUser();
+		let scroller = document.getElementById("message-logger-scroller"), messages = this.getFilteredMessages(type);
 		scroller.innerHTML = "";
 
-		if(type == "created") messages = this.messageRecord.slice(0);
-		if(type == "edited") messages = this.editedMessageRecord.slice(0);
-		if(type == "removed") messages = this.deletedMessageRecord.slice(0);
-		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(my.id));
+		if(this.updateWindow) clearInterval(this.updateWindow);
 
-		if(this.settings.reverseOrder == true) messages.reverse();
+		this.updateWindow = setInterval(() => {
+
+			this.filter = document.getElementById("ml-filter").value;
+
+			if(this.getFilteredMessages(type).length != messages.length) this.openWindow(type);
+			
+		}, 1000);
 
 		for(let i = 0; i < messages.length; i++) {
 
@@ -420,9 +523,57 @@ class MessageLogger {
 
 			let group = this.messageGroupItem(messages[i], type);
 
+			group.getElementsByClassName("ml-message-username")[0].addEventListener("contextmenu", e => {
+				let user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id);
+				if(!user || !channel) return;
+				this.openUserContextMenu(e, user, channel);
+				document.getElementsByClassName(this.classes.contextMenu)[0].style.zIndex = "10000";
+				document.getElementsByClassName(this.classes.item)[0].addEventListener("click", () => $backdrop.click());
+			});
+
 			scroller.insertAdjacentElement("beforeend", group);
 
 		}
+
+	}
+
+	getFilteredMessages(type) {
+		
+		let messages, my = PluginUtilities.getCurrentUser();
+
+		if(type == "created") messages = this.messageRecord.slice(0);
+		if(type == "edited") messages = this.editedMessageRecord.slice(0);
+		if(type == "removed") messages = this.deletedMessageRecord.slice(0);
+		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(my.id));
+
+		if(this.settings.reverseOrder == true) messages.reverse();
+		
+		let filters = this.filter.split(",");
+
+		for(let i = 0; i < filters.length; i++) {
+
+			let split = filters[i].split(":");
+			if(split.length < 2) continue;
+
+			let filterType = split[0].trim().toLowerCase(), filter = split[1].trim().toLowerCase();
+
+			if(filterType == "server") messages = Array.filter(messages, x => {
+				let guild = this.getServer(x.message.guild_id);
+				return x.message.guild_id == filter || (guild != undefined && guild.name.toLowerCase().includes(filter));
+			});
+
+			if(filterType == "channel") messages = Array.filter(messages, x => {
+				let channel = this.getChannel(x.message.channel_id);
+				return x.message.channel_id == filter ||  (channel != undefined && channel.name.toLowerCase().includes(filter.replace("#", "")));
+			});
+
+			if(filterType == "message" || filterType == "content") messages = Array.filter(messages, x => x.message.content.toLowerCase().includes(filter));
+
+			if(filterType == "user") messages = Array.filter(messages, x => x.message.author.id == filter || x.message.author.username.toLowerCase().includes(filter) || (x.message.member != undefined && x.message.member.nick != null && x.message.member.nick.toLowerCase().includes(filter)));
+
+		}
+
+		return messages;
 
 	}
 
@@ -458,11 +609,11 @@ class MessageLogger {
 		element.setAttribute("class", "message-group hide-overflow");
 
 		element.innerHTML =
-		`<div class="avatar-large stop-animation" style="background-image: url(&quot;${this.getAvatarOf(data.message.author)}&quot;);"></div>
+		`<div class="avatar-large stop-animation ml-message-avatar" style="background-image: url(&quot;${this.getAvatarOf(data.message.author)}&quot;);"></div>
 			<div class="comment">
 				<div class="message">
 					<div class="body">
-						<h2 class="old-h2"><span class="username-wrapper"><strong class="user-name" style="color: white">${data.message.member == undefined || data.message.member.nick == null ? data.message.author.username : data.message.member.nick}</strong></span><span class="highlight-separator"> - </span><span class="timestamp">${details}</span></h2>
+						<h2 class="old-h2"><span class="username-wrapper"><strong class="user-name ml-message-username" style="color: white">${data.message.member == undefined || data.message.member.nick == null ? data.message.author.username : data.message.member.nick}</strong></span><span class="highlight-separator"> - </span><span class="timestamp">${details}</span></h2>
 					<div class="message-text">
 						${history}
 						<div class="markup">${data.message.content}</div>
@@ -533,6 +684,8 @@ class MessageLogger {
 		
 		this.$document.off("contextmenu.MessageLogger");
 		this.$document.off("keydown.MessageLogger");
+
+		if(this.updateWindow) clearInterval(this.updateWindow);
 
 	}
 	

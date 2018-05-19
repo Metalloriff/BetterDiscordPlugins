@@ -4,11 +4,13 @@ class MentionAliases {
 	
 	constructor() {
 		this.initialized = false;
-		this.aliases = new Object();
-		this.usersInServer = new Array();
+		this.aliases = {};
+		this.usersInServer = [];
+		this.groups = [];
 		this.displayTags = true;
 		this.displayButton = true;
-		this.displayUpdateNotes = true;
+		this.defaultSettings = { displayUpdateNotes : true };
+		this.settings = this.defaultSettings;
 		this.messageObserver = null;
 		this.popoutObserver = null;
 		this.userModule;
@@ -17,15 +19,14 @@ class MentionAliases {
 	}
 	
 	get themeType(){
-		if($(".theme-dark").length)
-			return "dark";
+		if(document.getElementsByClassName("theme-dark").length > 0) return "dark";
 		return "light";
 	}
 	
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.5.14"; }
+    getVersion() { return "0.6.14"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -49,6 +50,12 @@ class MentionAliases {
 			`
 				Fixed alias tags not showing next to users with default profile pictures.
 				Fixed alias tags in the DM list moving to the left when a user started or stopped playing a game.
+			`,
+			"0.6.14" :
+			`
+				Added a context menu to users.
+				Added alias groups.
+				Redid the settings menu.
 			`
 		};
 	}
@@ -56,34 +63,25 @@ class MentionAliases {
     load() {}
 	
 	getSettingsPanel(){
-		return `
-			<h style="color: rgb(255, 255, 255); font-size: 30px; font-weight: bold;">Mention Aliases by Metalloriff</h>
-			<br><br>
-			<div onclick="var e = $('#ma-displayTags')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
-				<div class="checkbox-inner"><input id="ma-displayTags" type="checkbox"` + (this.displayTags ? "checked" : "") + `><span></span></div>
-				<span style="color: rgb(255, 255, 255);">Display alias tag on users</span>
-			</div>
-			<div onclick="var e = $('#ma-displayButton')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
-				<div class="checkbox-inner"><input id="ma-displayButton" type="checkbox"` + (this.displayButton ? "checked" : "") + `><span></span></div>
-				<span style="color: rgb(255, 255, 255);">Display alias list button (you can still open the list with Ctrl+Shift+@)</span>
-			</div>
-			<div onclick="var e = $('#ma-displayUpdateNotes')[0]; e.checked = !e.checked;" class="checkbox" style="margin-top: 20px;">
-				<div class="checkbox-inner"><input id="ma-displayUpdateNotes" type="checkbox"` + (this.displayUpdateNotes ? "checked" : "") + `><span></span></div>
-				<span style="color: rgb(255, 255, 255);">Display new changes for every update</span>
-			</div>
-			<div style="text-align: center;">
-				<br>
-				<button onclick="Metalloriff.Changelog.createChangeWindow('Mention Aliases', new Array(), BdApi.getPlugin('Mention Aliases').getChanges());" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">View Changelog</div>
-				</button>
-				<button onclick="BdApi.getPlugin('Mention Aliases').reset(true);" style="display: inline-block; margin-right: 25px; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Reset All Aliases & Settings</div>
-				</button>
-				<button onclick="BdApi.getPlugin('Mention Aliases').save(true);" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Save Settings</div>
-				</button>
-			</div>
-		`;
+
+		setTimeout(() => {
+			
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Display an alias tag next to users", this.displayTags, () => {
+				this.displayTags = !this.displayTags;
+				this.save();
+			}), this.getName());
+			
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Display alias list button (you can still open the list with Ctrl + Shift + @)", this.displayTags, () => {
+				this.displayButton = !this.displayButton;
+				this.save();
+			}), this.getName());
+			
+			Metalloriff.Settings.pushChangelogElements(this);
+
+		}, 0);
+
+		return Metalloriff.Settings.Elements.pluginNameLabel("Mention Aliases");
+		
 	}
 
     start() {
@@ -99,26 +97,8 @@ class MentionAliases {
 		else libraryScript.addEventListener("load", () => { this.initialize(); });
 	}
 	
-	reset(fromSettings){
-		this.aliases = new Array();
-		this.displayTags = true;
-		this.displayButton = true;
-		this.displayUpdateNotes = true;
-		if(fromSettings){
-			document.getElementById("ma-displayTags").checked = true;
-			document.getElementById("ma-displayButton").checked = true;
-			document.getElementById("ma-displayUpdateNotes").checked = true;
-			this.save(true);
-		}
-	}
-	
-	save(fromSettings){
-		if(fromSettings === true){
-			this.displayTags = document.getElementById("ma-displayTags").checked;
-			this.displayButton = document.getElementById("ma-displayButton").checked;
-			this.displayUpdateNotes = document.getElementById("ma-displayUpdateNotes").checked;
-		}
-		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayUpdateNotes : this.displayUpdateNotes });
+	save(){
+		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, settings : this.settings, groups : this.groups });
 	}
 	
 	initialize(){
@@ -126,10 +106,10 @@ class MentionAliases {
 		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
 		this.memberModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getMembers"]);
 		this.guildModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]);
-		this.reset(false);
-		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayUpdateNotes : this.displayUpdateNotes });
+		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, settings : this.defaultSettings, groups : this.groups });
 		this.aliases = data.aliases;
-		var updatedAliases = new Object();
+		this.groups = data.groups;
+		var updatedAliases = {};
 		if(this.aliases.length != undefined){
 			for(var i = 0; i < this.aliases.length; i++){
 				updatedAliases[this.aliases[i][0]] = this.aliases[i][1];
@@ -138,7 +118,7 @@ class MentionAliases {
 		}
 		this.displayTags = data.displayTags;
 		this.displayButton = data.displayButton;
-		this.displayUpdateNotes = data.displayUpdateNotes;
+		this.settigns = data.settings;
 		this.initialized = true;
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
@@ -211,10 +191,14 @@ class MentionAliases {
 		`);
 		$(window).on("resize.MentionAliases", () => this.onWindowResize());
 		$(document).on("keydown.MentionAliases", e => this.onKeyDown(e));
+		$(document).on("contextmenu.MentionAliases", e => {
+			let $targ = $(e.target), element = $targ.parents(".member-3W1lQa")[0] || $targ.parents(".message-group")[0];
+			if(element) this.onUserContext(element);
+		})
 		this.popoutObserver = new MutationObserver(e => {
 			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-3XzG_A").length > 0){
 				if(this.aliases == undefined)
-					this.aliases = new Object();
+					this.aliases = {};
 				var popout = $(".userPopout-3XzG_A"), userID = "";
 				if(popout.length && popout[0].getElementsByClassName("discriminator").length > 0)
 					userID = ReactUtilities.getOwnerInstance(popout[0]).props.user.id;
@@ -232,26 +216,29 @@ class MentionAliases {
 		this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined){
+		if(lib == undefined) {
 			lib = document.createElement("script");
 			lib.setAttribute("type", "text/javascript");
 			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			document.head.appendChild(lib);
-			lib.addEventListener("load", () => { this.onLibLoaded(); });
-		}else{ this.onLibLoaded(); }
+		}
+        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
+		else lib.addEventListener("load", () => { this.onLibLoaded(); });
 	}
 
 	onLibLoaded() {
-		if(this.displayUpdateNotes == true){
-			Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
-		}
+
+		if(this.settings.displayUpdateNotes == true) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+
+		this.classes = Metalloriff.getClasses(["contextMenu"]);
+
 	}
 	
 	updateAlias(userID, newAlias){
 		if(newAlias == "" && this.aliases[userID] != undefined){ delete this.aliases[userID]; }
 		if(newAlias != ""){ this.aliases[userID] = newAlias; }
-		this.save(false);
+		this.save();
 		this.updateMessages();
 		this.scanMembers();
 	}
@@ -259,7 +246,7 @@ class MentionAliases {
 	scanMembers(){
 		var server = PluginUtilities.getCurrentServer();
 		if(server == undefined)
-			this.usersInServer = new Array();
+			this.usersInServer = [];
 		else{
 			this.usersInServer = Array.from(this.memberModule.getMembers(server.id), x => x.userId);
 			return;
@@ -275,7 +262,7 @@ class MentionAliases {
 	}
 
 	onWindowResize(){
-		var chatbox = $(".inner-zqa7da")[0];
+		var chatbox = document.getElementsByClassName("inner-zqa7da")[0];
 		if(chatbox != undefined){
 			chatbox.style.width = "";
 			chatbox.style.width = (chatbox.getBoundingClientRect().width - 40) + "px";
@@ -284,7 +271,7 @@ class MentionAliases {
 				this.onWindowResize();
 			}, 1000);
 		}
-		if($(".ma-alias-menu").length){ $(".ma-alias-menu")[0].style.left = ($(".ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
+		if(document.getElementsByClassName("ma-alias-menu").length > 0){ document.getElementsByClassName("ma-alias-menu")[0].style.left = (document.getElementsByClassName("ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
 	}
 	
 	onSwitch(){
@@ -295,22 +282,23 @@ class MentionAliases {
 		this.attach();
 		this.scanMembers();
 
-		var channelList = $(".scroller-2FKFPG.members-1998pB");
+		var channelList = $(document.getElementsByClassName("scroller-2FKFPG members-1998pB"));
 		if(channelList.length){
 			channelList.off("DOMNodeInserted.MentionAliases");
 			if(this.displayTags){
 				channelList.on("DOMNodeInserted.MentionAliases", e => {
 					this.updateMember($(e.target));
 				});
-				var members = $(".member-3W1lQa");
+				var members = document.getElementsByClassName("member-3W1lQa");
 				for(var i = 0; i < members.length; i++)
 					this.updateMember($(members[i]));
 			}
 		}
 
-		if($(".messages.scroller").length){
+		let messagesScroller = document.getElementsByClassName("messages scroller")[0]
+		if(messagesScroller != undefined){
 			this.messageObserver = new MutationObserver(() => { this.updateMessages(); this.scanMembers(); });
-			this.messageObserver.observe($(".messages.scroller")[0], { childList : true });
+			this.messageObserver.observe(messagesScroller, { childList : true });
 		}else if(this.messageObserver != null)
 			this.messageObserver.disconnect();
 		
@@ -351,17 +339,24 @@ class MentionAliases {
 		}
 	}
 
-	toggleAliasList() {
+	toggleAliasList(aliases) {
 		if($(".ma-alias-menu").length){
 			$(".ma-alias-menu").remove();
 			return;
+		}
+		let label = aliases == undefined ? "Defined User Aliases" : "Users In Group";
+		let temp = {};
+		if(aliases == undefined) aliases = this.aliases;
+		else {
+			for(let i = 0; i < aliases.length; i++) temp[aliases[i]] = this.getUser(aliases[i]).username;
+			aliases = temp;
 		}
 		$(".app").last().append(`
 
 		<div class="popout popout-bottom-right no-arrow no-shadow ma-alias-menu">
 			<div class="messages-popout-wrap themed-popout recent-mentions-popout" style="height: 600px;width: 500px;">
 				<div class="header" style="padding-bottom: 12px;">
-					<div class="title" style="text-align: center;transform: translateY(6px);">Defined User Aliases</div>
+					<div class="title" style="text-align: center;transform: translateY(6px);">${label}</div>
 					<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: absolute;top: 5px;">
 						<div class="closeButton-2Rx3ov" onclick="$('.ma-alias-menu').remove();"></div>
 					</div>
@@ -381,12 +376,12 @@ class MentionAliases {
 			menu.style.left =  (($(document).width() - menuRect.width) / 2) + "px";
 			menu.style.top = (($(document).height() - menuRect.height) / 2) + "px";
 		}
-		var sortedKeys = Object.keys(this.aliases).sort((x, y) => {
-			if(this.aliases[x].toLowerCase() < this.aliases[y].toLowerCase()){ return -1; }
-			if(this.aliases[x].toLowerCase() > this.aliases[y].toLowerCase()){ return 1; }
+		var sortedKeys = Object.keys(aliases).sort((x, y) => {
+			if(aliases[x].toLowerCase() < aliases[y].toLowerCase()){ return -1; }
+			if(aliases[x].toLowerCase() > aliases[y].toLowerCase()){ return 1; }
 			return 0;
 		}), populate = (i) => {
-			var list = $(".ma-alias-list"), user = this.getUser(i), alias = this.aliases[i];
+			var list = $(".ma-alias-list"), user = this.getUser(i), alias = aliases[i];
 			if(user == undefined){
 				user = {
 					getAvatarURL : () => { return ""; },
@@ -493,7 +488,7 @@ class MentionAliases {
 	
 	onPopout(){
 		if(this.aliases == undefined)
-			this.aliases = new Object();
+			this.aliases = {};
 		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1JeGVc"), userID = "";
 		if(popout.length && popout.find(".discriminator").length)
 			userID = ZeresLibrary.ReactUtilities.getReactInstance(popout[0]).child.memoizedProps.user.id;
@@ -507,33 +502,124 @@ class MentionAliases {
 			}
 		}
 	}
+
+	onUserContext(userElement) {
+
+		let menu = new PluginContextMenu.Menu(), user = userElement.classList.contains("message-group") ? ReactUtilities.getOwnerInstance(userElement).props.messages[0].author : ReactUtilities.getOwnerInstance(userElement).props.user;
+
+		menu.addItems(new PluginContextMenu.TextItem("Set Alias", { callback : () => {
+
+			let prompt = Metalloriff.UI.createTextPrompt("ma-define-alias-prompt", "Define alias", (alias, prompt) => {
+				this.updateAlias(user.id, alias);
+				PluginUtilities.showToast("Alias set!", { type : "success" });
+				prompt.close();
+			}, this.aliases[user.id], { secondOptionText : "Remove", secondOptionCallback : prompt => {
+				this.updateAlias(user.id, "");
+				PluginUtilities.showToast("Alias removed!", { type : "success" });
+				prompt.close();
+			}});
+
+			prompt.getElementsByTagName("input")[0].addEventListener("input", e => e.target.value = e.target.value.split(" ").join("-"));
+
+			document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+
+		}}));
+
+		let groupsMenu = new PluginContextMenu.Menu(), groups = new PluginContextMenu.ItemGroup();
+
+		for(let i = 0; i < this.groups.length; i++) {
+
+			let options = new PluginContextMenu.Menu(), groupName = this.groups[i].name.split("-").join(" ");
+
+			if(this.groups[i].users.includes(user.id)) options.addItems(new PluginContextMenu.TextItem("Remove User From Group", { callback : () => {
+				this.groups[i].users.splice(this.groups[i].users.indexOf(user.id), 1);
+				this.save();
+				PluginUtilities.showToast(`User removed from ${groupName}.`, { type : "success" });
+				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+			}}));
+			else options.addItems(new PluginContextMenu.TextItem("Add User To Group", { callback : () => {
+				this.groups[i].users.push(user.id);
+				this.save();
+				PluginUtilities.showToast(`User added to ${groupName}.`, { type : "success" });
+				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+			}}));
+
+			options.addItems(new PluginContextMenu.TextItem("View Users", { callback : () => {
+				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+				this.toggleAliasList(this.groups[i].users);
+			}})).addItems(new PluginContextMenu.TextItem("Delete Group", { callback : () => {
+				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+				Metalloriff.UI.createPrompt("ma-delete-group-prompt", "Delete group?", `Are you sure you want to delete "${groupName}"?`, () => {
+					this.groups.splice(i, 1);
+					this.save();
+					PluginUtilities.showToast("Group deleted!", { type : "success" });
+					prompt.close();
+				});
+			}}));
+
+			groups.addItems(new PluginContextMenu.SubMenuItem(groupName, options));
+
+		}
+
+		groupsMenu.addItems(groups).addItems(new PluginContextMenu.TextItem("Create Group", { callback : () => {
+
+			let prompt = Metalloriff.UI.createTextPrompt("ma-create-group-prompt", "Create alias group", (name, prompt) => {
+				if(this.groups.findIndex(x => x.name == name) == -1) {
+					this.groups.push({ name : name, users : [] });
+					this.save();
+					PluginUtilities.showToast("Group created!", { type : "success" });
+					prompt.close();
+				} else PluginUtilities.showToast("A group with this name already exists!", { type : "error" });
+			}, "", { confirmText : "Create" });
+
+			prompt.getElementsByTagName("input")[0].addEventListener("input", e => e.target.value = e.target.value.split(" ").join("-"));
+
+			document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+
+		}}));
+
+		menu.addItems(new PluginContextMenu.SubMenuItem("Groups", groupsMenu));
+
+		menu.addItems(new PluginContextMenu.TextItem("Settings", { callback : () => Metalloriff.Settings.showPluginSettings(this.getName()) }));
+
+		document.getElementsByClassName(this.classes.itemGroup)[1].insertAdjacentElement("beforeend", new PluginContextMenu.SubMenuItem("Mention Aliases", menu).element[0]);
+
+	}
 	
 	attach(){
-		var chatboxJQ = $("textarea");
+		let chatboxJQ = $(".chat textarea");
 		if(chatboxJQ.length){
-			var chatbox = chatboxJQ[0];
+			let chatbox = chatboxJQ[0];
 			chatboxJQ.off("keydown.MentionAliases");
 			chatboxJQ.on("keydown.MentionAliases", e => {
 				if((e.which == 13 || e.which == 32) && chatbox.value){
-					var originalChatboxValue = chatbox.value, chatboxValue = chatbox.value;
-					for(var id in this.aliases){
-						var alias = this.aliases[id];
-						if(chatboxValue.toLowerCase().includes(alias.toLowerCase()) && (this.usersInServer.includes(id))){
-							var userTag = this.getUser(id).tag, chatboxValueWithoutMentions = chatboxValue.toLowerCase().split("@" + userTag.toLowerCase()).join("");
+					let originalChatboxValue = chatbox.value, chatboxValue = chatbox.value, chatBoxValueIgnoreCase = chatboxValue.toLowerCase();
+					for(let id in this.aliases){
+						let alias = this.aliases[id];
+						if(chatBoxValueIgnoreCase.includes(alias.toLowerCase()) && (this.usersInServer.includes(id))){
+							let userTag = this.getUser(id).tag, chatboxValueWithoutMentions = chatBoxValueIgnoreCase.split("@" + userTag.toLowerCase()).join("");
 							while(chatboxValueWithoutMentions.split(" ").includes("@" + alias.toLowerCase())){
 								chatboxValue = chatboxValue.replace(new RegExp("@" + alias, "ig"), "@" + userTag);
 								chatboxValueWithoutMentions = chatboxValueWithoutMentions.split("@" + alias.toLowerCase()).join("");
 							}
 						}
 					}
-					if(chatboxValue.toLowerCase().includes("@owner")){
-						var guild = PluginUtilities.getCurrentServer(), owner = undefined;
+					if(chatBoxValueIgnoreCase.includes("@owner")){
+						let guild = PluginUtilities.getCurrentServer(), owner = undefined;
 						if(guild != undefined){
 							owner = this.getUser(guild.ownerId);
-							while(chatboxValue.split(" ").includes("@owner")){
+							while(chatBoxValueIgnoreCase.split(" ").includes("@owner")){
 								chatboxValue = chatboxValue.replace(new RegExp("@owner", "ig"), "@" + owner.tag);
 								chatboxValueWithoutMentions = chatboxValue.split("@owner").join("");
 							}
+						}
+					}
+					for(let i = 0; i < this.groups.length; i++) {
+						let group = this.groups[i];
+						if(chatBoxValueIgnoreCase.split(" ").includes("@" + group.name.toLowerCase())) {
+							let users = Array.from(group.users, x => this.getUser(x)), mentionList = new Array();
+							for(let ii = 0; ii < users.length; ii++) if(users[ii] != undefined && this.usersInServer.includes(users[ii].id)) mentionList.push("@" + users[ii].tag);
+							chatboxValue = chatboxValue.replace(new RegExp("@" + group.name, "ig"), mentionList.join(" "));
 						}
 					}
 					if(originalChatboxValue != chatboxValue){
@@ -548,9 +634,8 @@ class MentionAliases {
 	
     stop() {
 		BdApi.clearCSS("MentionAliases");
-		var chatbox = $("textarea");
-		if(chatbox)
-			chatbox.off("keydown.MentionAliases");
+		var chatbox = $(".chat textarea");
+		if(chatbox) chatbox.off("keydown.MentionAliases");
 		$(".scroller-2FKFPG.members-1998pB").off("DOMNodeInserted.MentionAliases");
 		$(".private-channels > div.scrollerWrap-2lJEkd scrollerThemed-2oenus themeGhostHairline-DBD-2d scrollerFade-1Ijw5y > div").off("DOMNodeInserted.MentionAliases");
 		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
@@ -559,10 +644,9 @@ class MentionAliases {
 		$(".inner-zqa7da")[0].style.width = "";
 		$(window).off("resize.MentionAliases");
 		$(document).off("keydown.MentionAliases");
-		if(this.messageObserver != null)
-			this.messageObserver.disconnect();
-		if(this.popoutObserver != null)
-			this.popoutObserver.disconnect();
+		$(document).off("contextmenu.MentionAliases");
+		if(this.messageObserver != null) this.messageObserver.disconnect();
+		if(this.popoutObserver != null) this.popoutObserver.disconnect();
 	}
 	
 	getUser(id){

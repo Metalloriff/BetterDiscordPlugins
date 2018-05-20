@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.2.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -13,7 +13,20 @@ class MessageLogger {
 				Added an "ignore bots" setting.
 				Added a filter to the log.
 				Added a help button.
-				You can now right click on users.
+				Added a context menu to users in the log.
+			`,
+			"0.2.2" :
+			`
+				Changed Ctrl + Alt + M from filtering the selected server, to filtering the selected channel.
+				Messages are now grouped, instead of separate for every message.
+				Sent messages no longer save. This is to help prevent that annoying Javascript error that requires you to delete the config file.
+				Message data is now saved in "MessageLoggerData.config.json" instead of "MessageLogger.config.json", so if the javascript error happens, you won't have to reconfigure your settings.
+				Improved the performance of the log window.
+				Fixed that hideous scrollbar.
+				Added a clear button.
+				Fixed messages sometimes randomly deleting themselves from the log.
+				Added a setting to ignore messages posted by yourself.
+				Added a context menu to logged messages. More options will be added to it soon.
 			`
 		};
 	}
@@ -46,6 +59,11 @@ class MessageLogger {
 
 			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Ignore bots", this.settings.ignoreBots, () => {
 				this.settings.ignoreBots = !this.settings.ignoreBots;
+				this.saveSettings();
+			}), this.getName());
+
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Ignore messages posted by you", this.settings.ignoreSelf, () => {
+				this.settings.ignoreSelf = !this.settings.ignoreSelf;
 				this.saveSettings();
 			}), this.getName());
 
@@ -98,8 +116,7 @@ class MessageLogger {
 	}
 
 	saveData() {
-		PluginUtilities.saveData(this.getName(), "data", {
-			messageRecord : this.messageRecord,
+		PluginUtilities.saveData(this.getName() + "Data", "data", {
 			deletedMessageRecord : this.deletedMessageRecord,
 			editedMessageRecord : this.editedMessageRecord
 		});
@@ -113,6 +130,7 @@ class MessageLogger {
 			displayUpdateNotes : true,
 			ignoreMuted : true,
 			ignoreBots : true,
+			ignoreSelf : false,
 			cap : 50,
 			reverseOrder : true,
 			type : "all",
@@ -131,13 +149,12 @@ class MessageLogger {
 			displayUpdateNotes : true
 		});
 
-		let data = PluginUtilities.loadData(this.getName(), "data", {
-			messageRecord : [],
+		let data = PluginUtilities.loadData(this.getName() + "Data", "data", {
 			deletedMessageRecord : [],
 			editedMessageRecord : []
 		});
 
-		this.messageRecord = data.messageRecord;
+		this.messageRecord = [];
 		this.deletedMessageRecord = data.deletedMessageRecord;
 		this.editedMessageRecord = data.editedMessageRecord;
 
@@ -161,10 +178,10 @@ class MessageLogger {
 
 			if(e.key == "Escape") $(".ml-backdrop").click();
 
-			let server = PluginUtilities.getCurrentServer();
-			if(server && !this.settings.disableKeybind && e.ctrlKey && e.altKey && e.key == "m") this.filter = "server: " + server.name;
+			let channel = Metalloriff.getSelectedChannel();
+			if(channel && !this.settings.disableKeybind && e.ctrlKey && e.altKey && e.key == "m") this.filter = "channel: " + channel.id;
 
-			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("created");
+			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("sent");
 
 		});
 
@@ -195,7 +212,7 @@ class MessageLogger {
 			Shortcut help:
 
 			"Ctrl + M" - Open message log.
-			"Ctrl + Alt + M" - Open message log with selected server filtered.
+			"Ctrl + Alt + M" - Open message log with selected channel filtered.
 		`;
 		
 	}
@@ -203,6 +220,14 @@ class MessageLogger {
 	onLibLoaded() {
 
 		this.classes = Metalloriff.getClasses(["contextMenu"]);
+
+		this.localUser = PluginUtilities.getCurrentUser();
+
+		this.electron = require("electron");
+
+		this.getMessage = InternalUtilities.WebpackModules.findByUniqueProperties(["getMessages"]).getMessage;
+
+		this.transitionTo = InternalUtilities.WebpackModules.findByUniqueProperties(["transitionTo"]).transitionTo;
 		
         Metalloriff.unpatchInternalFunction("handleMessage", this.getName());
         Metalloriff.patchInternalFunction("handleMessage", data => {
@@ -224,6 +249,8 @@ class MessageLogger {
 			let user = data.message == undefined || data.message.author == undefined ? undefined : this.getUser(data.message.author.id);
 
 			if(user && user.bot && this.settings.ignoreBots) return;
+
+			if(user && user.id == this.localUser.id && this.settings.ignoreSelf) return;
 				
 			let timestamp = new Date().toLocaleTimeString();
 			data.timestamp = timestamp;
@@ -288,6 +315,8 @@ class MessageLogger {
 
 			}
 
+			if(data.message.content == undefined || (data.message.content.trim().length == 0 && data.message.attachments.length == 0)) return;
+
 			let existingIDX = this.messageRecord.findIndex(x => x.message.id == data.message.id);
 
 			if(existingIDX != -1) {
@@ -298,16 +327,12 @@ class MessageLogger {
 
 			}
 
-			if(data.message.content == undefined || (data.message.content.trim().length == 0 && data.message.attachments.length == 0)) return;
-
 			if(this.settings.toastToggles.sent) {
 				if(server && channel) PluginUtilities.showToast(`Message sent in ${server.name}, #${channel.name}.`, { type : "success", icon : server.getIconURL() });
 				else PluginUtilities.showToast("Message sent in DM.", { type : "success", icon : this.getAvatarOf(data.message.author) });
 			}
 
 			this.messageRecord.push(data);
-			
-			this.saveData();
 
 		}, this.getName());
 		
@@ -321,7 +346,7 @@ class MessageLogger {
 
 		if(document.getElementById("message-logger-window") == undefined) app.insertAdjacentHTML("beforeend", `<div id="message-logger-window">
 
-        <style>
+		<style>
 
         .ml-item {
             padding: 10px;
@@ -369,6 +394,31 @@ class MessageLogger {
 			max-height: 663px;
 			overflow-y: scroll;
 			overflow-x: hidden;
+		}
+
+		#message-logger-window *::-webkit-scrollbar {
+			max-width: 10px;
+		}
+		
+		#message-logger-window *::-webkit-scrollbar-track-piece {
+			background: transparent;
+			border: none;
+			border-radius: 5px;
+		}
+		
+		#message-logger-window *:hover::-webkit-scrollbar-track-piece {
+			background: #2F3136;
+			border-radius: 5px;
+		}
+		
+		#message-logger-window *::-webkit-scrollbar-thumb {
+			background: #1E2124;
+			border: none;
+			border-radius: 5px;
+		}
+		
+		#message-logger-window *::-webkit-scrollbar-button {
+			display: none;
 		}
 
         .ml-label {
@@ -443,6 +493,10 @@ class MessageLogger {
 			transition: all 0.3s;
 		}
 
+		.ml-scroller > :last-child {
+			margin-bottom: 10px;
+		}
+
         </style>
 
         <div class="ml-backdrop"></div>
@@ -453,8 +507,8 @@ class MessageLogger {
 					<input id="ml-filter" class="ml-filter-field" value="${this.filter}"></input>
 					<div class="ml-filter-help-button">Help</div>
 					<div style="text-align:center">
-						<div class="ml-tab-button created">Sent Messages</div>
-						<div class="ml-tab-button removed">Deleted Messages</div>
+						<div class="ml-tab-button sent">Sent Messages</div>
+						<div class="ml-tab-button deleted">Deleted Messages</div>
 						<div class="ml-tab-button edited">Edited Messages</div>
 						<div class="ml-tab-button ghostpings">Ghost Pings</div>
 					</div>
@@ -517,36 +571,111 @@ class MessageLogger {
 			
 		}, 1000);
 
+		let lastMessage, group;
+
 		for(let i = 0; i < messages.length; i++) {
 
 			if(messages[i].message.author == undefined) continue;
 
-			let group = this.messageGroupItem(messages[i], type);
+			if(lastMessage != undefined && lastMessage.author.id == messages[i].message.author.id && lastMessage.channel_id == messages[i].message.channel_id) {
 
-			group.getElementsByClassName("ml-message-username")[0].addEventListener("contextmenu", e => {
+				let message = group.getElementsByClassName("message-text")[0];
+
+				if(messages[i].editHistory != undefined) for(let ii = 0; ii < messages[i].editHistory.length; ii++) message.insertAdjacentHTML("beforeend", `<div class="markup" style="opacity:0.5">${messages[i].editHistory[ii].content}<div class="markup ml-edit-timestamp">${messages[i].editHistory[ii].editedAt}</div></div>`);
+
+				message.insertAdjacentHTML("beforeend", `<div class="markup">${messages[i].message.content}</div>`);
+
+				continue;
+
+			}
+
+			lastMessage = messages[i].message;
+
+			group = this.messageGroupItem(messages[i], type);
+
+			group.addEventListener("contextmenu", e => {
+
+				e.preventDefault();
+
 				let user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id);
+
+				if(e.target.classList.contains("markup")) {
+
+					let menu = new PluginContextMenu.Menu();
+
+					if(channel != undefined && this.getMessage(channel.id, messages[i].message.id) != undefined) menu.addItems(
+						new PluginContextMenu.ItemGroup().addItems(
+							new PluginContextMenu.TextItem("Jump To", { callback : () => {
+								this.transitionTo(`/channels/${messages[i].message.guild_id}/${messages[i].message.channel_id}?jump=${messages[i].message.id}`);
+								$backdrop.click();
+								this.getContextMenu().style.display = "none";
+							}})
+						)
+					);
+
+					menu.addItems(new PluginContextMenu.ItemGroup().addItems(
+						new PluginContextMenu.TextItem("Copy Text", { callback : () => {
+							this.electron.clipboard.writeText(messages[i].message.content);
+							this.getContextMenu().style.display = "none";
+							PluginUtilities.showToast("Text copied to clipboard!", { type : "success" });
+						}})
+					));
+
+					menu.show(e.clientX, e.clientY);
+				
+					this.getContextMenu().style.zIndex = "10000";
+
+					return;
+
+				}
+
 				if(!user || !channel) return;
+
 				this.openUserContextMenu(e, user, channel);
-				document.getElementsByClassName(this.classes.contextMenu)[0].style.zIndex = "10000";
+				
+				this.getContextMenu().style.zIndex = "10000";
 				document.getElementsByClassName(this.classes.item)[0].addEventListener("click", () => $backdrop.click());
+
 			});
 
-			scroller.insertAdjacentElement("beforeend", group);
+			scroller.insertAdjacentElement(this.settings.reverseOrder == true ? "afterbegin" : "beforeend", group);
 
 		}
+
+		if(type == "ghostpings") return;
+
+		scroller.insertAdjacentHTML("beforeend", `<div id="ml-clear-log-button" class="message-group hide-overflow" style="cursor:pointer;">
+			<div class="comment" style="text-align:center;">
+				<div class="message">
+					<div class="body">
+						<h2 class="old-h2"><span class="username-wrapper"><strong class="user-name" style="color:white">Clear</strong></span></h2>
+					</div>
+				</div>
+			</div>
+		</div>`);
+
+		document.getElementById("ml-clear-log-button").addEventListener("click", () => {
+			Metalloriff.UI.createPrompt("ml-clear-log-prompt", "Clear log", `Are you sure you want to clear all ${type} messages?`, prompt => {
+				if(type == "sent") this.messageRecord = [];
+				if(type == "edited") this.editedMessageRecord = [];
+				if(type == "deleted") this.deletedMessageRecord = [];
+				this.saveData();
+				PluginUtilities.showToast("Log cleared!", { type : "success" });
+				this.openWindow(type);
+				prompt.close();
+			});
+		});
 
 	}
 
 	getFilteredMessages(type) {
 		
-		let messages, my = PluginUtilities.getCurrentUser();
+		let messages;
 
-		if(type == "created") messages = this.messageRecord.slice(0);
+		if(type == "sent") messages = this.messageRecord.slice(0);
 		if(type == "edited") messages = this.editedMessageRecord.slice(0);
-		if(type == "removed") messages = this.deletedMessageRecord.slice(0);
-		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(my.id));
-
-		if(this.settings.reverseOrder == true) messages.reverse();
+		if(type == "deleted") messages = this.deletedMessageRecord.slice(0);
+		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(this.localUser.id));
 		
 		let filters = this.filter.split(",");
 
@@ -583,9 +712,9 @@ class MessageLogger {
 
 		if(channel != undefined) server = this.getServer(channel.guild_id);
 
-		if(type == "created") details = "Sent in";
+		if(type == "sent") details = "Sent in";
 		if(type == "edited") details = "Last edit in";
-		if(type == "removed") details = "Removed from";
+		if(type == "deleted") details = "Deleted in";
 
 		details += server && channel ? ` ${server.name}, #${channel.name} ` : " DM ";
 
@@ -660,15 +789,22 @@ class MessageLogger {
 
 		let menu = new PluginContextMenu.Menu();
 
-		menu.addItems(new PluginContextMenu.TextItem("View Sent Messages", { callback : () => { this.openWindow("created"); document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none"; }}))
-		.addItems(new PluginContextMenu.TextItem("View Deleted Messages", { callback : () => { this.openWindow("removed"); document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none"; }}))
-		.addItems(new PluginContextMenu.TextItem("View Edited Messages", { callback : () => { this.openWindow("edited"); document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none"; }}))
-		.addItems(new PluginContextMenu.TextItem("View Ghost Pings", { callback : () => { this.openWindow("ghostpings"); document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none"; }}));
+		menu.addItems(
+			new PluginContextMenu.TextItem("View Sent Messages", { callback : () => { this.openWindow("sent"); this.getContextMenu().style.display = "none"; }}),
+			new PluginContextMenu.TextItem("View Deleted Messages", { callback : () => { this.openWindow("deleted"); this.getContextMenu().style.display = "none"; }}),
+			new PluginContextMenu.TextItem("View Edited Messages", { callback : () => { this.openWindow("edited"); this.getContextMenu().style.display = "none"; }}),
+			new PluginContextMenu.TextItem("View Ghost Pings", { callback : () => { this.openWindow("ghostpings"); this.getContextMenu().style.display = "none"; }}),
+			new PluginContextMenu.TextItem("Settings", { callback : () => Metalloriff.Settings.showPluginSettings(this.getName()) })
+		);
 
 		let itemGroups = document.getElementsByClassName(this.classes.itemGroup);
 
 		itemGroups[itemGroups.length - 1].insertAdjacentElement("beforeend", new PluginContextMenu.SubMenuItem("Message Logger", menu).element[0]);
 
+	}
+
+	getContextMenu() {
+		return document.getElementsByClassName(this.classes.contextMenu)[0];
 	}
 
 	clearLogs() {

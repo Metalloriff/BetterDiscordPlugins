@@ -96,3 +96,7 @@ Double click the top of a message group to select it, then shift click to the ne
 - Keybind: Ctrl + M
 - [View Preview](https://imgur.com/a/wxTZpym)
 - [View Video Preview](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VideoExamples/MessageLogger.mp4)
+
+## [Open Links In Discord](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/OpenLinksInDiscord.plugin.js)
+- Opens links in a new window in Discord, instead of in your web browser. Hold shift to open links normally.
+- [View Video Preview](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VideoExamples/OpenLinksInDiscord.mp4)

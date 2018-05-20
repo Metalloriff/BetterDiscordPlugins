@@ -54,4 +54,4 @@ class OpenLinksInDiscord {
         this.$document.off("click.OpenLinksInDiscord");
 	}
 	
-}
+} 

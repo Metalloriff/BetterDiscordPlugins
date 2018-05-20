@@ -3,7 +3,7 @@
 class OpenLinksInDiscord {
 	
     getName() { return "OpenLinksInDiscord"; }
-    getDescription() { return "Opens all links in a new window in Discord, instead of in your web browser. Hold shift to open links normally."; }
+    getDescription() { return "Opens links in a new window in Discord, instead of in your web browser. Hold shift to open links normally."; }
     getVersion() { return "0.0.1"; }
 	getAuthor() { return "Metalloriff"; }
 

@@ -210,7 +210,7 @@ class FormattableMessageCopier {
 	
     getName() { return "Formattable Message Copier"; }
     getDescription() { return "Allows you to select messages in a chat to copy them in a customizable format. Double click the top of a message group to select it, then shift click to the next point to select all message groups between, or ctrl click another message group to append a single group to the selection."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -258,7 +258,7 @@ class FormattableMessageCopier {
     }
     
     onClick(e){
-        if(!e.target.className || (!e.target.className.includes("message-group") && e.target.className != "old-h2"))
+        if(!e.target.classList || (!e.target.classList.contains("message-group") && e.target.className != "old-h2"))
             return;
         var messageGroup = undefined;
         if(e.target.className.includes("message-group")){

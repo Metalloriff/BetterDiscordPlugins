@@ -421,7 +421,7 @@ class AutoCorrect {
 
 				let selectedWords = chatbox.value.substring(chatbox.selectionStart, chatbox.selectionEnd).trim().toLowerCase().split(" ");
 				
-				if(selectedWords.length == 1) {
+				if(selectedWords.length == 1 && selectedWords[0] != "") {
 
 					itemGroup.insertAdjacentElement("afterbegin",
 

@@ -15,12 +15,15 @@ class VoiceChatNotifications {
 	}
 	
     getName() { return "Voice Chat Notifications"; }
-    getDescription() { return "Displays notifications when users connect to/disconnect from voice channels, mute/unmute themselves and deafen/undeafen themselves (all optional) in the selected server."; }
-    getVersion() { return "0.0.1"; }
+    getDescription() { return "Displays notifications when users connect to/disconnect from, mute/unmute themselves, and deafen/undeafen themselves in the voice channel you're in."; }
+    getVersion() { return "1.0.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+            "1.0.1" : 
+            `
+                Redid the plugin entirely. It will now work when the server is not selected, like it should've in the first place.
+            `
 		};
 	}
 
@@ -45,22 +48,15 @@ class VoiceChatNotifications {
 
         setTimeout(() => {
 
-            var toggleGroup = document.createElement("div"), toggle = key => {
-               this.settings[key] = !this.settings[key];
-               this.saveSettings();
-            };
-
-            toggleGroup.style.padding = "20px";
-
-            toggleGroup.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createToggleSwitch("Display connection/disconnection notifications", this.settings.logConnections, () => toggle("logConnections")));
-
-            toggleGroup.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createToggleSwitch("Display mute/unmute notifications", this.settings.logMutes, () => toggle("logMutes")));
-
-            toggleGroup.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createToggleSwitch("Display deafen/undeafen notifications", this.settings.logDeafens, () => toggle("logDeafens")));
-
-            toggleGroup.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createToggleSwitch("Display notifications while Discord is focused", this.settings.displayWhileFocused, () => toggle("displayWhileFocused")));
-            
-            Metalloriff.Settings.pushElement(toggleGroup, this.getName());
+            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("vcn-toggles", "Settings", [
+                { title : "Display notifications on user connect/disconnect", value : "logConnections", setValue : this.settings.logConnections },
+                { title : "Display notificaitons on user mute/unmute", value : "logMutes", setValue : this.settings.logMutes },
+                { title : "Display notifications on user deafen/undeafen", value : "logDeafens", setValue : this.settings.logDeafens },
+                { title : "Display notifications while Discord is focused", value : "displayWhileFocused", setValue : this.settings.displayWhileFocused }
+            ], choice => {
+                this.settings[choice.value] = !this.settings[choice.value];
+                this.saveSettings();
+            }), this.getName());
 
             Metalloriff.Settings.pushChangelogElements(this);
 
@@ -93,52 +89,76 @@ class VoiceChatNotifications {
 
 	onLibLoaded() {
 
-        this.classes = Metalloriff.getClasses(["wrapperDefaultVoice", "wrapperSelectedVoice"], false);
+        let getVoiceStates = InternalUtilities.WebpackModules.findByUniqueProperties(["getVoiceState"]).getVoiceStates,
+            getUser = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]).getUser,
+            getChannel = InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel"]).getChannel;
+        
+        let lastStates = {};
 
-        this.localUser = PluginUtilities.getCurrentUser().id;
+        let localUser = PluginUtilities.getCurrentUser();
 
-        this.voiceObserver = new MutationObserver(mutationEvent => {
+        this.update = setInterval(() => {
 
-            if(this.focused && this.settings.displayWhileFocused == false) return;
+            if(!this.settings.displayWhileFocused && this.focused) return;
+        
+            let currentCall = Metalloriff.getSelectedVoiceChannel();
 
-            var userElement = mutationEvent[0].addedNodes[0] || mutationEvent[0].removedNodes[0], added = mutationEvent[0].addedNodes.length > 0;
+            if(currentCall == undefined) return;
+            
+            let newStates = getVoiceStates(currentCall.guild_id);
 
-            if(userElement != undefined) {
+            for(let id in newStates) {
 
-                if(this.settings.logConnections && userElement.classList.contains("draggable-1KoBzC")) {
+                if(localUser.id == id) continue;
 
-                    var props = ReactUtilities.getOwnerInstance(userElement).props, options = { silent : true, icon : props.user.getAvatarURL() };
+                if(lastStates[id] == undefined) {
+                    if(!this.settings.logConnections) continue;
+                    let user = getUser(id), channel = getChannel(newStates[id].channelId);
+                    if(user && channel) new Notification(`${user.username} joined ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                } else {
 
-                    if(props.user.id == this.localUser) return;
+                    if(this.settings.logDeafens && lastStates[id].selfDeaf != newStates[id].selfDeaf) {
 
-                    if(added) new Notification(`${props.user.username} joined ${props.channel.name}`, options);
-                    else new Notification(`${props.user.username} left ${props.channel.name}`, options);
+                        let user = getUser(id), channel = getChannel(newStates[id].channelId);
 
-                    return;
+                        if(user && channel) {
+                            if(newStates[id].selfDeaf) new Notification(`${user.username} deafened`, { silent : true, icon : user.getAvatarURL() });
+                            else new Notification(`${user.username} undeafened`, { silent : true, icon : user.getAvatarURL() });
+                        }
 
-                }
-                
-                var props = ReactUtilities.getOwnerInstance(mutationEvent[0].target).props, options = { silent : true, icon : props.user.getAvatarURL() };
+                        continue;
 
-                if(props.user.id == this.localUser) return;
+                    }
 
-                if(this.settings.logDeafens && userElement.classList.contains("margin-reset") && userElement.querySelector(".icon-29PTzq")) {
+                    if(this.settings.logMutes && lastStates[id].selfMute != newStates[id].selfMute) {
 
-                    if(added) new Notification(`${props.user.username} deafened`, options);
-                    else new Notification(`${props.user.username} undeafened`, options);
+                        let user = getUser(id), channel = getChannel(newStates[id].channelId);
 
-                } else if(this.settings.logMutes && userElement.classList.contains("margin-reset") && userElement.querySelector(".icon-3nr6O-")) {
+                        if(user && channel) {
+                            if(newStates[id].selfMute) new Notification(`${user.username} muted`, { silent : true, icon : user.getAvatarURL() });
+                            else new Notification(`${user.username} unmuted`, { silent : true, icon : user.getAvatarURL() });
+                        }
 
-                    if(added) new Notification(`${props.user.username} muted`, options);
-                    else new Notification(`${props.user.username} unmuted`, options);
+                    }
 
                 }
 
             }
 
-        });
+            for(let id in lastStates) {
 
-        this.onSwitch();
+                if(localUser.id == id || !this.settings.logConnections) continue;
+
+                if(newStates[id] == undefined && id != localUser.id) {
+                    let user = getUser(id), channel = getChannel(lastStates[id].channelId);
+                    if(user && channel) new Notification(`${user.username} left ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                }
+
+            }
+
+            lastStates = newStates;
+
+        }, 500);
 
         this.focused = true;
 
@@ -146,58 +166,10 @@ class VoiceChatNotifications {
         $(window).on("blur.VCN", () => this.focused = false);
 
     }
-
-    onSwitch() {
-
-        if(Metalloriff == undefined || this.voiceObserver == undefined) {
-
-            setTimeout(() => this.onSwitch(), 1000);
-
-            return;
-
-        }
-
-        this.callUserProps = this.getCallProps();
-
-        var voiceChannels = $(".wrapperDefaultVoice-1yvceo");
-        voiceChannels.off("click.VCN");
-        voiceChannels.on("click.VCN", () => setTimeout(() => this.attachObserver(), 100));
-
-        this.attachObserver();
-
-    }
-
-    getCallProps() {
-
-        var elements = document.getElementsByClassName("draggable-1KoBzC"), toReturn = new Object();
-
-        for(let i = 0; i < elements.length; i++) {
-
-            var props = ReactUtilities.getOwnerInstance(elements[i]).props;
-
-            toReturn[props.user.id + props.channel.id] = props;
-
-        }
-
-        return toReturn;
-
-    }
-    
-    attachObserver() {
-
-        this.voiceObserver.disconnect();
-
-        var calls = document.querySelectorAll(".listCollapse-3hmWwX, .listDefault-36Sktb");
-
-        for(let i = 0; i < calls.length; i++) this.voiceObserver.observe(calls[i], { childList : true, subtree : true });
-
-    }
 	
     stop() {
 
-        this.voiceObserver.disconnect();
-
-        $(".wrapperDefaultVoice-1yvceo").off("click.VCN");
+        clearInterval(this.update);
 
         $(window).off("focus.VCN");
         $(window).off("blur.VCN");

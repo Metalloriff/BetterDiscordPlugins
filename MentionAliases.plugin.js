@@ -9,6 +9,7 @@ class MentionAliases {
 		this.groups = [];
 		this.displayTags = true;
 		this.displayButton = true;
+		this.displayOnPopout = true;
 		this.defaultSettings = { displayUpdateNotes : true };
 		this.settings = this.defaultSettings;
 		this.messageObserver = null;
@@ -26,7 +27,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.6.14"; }
+    getVersion() { return "0.7.14"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -56,6 +57,12 @@ class MentionAliases {
 				Added a context menu to users.
 				Added alias groups.
 				Redid the settings menu.
+			`,
+			"0.7.14" :
+			`
+				Fixed a few really dumb bugs.
+				Fixed @owner... again.
+				Added a "display alias field on user popouts" setting.
 			`
 		};
 	}
@@ -65,14 +72,13 @@ class MentionAliases {
 	getSettingsPanel(){
 
 		setTimeout(() => {
-			
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Display an alias tag next to users", this.displayTags, () => {
-				this.displayTags = !this.displayTags;
-				this.save();
-			}), this.getName());
-			
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Display alias list button (you can still open the list with Ctrl + Shift + @)", this.displayTags, () => {
-				this.displayButton = !this.displayButton;
+
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ma-toggles", "Settings", [
+				{ title : "Display alias tags next to users", value : "displayTags", setValue : this.displayTags },
+				{ title : "Display alias list button (you can still open the list with Ctrl + Shift + @)", value : "displayButton", setValue : this.displayButton },
+				{ title : "Display alias field on user popouts", value : "displayOnPopout", setValue : this.displayOnPopout }
+			], choice => {
+				this[choice.value] = !this[choice.value];
 				this.save();
 			}), this.getName());
 			
@@ -98,7 +104,7 @@ class MentionAliases {
 	}
 	
 	save(){
-		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, settings : this.settings, groups : this.groups });
+		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayOnPopout : this.displayOnPopout, settings : this.settings, groups : this.groups });
 	}
 	
 	initialize(){
@@ -106,7 +112,7 @@ class MentionAliases {
 		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
 		this.memberModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getMembers"]);
 		this.guildModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]);
-		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, settings : this.defaultSettings, groups : this.groups });
+		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayOnPopout : this.displayOnPopout, settings : this.defaultSettings, groups : this.groups });
 		this.aliases = data.aliases;
 		this.groups = data.groups;
 		var updatedAliases = {};
@@ -118,7 +124,8 @@ class MentionAliases {
 		}
 		this.displayTags = data.displayTags;
 		this.displayButton = data.displayButton;
-		this.settigns = data.settings;
+		this.displayOnPopout = data.displayOnPopout;
+		this.settings = data.settings;
 		this.initialized = true;
 		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
 		this.onSwitch();
@@ -196,6 +203,7 @@ class MentionAliases {
 			if(element) this.onUserContext(element);
 		})
 		this.popoutObserver = new MutationObserver(e => {
+			if(!this.displayOnPopout) return;
 			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-3XzG_A").length > 0){
 				if(this.aliases == undefined)
 					this.aliases = {};
@@ -593,7 +601,7 @@ class MentionAliases {
 			chatboxJQ.off("keydown.MentionAliases");
 			chatboxJQ.on("keydown.MentionAliases", e => {
 				if((e.which == 13 || e.which == 32) && chatbox.value){
-					let originalChatboxValue = chatbox.value, chatboxValue = chatbox.value, chatBoxValueIgnoreCase = chatboxValue.toLowerCase();
+					let originalChatboxValue = chatbox.value, chatboxValue = chatbox.value, chatBoxValueIgnoreCase = chatboxValue.trim().toLowerCase();
 					for(let id in this.aliases){
 						let alias = this.aliases[id];
 						if(chatBoxValueIgnoreCase.includes(alias.toLowerCase()) && (this.usersInServer.includes(id))){
@@ -608,9 +616,8 @@ class MentionAliases {
 						let guild = PluginUtilities.getCurrentServer(), owner = undefined;
 						if(guild != undefined){
 							owner = this.getUser(guild.ownerId);
-							while(chatBoxValueIgnoreCase.split(" ").includes("@owner")){
+							if(chatBoxValueIgnoreCase.split(" ").includes("@owner")){
 								chatboxValue = chatboxValue.replace(new RegExp("@owner", "ig"), "@" + owner.tag);
-								chatboxValueWithoutMentions = chatboxValue.split("@owner").join("");
 							}
 						}
 					}

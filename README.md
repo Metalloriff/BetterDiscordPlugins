@@ -73,7 +73,8 @@ Double click the top of a message group to select it, then shift click to the ne
 - [View Preview](https://imgur.com/a/Ej9w3df)
 
 ## [Voice Chat Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js)
-- Displays notifications when users connect to/disconnect from, mute/unmute themselves, and deafen/undeafen themselves in the voice channel you're in. Press Alt + V to open the voice log.
+- Displays notifications when users connect to/disconnect from, mute/unmute themselves, and deafen/undeafen themselves in the voice channel you're in.
+- Keybind: Alt + V
 - [View Preview](https://imgur.com/a/YP8DkZI)
 
 ## [Send Links Directly](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SendLinksDirectly.plugin.js)

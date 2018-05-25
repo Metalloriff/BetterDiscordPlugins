@@ -4,7 +4,7 @@ class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -443,7 +443,9 @@ class AutoCorrect {
 
 				}
 
-				document.getElementsByClassName(this.classes.itemGroup)[1].firstChild.outerHTML = "";
+				let oldLearnButton = document.getElementsByClassName(this.classes.itemGroup)[1].firstChild;
+
+				if(oldLearnButton.firstChild.innerText.includes("Dictionary")) oldLearnButton.outerHTML = "";
 
 				itemGroup.parentElement.style.top = (parseInt(itemGroup.parentElement.style.top) - 50) + "px";
 

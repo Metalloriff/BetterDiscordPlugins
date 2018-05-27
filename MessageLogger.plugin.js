@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.3.2"; }
+    getVersion() { return "0.4.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -34,6 +34,12 @@ class MessageLogger {
 				Added a "Remove From Log" log message context menu item.
 				Added a "Display clear log button at the top of the log" setting.
 				Clicking the "edited" icon next to an edited message now opens the logger and filters that message.
+			`,
+			"0.4.2" :
+			`
+				Added a cache all images setting. Enabling this will most of the time make deleted images show.
+				Fixed multiple images from the same user not showing in the log.
+				Improved the size of images in the log.
 			`
 		};
 	}
@@ -64,7 +70,8 @@ class MessageLogger {
 				{ title : "Ignore bots", value : "ignoreBots", setValue : this.settings.ignoreBots },
 				{ title : "Ignore message posted by you", value : "ignoreSelf", setValue : this.settings.ignoreSelf },
 				{ title : "Disable log window keybind (Ctrl + M)", value : "disableKeybind", setValue : this.settings.disableKeybind },
-				{ title : "Display clear log button at the top of the log", value : "clearButtonOnTop", setValue : this.settings.clearButtonOnTop }
+				{ title : "Display clear log button at the top of the log", value : "clearButtonOnTop", setValue : this.settings.clearButtonOnTop },
+				{ title : "Cache all received images. (Attempted fix to show deleted images, disable this if you notice a decline in your internet speed)", value : "cacheAllImages", setValue : this.settings.cacheAllImages }
 			], choice => {
 				this.settings[choice.value] = !this.settings[choice.value];
 				this.saveSettings();
@@ -154,7 +161,8 @@ class MessageLogger {
 			},
 			disableKeybind : false,
 			displayUpdateNotes : true,
-			clearButtonOnTop : false
+			clearButtonOnTop : false,
+			cacheAllImages : true
 		});
 
 		let data = PluginUtilities.loadData(this.getName() + "Data", "data", {
@@ -339,6 +347,8 @@ class MessageLogger {
 				if(server && channel) PluginUtilities.showToast(`Message sent in ${server.name}, #${channel.name}.`, { type : "success", icon : server.getIconURL() });
 				else PluginUtilities.showToast("Message sent in DM.", { type : "success", icon : this.getAvatarOf(data.message.author) });
 			}
+
+			if(this.settings.cacheAllImages) for(let i = 0; i < data.message.attachments.length; i++) new Image().src = data.message.attachments[i].url;
 
 			this.messageRecord.push(data);
 
@@ -633,11 +643,13 @@ class MessageLogger {
 
 			if(lastMessage != undefined && lastMessage.author.id == messages[i].message.author.id && lastMessage.channel_id == messages[i].message.channel_id) {
 
-				let message = group.getElementsByClassName("message-text")[0];
+				let message = group.getElementsByClassName("message-text")[0], accessory = group.getElementsByClassName("accessory")[0];
 
 				if(messages[i].editHistory != undefined) for(let ii = 0; ii < messages[i].editHistory.length; ii++) message.insertAdjacentHTML("beforeend", `<div class="markup" style="opacity:0.5">${messages[i].editHistory[ii].content}<div class="markup ml-edit-timestamp">${messages[i].editHistory[ii].editedAt}</div></div>`);
 
 				message.insertAdjacentHTML("beforeend", `<div class="markup" data-message-id="${messages[i].message.id}">${messages[i].message.content}</div>`);
+
+				for(let ii = 0; ii < messages[i].message.attachments.length; ii++) accessory.insertAdjacentHTML("beforeend", `<img src="${messages[i].message.attachments[ii].url}" height="auto" width="${Math.clamp(messages[i].message.attachments[ii].width, 200, 650)}px">`);
 
 				continue;
 
@@ -803,7 +815,7 @@ class MessageLogger {
 		if(data.message.attachments.length > 0) {
 			for(let i = 0; i < data.message.attachments.length; i++) {
 				let img = data.message.attachments[i];
-				attachments += `<img src="${img.url}" height="auto" width="100%">`;
+				attachments += `<img src="${img.url}" height="auto" width="${Math.clamp(img.width, 200, 650)}px">`;
 			}
 		}
 

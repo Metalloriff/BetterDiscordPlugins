@@ -6,7 +6,7 @@ class SendLinksDirectly {
     getDescription() { return `Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
     Usage: [link] or [link, filename.fileformat]
     Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]`; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -61,7 +61,7 @@ class SendLinksDirectly {
 
         var $chatbox = $(".chat textarea"), chatbox = $chatbox[0], selectedChannel = Metalloriff.getSelectedChannel();
 
-        if(selectedChannel == undefined || (selectedChannel.type == 0 && !this.hasPermission(32768, selectedChannel))) return;
+        if(selectedChannel == undefined) return;
 
         if($chatbox.length) {
 

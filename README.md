@@ -5,6 +5,8 @@
 
 ## If you wish to join my support server to suggest anything, recieve help with anything, or just see all of my plugins, themes, CSS snippets, and bots, feel free to. https://discord.gg/yNqzuJa
 
+## This page is ordered from my latest plugins to my oldest plugins.
+
 
 ## [Reaction Images](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ReactionImages.plugin.js)
 - Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'.

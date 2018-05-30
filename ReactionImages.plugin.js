@@ -218,14 +218,10 @@ class ReactionImages {
 								
 								sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content :  chatbox.value.substring(0, idx), tts : false });
 
-								if(chatbox.value.substring(0, idx).trim()) {
+								chatbox.select();
+								document.execCommand("delete", false);
 
-									chatbox.select();
-									document.execCommand("delete", false);
-
-									autocomplete.outerHTML = "";
-
-								}
+								autocomplete.outerHTML = "";
 
 							}
 

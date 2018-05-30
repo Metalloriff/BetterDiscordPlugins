@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.4.2"; }
+    getVersion() { return "0.5.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -40,6 +40,10 @@ class MessageLogger {
 				Added a cache all images setting. Enabling this will most of the time make deleted images show.
 				Fixed multiple images from the same user not showing in the log.
 				Improved the size of images in the log.
+			`,
+			"0.5.2" :
+			`
+				Added sent message cap and saved message cap settings.
 			`
 		};
 	}
@@ -103,6 +107,16 @@ class MessageLogger {
 				this.saveSettings();
 			}), this.getName());
 
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Sent message cap", "number", this.settings.cap, e => {
+				this.settings.cap = e.value;
+				this.saveSettings();
+			}), this.getName());
+
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Saved message cap", "number", this.settings.savedCap, e => {
+				this.settings.savedCap = e.value;
+				this.saveSettings();
+			}), this.getName());
+
 			/* Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ml-count-toggles", "Display amount of new messages since the last time the channel was visited", [
 				{ title : "Sent messages", value : "sent", setValue : this.settings.countToggles.sent },
 				{ title : "Edited messages", value : "edited", setValue : this.settings.countToggles.edited },
@@ -140,7 +154,8 @@ class MessageLogger {
 			ignoreMuted : true,
 			ignoreBots : true,
 			ignoreSelf : false,
-			cap : 50,
+			cap : 1000,
+			savedCap : 100,
 			reverseOrder : true,
 			type : "all",
 			list : [],
@@ -272,8 +287,8 @@ class MessageLogger {
 			data.timestamp = timestamp;
 
             if(this.messageRecord.length >= this.settings.cap) this.messageRecord.splice(0, 1);
-            if(this.deletedMessageRecord.length >= this.settings.cap) this.deletedMessageRecord.splice(0, 1);
-			if(this.editedMessageRecord.length >= this.settings.cap) this.editedMessageRecord.splice(0, 1);
+            if(this.deletedMessageRecord.length >= this.settings.savedCap) this.deletedMessageRecord.splice(0, 1);
+			if(this.editedMessageRecord.length >= this.settings.savedCap) this.editedMessageRecord.splice(0, 1);
 
             if(data.type == "MESSAGE_DELETE") {
 

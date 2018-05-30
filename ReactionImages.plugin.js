@@ -3,7 +3,7 @@
 class ReactionImages {
 	
     getName() { return "ReactionImages"; }
-    getDescription() { return "Allows you to specify reaction image folders and send reaction images with FolderName/ReactionImageName."; }
+    getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
     getVersion() { return "0.0.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {

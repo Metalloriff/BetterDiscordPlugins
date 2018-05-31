@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "0.4.5"; }
+    getVersion() { return "0.5.5"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -35,8 +35,16 @@ class SendBDEmotes {
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Send as link", this.settings.sendAsLink, () => {
-				this.settings.sendAsLink = !this.settings.sendAsLink;
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("sbde-toggle-group", "Settings", [
+				{ title : "Send emotes as links (faster)", value : "sendAsLink", setValue : this.settings.sendAsLink },
+				{ title : "Display emote auto-complete preview", value : "displayPreview", setValue : this.settings.displayPreview }
+			], choice => {
+				this.settings[choice.value] = !this.settings[choice.value];
+				this.saveSettings();
+			}), this.getName());
+
+			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Maximum amount of emotes to preview", "number", this.settings.previewLimit, e => {
+				this.settings.previewLimit = e.target.value;
 				this.saveSettings();
 			}), this.getName());
 
@@ -49,6 +57,7 @@ class SendBDEmotes {
 	saveSettings() { PluginUtilities.saveSettings("SendBDEmotes", this.settings); }
 	
 	initialize(){
+
 		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SendBDEmotes.plugin.js");
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
@@ -66,73 +75,198 @@ class SendBDEmotes {
 
 		this.settings = PluginUtilities.loadSettings("SendBDEmotes", {
 			emoteSize : 4,
-			sendAsLink : false
+			sendAsLink : false,
+			displayPreview : true,
+			previewLimit : 25
 		});
 
+		let emoteChannels = Object.keys(window.bdEmotes);
+
+		this.emotes = [];
+
+		for(let ec of emoteChannels) {
+			let emoteChannel = window.bdEmotes[ec];
+			for(let emote in emoteChannel) {
+				this.emotes.push({ name : emote, url : emoteChannel[emote] });
+			}
+		}
+		
+		this.onKeyDown = e => {
+
+			if(!e.target.value) {
+				if(document.getElementById("sbde-autocomplete")) document.getElementById("sbde-autocomplete").outerHTML = "";
+				return;
+			}
+
+			let words = e.target.value.split(" "), lastWord = words[words.length - 1];
+
+			if(e.key == "Enter" && !e.shiftKey && lastWord.startsWith("[") && lastWord.endsWith("]")){
+
+				let emoteName = lastWord.substring(1, lastWord.length - 1), size = this.settings.emoteSize, animated = false;
+
+				if(emoteName.includes(":")) {
+					let trySize = parseInt(emoteName.substring(emoteName.indexOf(":") + 1, emoteName.length));
+					if(trySize != NaN) {
+						size = trySize;
+						emoteName = emoteName.substring(0, emoteName.indexOf(":"));
+					}
+				}
+
+				if(emoteName.endsWith("_a")) {
+					animated = true;
+					emoteName = emoteName.replace("_a", "");
+				}
+
+				let emote = window.bdEmotes.TwitchGlobal[emoteName] || window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.BTTV2[emoteName];
+
+				if(emoteName.includes(".")){
+					let sourceAndName = emoteName.split(".");
+					emote = window.bdEmotes[sourceAndName[0]][sourceAndName[1]];
+				}
+
+				if(emote != undefined){
+
+					let message = e.target.value.split(lastWord).join("");
+
+					e.target.select();
+					document.execCommand("delete");
+
+					this.trySend(message, emoteName, emote, size, animated);
+					
+				}
+
+				if(document.getElementById("sbde-autocomplete")) document.getElementById("sbde-autocomplete").outerHTML = "";
+
+				return;
+
+			}
+
+			if(lastWord.endsWith("]")) {
+				if(document.getElementById("sbde-autocomplete")) document.getElementById("sbde-autocomplete").outerHTML = "";
+				return;
+			}
+
+			if(!this.settings.displayPreview) return;
+
+		};
+
+		this.onKeyUp = e => {
+
+			let words = e.target.value.split(" "), lastWord = words[words.length - 1], autocomplete = document.getElementById("sbde-autocomplete");
+			
+			if(lastWord.startsWith("[")){
+
+				let emoteName = lastWord.substring(1, lastWord.length);
+
+				if(!autocomplete) {
+
+					e.target.parentElement.insertAdjacentHTML("beforeend", `
+						<div id="sbde-autocomplete" class="autocomplete-1vrmpx autocomplete-i9yVHs" style="width:inherit">
+							<div class="autocompleteInner-zh20B_">
+								<div class="autocompleteRowVertical-q1K4ky autocompleteRow-2OthDa">
+									<div class="selector-2IcQBU">
+										<div class="contentTitle-2tG_sM small-29zrCQ size12-3R0845 height16-2Lv3qA weightSemiBold-NJexzi"></div>
+									</div>
+								</div>
+								<div id="sbde-autocomplete-list" class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 horizontalAutocompletes-x8hlrn scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="flex: 1 1 auto;">
+									
+								</div>
+							</div>
+						</div>
+					`);
+
+					autocomplete = document.getElementById("sbde-autocomplete");
+
+					let buttons = document.getElementsByClassName("selector-2IcQBU")[0];
+
+				}
+
+				let list = document.getElementById("sbde-autocomplete-list");
+
+				list.innerHTML = "";
+
+				let lim = 0;
+				for(let i = 0; i < this.emotes.length; i++) {
+					if(this.emotes[i].name.startsWith(emoteName)) {
+
+						if(lim >= this.settings.previewLimit) break;
+
+						list.insertAdjacentHTML("beforeend", `
+							<div class="horizontalAutocomplete-1DAQoM autocompleteRowHorizontal-32jwnH autocompleteRow-2OthDa">
+								<div class="selectorSelected-1_M1WV selector-2IcQBU selectable-3dP3y-"><img src="${this.emotes[i].url}" width="50" height="50"></div>
+							</div>
+						`);
+
+						let images = list.getElementsByTagName("img"), lastImage = images[images.length - 1];
+
+						new PluginTooltip.Tooltip($(lastImage), emoteName, { side : "top" });
+
+						lastImage.addEventListener("click", ee => {
+
+							if(ee.shiftKey) this.trySend("", emoteName, this.emotes[i].url, this.settings.emoteSize);
+							else {
+
+								this.trySend(e.target.value.split(lastWord).join(""), emoteName, this.emotes[i].url, this.settings.emoteSize);
+
+								e.target.select();
+								document.execCommand("delete");
+
+								autocomplete.outerHTML = "";
+
+							}
+
+						});
+
+						lim++;
+
+					}
+				}
+			} else if(autocomplete) autocomplete.outerHTML = "";
+
+		};
+
 		this.onSwitch();
+
+	}
+
+	trySend(message, emoteName, emoteURL, size = 4, animated = false) {
+
+		let i = emoteURL.lastIndexOf("1"), url = emoteURL.substring(0, i) + size + emoteURL.substring(i + 1);
+
+		if(this.settings.sendAsLink) this.messageModule.sendMessage(Metalloriff.getSelectedChannel().id, { content : message + " " + url });
+		else Metalloriff.requestFile(url, emoteName + (animated ? ".gif" : ".png"), file => {
+
+			if(file.size < 100) {
+				if(size > 1) this.trySend(message, emoteName, emoteURL, size - 1, animated);
+				return;
+			}
+
+			this.uploadFile(Metalloriff.getSelectedChannel().id, file, { content : message, tts : false });
+
+		});
+
 	}
 
     onSwitch(){
-		var chatboxJQ = $(".chat textarea");
-		if(chatboxJQ.length){
-			var chatbox = chatboxJQ[0];
-			chatboxJQ.on("keydown.SendBDEmotes", e => {
-				if(e.which == 13 && !e.shiftKey && chatbox.value){
-                    var words = chatbox.value.split(" "), lastWord = words[words.length - 1];
-                    if(lastWord.startsWith("[") && lastWord.endsWith("]")){
-						var emoteName = lastWord.substring(1, lastWord.length - 1), size = this.settings.emoteSize, animated = false;
 
-						if(emoteName.includes(":")) {
-							var trySize = parseInt(emoteName.substring(emoteName.indexOf(":") + 1, emoteName.length));
-							if(trySize != NaN) {
-								size = trySize;
-								emoteName = emoteName.substring(0, emoteName.indexOf(":"));
-							}
-						}
+		let chatbox = document.getElementsByClassName("chat")[0].getElementsByTagName("textarea")[0];
 
-						if(emoteName.endsWith("_a")) {
-							animated = true;
-							emoteName = emoteName.replace("_a", "");
-						}
+		if(!chatbox) return;
 
-						var emote = window.bdEmotes.TwitchGlobal[emoteName] || window.bdEmotes.TwitchSubscriber[emoteName] || window.bdEmotes.BTTV[emoteName] || window.bdEmotes.FrankerFaceZ[emoteName] || window.bdEmotes.BTTV2[emoteName];
-						if(emoteName.includes(".")){
-							var sourceAndName = emoteName.split(".");
-							emote = window.bdEmotes[sourceAndName[0]][sourceAndName[1]];
-						}
+		chatbox.addEventListener("keydown", this.onKeyDown);
+		chatbox.addEventListener("keyup", this.onKeyUp)
 
-                        if(emote != undefined){
-							var i = emote.lastIndexOf("1"), selectedChannelId = Metalloriff.getSelectedChannel().id, message = chatbox.value.split(lastWord).join("");
-
-                            chatbox.focus();
-                            chatbox.select();
-							document.execCommand("insertText", false, "");
-							
-							var request = this.settings.sendAsLink ? () => {
-								this.messageModule.sendMessage(selectedChannelId, { content : message + emote.substring(0, i) + size + emote.substring(i + 1) });
-							} : () => Metalloriff.requestFile(emote.substring(0, i) + size + emote.substring(i + 1), emoteName + (animated ? ".gif" : ".png"), file => {
-								if(file.size < 100) {
-									if(size > 1) {
-										size--;
-										request();
-									}
-									return;
-								}
-								this.uploadFile(selectedChannelId, file, { content : message, tts : false });
-							});
-
-							request();
-                        }
-                    }
-				}
-			});
-		}
     }
 	
     stop() {
-		var chatbox = $(".chat textarea");
-		if(chatbox)
-			chatbox.off("keydown.SendBDEmotes");
+
+		let chatbox = document.getElementsByClassName("chat")[0].getElementsByTagName("textarea")[0];
+		
+		if(chatbox) {
+			chatbox.removeEventListener("keydown", this.onKeyDown);
+			chatbox.removeEventListener("keyup", this.onKeyUp);
+		}
+
     }
 	
 }

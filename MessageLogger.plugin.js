@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.5.2"; }
+    getVersion() { return "0.5.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -108,12 +108,12 @@ class MessageLogger {
 			}), this.getName());
 
 			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Sent message cap", "number", this.settings.cap, e => {
-				this.settings.cap = e.value;
+				this.settings.cap = e.target.value;
 				this.saveSettings();
 			}), this.getName());
 
 			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Saved message cap", "number", this.settings.savedCap, e => {
-				this.settings.savedCap = e.value;
+				this.settings.savedCap = e.target.value;
 				this.saveSettings();
 			}), this.getName());
 

@@ -146,11 +146,11 @@ class SendBDEmotes {
 				return;
 			}
 
-			if(!this.settings.displayPreview) return;
-
 		};
 
 		this.onKeyUp = e => {
+
+			if(!this.settings.displayPreview) return;
 
 			let words = e.target.value.split(" "), lastWord = words[words.length - 1], autocomplete = document.getElementById("sbde-autocomplete");
 			

@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "0.5.6"; }
+    getVersion() { return "0.5.7"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -257,18 +257,18 @@ class SendBDEmotes {
 
 		if(this.emotes.length == 0) this.getEmotes();
 
-		let chatbox = document.getElementsByClassName("chat")[0].getElementsByTagName("textarea")[0];
+		let chatbox = Metalloriff.Chatbox.get();
 
-		if(!chatbox) return;
-
-		chatbox.addEventListener("keydown", this.onKeyDown);
-		chatbox.addEventListener("keyup", this.onKeyUp)
+		if(chatbox) {
+			chatbox.addEventListener("keydown", this.onKeyDown);
+			chatbox.addEventListener("keyup", this.onKeyUp)
+		}
 
     }
 	
     stop() {
 
-		let chatbox = document.getElementsByClassName("chat")[0].getElementsByTagName("textarea")[0];
+		let chatbox = Metalloriff.Chatbox.get();
 		
 		if(chatbox) {
 			chatbox.removeEventListener("keydown", this.onKeyDown);

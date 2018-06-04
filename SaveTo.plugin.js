@@ -24,7 +24,7 @@ class SaveTo {
 	
     getName() { return "Save To"; }
     getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-    getVersion() { return "0.4.2"; }
+    getVersion() { return "0.4.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -43,6 +43,10 @@ class SaveTo {
             `
                 Fixed the context menu being slightly delayed, causing an ugly flash effect.
                 Added a "Save and Open File" choice to the folder submenus.
+            `,
+            "0.4.2" :
+            `
+                Added a setting to move the dropdown menu to the top of the context menu.
             `
 		};
     }
@@ -232,8 +236,9 @@ class SaveTo {
 			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			document.head.appendChild(lib);
-			lib.addEventListener("load", () => { this.onLibLoaded(); });
-        } else { this.onLibLoaded(); }
+		}
+        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
+        else lib.addEventListener("load", () => { this.onLibLoaded(); });
         
         this.data = PluginUtilities.loadData("SaveTo", "data", this.defaultData);
 

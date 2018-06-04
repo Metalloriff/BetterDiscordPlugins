@@ -12,7 +12,8 @@ class SaveTo {
         this.defaultSettings = {
             fileNameType : "original",
             sortMode : "a-z",
-            displayUpdateNotes : true
+            displayUpdateNotes : true,
+            dropdownOnTop : true
         };
         this.settings;
 
@@ -23,7 +24,7 @@ class SaveTo {
 	
     getName() { return "Save To"; }
     getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-    getVersion() { return "0.3.2"; }
+    getVersion() { return "0.4.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -53,16 +54,16 @@ class SaveTo {
 
         setTimeout(() => {
 
-            var date = new Date();
+            let date = new Date();
 
-            var refreshFolders = () => {
+            let refreshFolders = () => {
 
-                var fields = new Array();
+                let fields = new Array();
 
                 for(let i = 0; i < this.data.folders.length; i++) {
 
-                    var textField = Metalloriff.Settings.Elements.createTextField("", "text", this.data.folders[i].path, e => {
-                        var name = e.target.value.substring(e.target.value.split("\\").join("/").lastIndexOf("/") + 1, e.target.value.length);
+                    let textField = Metalloriff.Settings.Elements.createTextField("", "text", this.data.folders[i].path, e => {
+                        let name = e.target.value.substring(e.target.value.split("\\").join("/").lastIndexOf("/") + 1, e.target.value.length);
                         if(e.target.value.trim().length == 0 || name.length == 0) {
                             this.data.folders.splice(i, 1);
                             e.target.parentElement.outerHTML = "";
@@ -72,15 +73,15 @@ class SaveTo {
                         }
                         refreshFolders();
                         this.saveData();
-                    }, "focusout", "5px");
+                    }, { spacing : "5px" });
 
                     textField.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Browse", e => {
                         $("#st-folder-upload").remove();
                         $(".app").append(`<input id="st-folder-upload" style="display:none;" type="file" webkitdirectory directory></input>`);
-                        var fileBrowser = document.getElementById("st-folder-upload");
+                        let fileBrowser = document.getElementById("st-folder-upload");
                         fileBrowser.click();
                         fileBrowser.addEventListener("change", () => {
-                            e.target.parentElement.querySelector("input").value = fileBrowser.files[0].path;
+                            e.target.parentElement.getElementsByTagName("input")[0].value = fileBrowser.files[0].path;
                             this.data.folders[i].path = fileBrowser.files[0].path;
                             this.data.folders[i].name = fileBrowser.files[0].path.substring(fileBrowser.files[0].path.split("\\").join("/").lastIndexOf("/") + 1, fileBrowser.files[0].path.length);
                             $("#st-folder-upload").remove();
@@ -89,12 +90,12 @@ class SaveTo {
                         this.saveData();
                     }, "float:right;"));
 
-                    var positionField = Metalloriff.Settings.Elements.createTextField("", "number", this.data.folders[i].position, e => {
+                    let positionField = Metalloriff.Settings.Elements.createTextField("", "number", this.data.folders[i].position, e => {
                         if(e.target.value.length == 0) e.target.value = this.data.folders[i].position;
                         else this.data.folders[i].position = e.target.value;
                         refreshFolders();
                         this.saveData();
-                    }, "focusout", "", { withParent : false }).querySelector("input");
+                    }).getElementsByTagName("input")[0];
 
                     positionField.style.paddingRight = "10px";
                     positionField.style.width = "100px";
@@ -104,7 +105,7 @@ class SaveTo {
                     textField.setAttribute("data-name", this.data.folders[i].name);
                     textField.setAttribute("data-priority", this.data.folders[i].position);
 
-                    textField.querySelector("input").style.width = "430px";
+                    textField.getElementsByTagName("input")[0].style.width = "430px";
 
                     textField.addEventListener("click", () => this.selectedFolder = i);
 
@@ -156,7 +157,7 @@ class SaveTo {
                 this.saveSettings();
             }), this.getName());
 
-            var folderLabels = document.createElement("div");
+            let folderLabels = document.createElement("div");
 
             folderLabels.insertAdjacentHTML("beforeend", `<h5 style="color:white;padding-bottom:10px;padding-top:20px;">Folders:</h5>`);
             folderLabels.insertAdjacentHTML("beforeend", `<h5 style="color:white;padding-bottom:10px;width:100px;display:inline-block;">Prioirty</h5>`);
@@ -164,7 +165,7 @@ class SaveTo {
 
             Metalloriff.Settings.pushElement(folderLabels, this.getName());
 
-            var foldersParentDiv = document.createElement("div");
+            let foldersParentDiv = document.createElement("div");
 
             foldersParentDiv.setAttribute("id", "st-folders");
 
@@ -174,7 +175,7 @@ class SaveTo {
 
             Metalloriff.Settings.pushHTML(`<div id="st-settings-buttons" style="text-align:center;padding-top:20px;"></div>`, this.getName());
 
-            var buttonParent = document.getElementById("st-settings-buttons");
+            let buttonParent = document.getElementById("st-settings-buttons");
 
             buttonParent.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Add Folder", () => {
                 this.browseForFolder(() => refreshFolders());
@@ -190,17 +191,16 @@ class SaveTo {
                 window.open(`file:///${this.data.folders[this.selectedFolder].path}`);
             }, "margin-left:15px;", { id : "st-settings-open-folder"}));
 
+            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Move dropdown menu to the top of the context menu", this.settings.dropdownOnTop, () => {
+                this.settings.dropdownOnTop = !this.settings.dropdownOnTop;
+                this.saveSettings();
+            }), this.getName());
+
             Metalloriff.Settings.pushChangelogElements(this);
 
         }, 0);
 
-        return `
-        
-            ${Metalloriff.Settings.Elements.pluginNameLabel(this.getName())}
-
-            <div id="metalloriff-plugin-settings"></div>
-        
-        `;
+        return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
 
     }
 
@@ -224,8 +224,6 @@ class SaveTo {
 	initialize() {
 
         PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SaveTo.plugin.js");
-        
-        $("#NeatoBurritoLibrary").remove();
 
 		var lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
@@ -239,13 +237,13 @@ class SaveTo {
         
         this.data = PluginUtilities.loadData("SaveTo", "data", this.defaultData);
 
-        var updated = new Array();
+        let updated = new Array();
 
-        for(var i = 0; i < this.data.folders.length; i++) {
+        for(let i = 0; i < this.data.folders.length; i++) {
 
             if(typeof this.data.folders[i] !== "object") {
 
-                var p = this.data.folders[i];
+                let p = this.data.folders[i];
 
                 updated.push( {
                     path : p,
@@ -266,11 +264,13 @@ class SaveTo {
 	onLibLoaded() {
 
         this.classes = Metalloriff.getClasses(["contextMenu", "member"]);
-        
-        $(document).on("contextmenu.SaveTo", e => {
+
+        this.contextMenuEvent = e => {
             if(document.getElementsByClassName(this.classes.contextMenu).length == 0) setTimeout(() => this.onContextMenu(e), 0);
             else this.onContextMenu(e);
-        });
+        };
+        
+        document.addEventListener("contextmenu", this.contextMenuEvent);
 
         Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
 
@@ -278,11 +278,11 @@ class SaveTo {
 
     onContextMenu(e) {
 
-        var member = $(e.target).parents(`.${this.classes.member}`), dm = $(e.target).parents(".channel.private, .friends-row"), messageGroup = $(e.target).parents(".message-group");
+        let member = $(e.target).parents(`.${this.classes.member}`), dm = $(e.target).parents(".channel.private, .friends-row"), messageGroup = $(e.target).parents(".message-group");
 
         if(e.target.localName != "a" && e.target.localName != "img" && e.target.localName != "video" && !member.length && !dm.length && !messageGroup.length) return;
 
-        var saveLabel = "Save To", url = e.target.poster || e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf(`"`) + 1, e.target.style.backgroundImage.lastIndexOf(`"`)) || e.target.href || e.target.src, menu = new PluginContextMenu.Menu(false);
+        let saveLabel = "Save To", url = e.target.poster || e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf(`"`) + 1, e.target.style.backgroundImage.lastIndexOf(`"`)) || e.target.href || e.target.src, menu = new PluginContextMenu.Menu(false);
 
         if(e.target.classList.contains("avatar-small")) saveLabel = "Save Icon To";
 
@@ -290,7 +290,7 @@ class SaveTo {
 
             if(messageGroup.length) {
 
-                var user = ReactUtilities.getOwnerInstance(messageGroup).props.messages[0].author;
+                let user = ReactUtilities.getOwnerInstance(messageGroup).props.messages[0].author;
 
                 url = user.getAvatarURL();
                 if(user.avatar.startsWith("a_")) url = url.replace(".png", ".gif");
@@ -301,7 +301,7 @@ class SaveTo {
 
             if(member.length) {
 
-                var user = ReactUtilities.getOwnerInstance(member).props.user;
+                let user = ReactUtilities.getOwnerInstance(member).props.user;
 
                 url = user.getAvatarURL();
                 if(user.avatar.startsWith("a_")) url = url.replace(".png", ".gif");
@@ -312,7 +312,7 @@ class SaveTo {
 
             if(dm.length) {
 
-                var unparsedUrl = dm.find(".avatar-small")[0].style.backgroundImage;
+                let unparsedUrl = dm.find(".avatar-small")[0].style.backgroundImage;
 
                 url = unparsedUrl.substring(unparsedUrl.indexOf(`"`) + 1, unparsedUrl.lastIndexOf(`"`));
 
@@ -334,9 +334,9 @@ class SaveTo {
 
         url = url.replace(".webp", ".png");
 
-        var fileName = url.substring(url.lastIndexOf("/") + 1, url.length), fileExtension = url.substring(url.lastIndexOf("."), url.length);
+        let fileName = url.substring(url.lastIndexOf("/") + 1, url.length), fileExtension = url.substring(url.lastIndexOf("."), url.length);
             
-        var date = new Date();
+        let date = new Date();
 
         if(this.settings.fileNameType == "date") fileName = `${date.toLocaleDateString().split("/").join("-")} ${date.getMinutes()}${date.getSeconds()}${date.getMilliseconds()}${fileExtension}`;
 
@@ -344,7 +344,7 @@ class SaveTo {
 
         if(this.settings.fileNameType == "original+random") fileName = fileName.replace(fileExtension, "") + ` ${Math.random().toString(36).substring(10)}${fileExtension}`;
         
-        var options = new PluginContextMenu.Menu(false);
+        let options = new PluginContextMenu.Menu(false);
         options.addItems(new PluginContextMenu.TextItem("Remove Folder", { callback : e => {
             this.data.folders.splice(this.data.folders.findIndex(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]), 1);
             this.saveData();
@@ -354,11 +354,11 @@ class SaveTo {
         }})).addItems(new PluginContextMenu.TextItem("Save To Folder", { callback : e => {
             e.target.parentElement.click();
         }})).addItems(new PluginContextMenu.TextItem("Save and Open File", { callback : e => {
-            var path = this.data.folders.find(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]).path;
+            let path = this.data.folders.find(x => x.name == e.currentTarget.parentElement.parentElement.innerText.split("\n")[0]).path;
             Metalloriff.downloadFile(url, path, fileName, p => window.open("file:///" + p));
         }}));
 
-        var sorted = this.data.folders;
+        let sorted = this.data.folders;
 
         if(this.settings.sortMode == "a-z" || this.settings.sortMode == "z-a") sorted = sorted.sort((x, y) => {
             if(x.name.toLowerCase() < y.name.toLowerCase()) return -1;
@@ -385,20 +385,18 @@ class SaveTo {
         }})).addItems(new PluginContextMenu.TextItem("Browse", { callback : () => {
             $("#st-folder-upload").remove();
             $(".app").append(`<input id="st-folder-upload" style="display:none;" type="file" webkitdirectory directory></input>`);
-            var fileBrowser = document.getElementById("st-folder-upload");
+            let fileBrowser = document.getElementById("st-folder-upload");
             fileBrowser.click();
             fileBrowser.addEventListener("change", () => {
                 Metalloriff.downloadFile(url, fileBrowser.files[0].path, fileName);
                 $("#st-folder-upload").remove();
             });
         }}))).addItems(new PluginContextMenu.ItemGroup().addItems(new PluginContextMenu.TextItem("Settings", { callback : () => {
-            document.querySelector(`.${this.classes.contextMenu}`).style.display = "none";
+            document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
             Metalloriff.Settings.showPluginSettings(this.getName());
         }})));
 
-        var subMenu = new PluginContextMenu.SubMenuItem(saveLabel, menu);
-
-        $(`.${this.classes.itemGroup}`).last().append(subMenu.element);
+        document.getElementsByClassName(this.classes.contextMenu)[0].insertAdjacentElement(this.settings.dropdownOnTop ? "afterbegin" : "beforeend", new PluginContextMenu.ItemGroup().addItems(new PluginContextMenu.SubMenuItem(saveLabel, menu)).element[0]);
 
     }
 
@@ -408,13 +406,13 @@ class SaveTo {
 
         $(".app").append(`<input id="st-folder-upload" style="display:none;" type="file" webkitdirectory directory></input>`);
 
-        var fileBrowser = document.getElementById("st-folder-upload");
+        let fileBrowser = document.getElementById("st-folder-upload");
 
         fileBrowser.click();
 
         fileBrowser.addEventListener("change", () => {
 
-            var p = fileBrowser.files[0].path;
+            let p = fileBrowser.files[0].path;
 
             if(this.data.folders.findIndex(x => x.path == p) == -1) {
 
@@ -437,9 +435,7 @@ class SaveTo {
     }
 	
     stop() {
-
-        $(document).off("contextmenu.SaveTo");
-
+        document.removeEventListener("contextmenu", this.contextMenuEvent);
 	}
 	
 }

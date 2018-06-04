@@ -7,6 +7,9 @@
 
 ## This page is ordered from my latest plugins to my oldest plugins.
 
+## [BD Emote Auto-complete](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BDEmoteAutocomplete.plugin.js)
+- Adds an auto-complete menu for BetterDiscord emotes.
+- [View Preview](https://imgur.com/a/dAGFRO3)
 
 ## [Reaction Images](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ReactionImages.plugin.js)
 - Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'.

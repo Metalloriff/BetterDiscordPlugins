@@ -90,7 +90,7 @@ Double click the top of a message group to select it, then shift click to the ne
 - [View Preview](https://imgur.com/a/vJ3Gh)
 
 ## [The Clap Best Clap Plugin Clap Ever](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js)
-- Literally the most useless plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "ra:" to replace all characters with regional indicators, and "reverse:" to reverse the message.
+- Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, and "owo:" for complete fucking cancer.
 - [View Preview](https://imgur.com/a/9nGWn)
 
 ## [Emote Zoom](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js)

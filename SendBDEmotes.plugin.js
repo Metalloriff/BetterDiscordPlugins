@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "0.5.7"; }
+    getVersion() { return "0.5.8"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -124,6 +124,15 @@ class SendBDEmotes {
 
 					this.trySend(message, emoteName, emote, size, animated);
 					
+				} else if(emoteName == "RANDOM") {
+
+					let randomEmote = this.emotes[this.emotes.length * Math.random() << 0], message = e.target.value.split(lastWord).join("");
+
+					e.target.select();
+					document.execCommand("delete");
+
+					this.trySend(message, randomEmote.name, randomEmote.url, size, animated);
+
 				}
 
 				if(document.getElementById("sbde-autocomplete")) document.getElementById("sbde-autocomplete").outerHTML = "";
@@ -168,8 +177,6 @@ class SendBDEmotes {
 
 					autocomplete = document.getElementById("sbde-autocomplete");
 
-					let buttons = document.getElementsByClassName("selector-2IcQBU")[0];
-
 				}
 
 				let list = document.getElementById("sbde-autocomplete-list");
@@ -190,14 +197,14 @@ class SendBDEmotes {
 
 						let images = list.getElementsByTagName("img"), lastImage = images[images.length - 1];
 
-						new PluginTooltip.Tooltip($(lastImage), emoteName, { side : "top" });
+						new PluginTooltip.Tooltip($(lastImage), this.emotes[i].name, { side : "top" });
 
 						lastImage.addEventListener("click", ee => {
 
-							if(ee.shiftKey) this.trySend("", emoteName, this.emotes[i].url, this.settings.emoteSize);
+							if(ee.shiftKey) this.trySend("", this.emotes[i].name, this.emotes[i].url, this.settings.emoteSize);
 							else {
 
-								this.trySend(e.target.value.split(lastWord).join(""), emoteName, this.emotes[i].url, this.settings.emoteSize);
+								this.trySend(e.target.value.split(lastWord).join(""), this.emotes[i].name, this.emotes[i].url, this.settings.emoteSize);
 
 								e.target.select();
 								document.execCommand("delete");

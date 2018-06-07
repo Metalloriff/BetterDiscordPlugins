@@ -4,7 +4,7 @@ class SelectedChannelNotifications {
 	
     getName() { return "Selected Channel Notifications"; }
     getDescription() { return "Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel."; }
-    getVersion() { return "0.1.3"; }
+    getVersion() { return "0.1.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -81,12 +81,8 @@ class SelectedChannelNotifications {
         };
         this.unfocus = () => this.focused = false;
 
-        this.messageObserver = new MutationObserver(mutations => {
-            for(let i = 0; i < mutations.length; i++) {
-                if(mutations[i].addedNodes && mutations[i].addedNodes[0] && mutations[i].addedNodes[0].classList.contains("message-group")) {
-                    this.onMessageReceived();
-                }
-            }
+        this.messageObserver = new MutationObserver(() => {
+            this.onMessageReceived();
         });
 
         window.addEventListener("focus", this.focus);

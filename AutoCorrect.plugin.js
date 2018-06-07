@@ -4,7 +4,7 @@ class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.1.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -38,6 +38,7 @@ class AutoCorrect {
 				{ title : "Don't correct the same word twice", value : "dontCorrectTwice", setValue : this.settings.dontCorrectTwice },
 				{ title : "Automatically capitalize the first letter of every sentence", value : "autoCapitalization", setValue : this.settings.autoCapitalization },
 				{ title : "Automatically punctuate on send and on double space", value : "autoPunctuation", setValue : this.settings.autoPunctuation },
+				{ title : "Automatically correct spelling errors", value : "autoCorrect", setValue : this.settings.autoCorrect },
 				{ title : "Ignore messages beginning with a space", value : "ignoreEmptyStart", setValue : this.settings.ignoreEmptyStart },
 				{ title : "Attach corrector to every text field (set this to false for just the chatbox)", value : "attachEverywhere", setValue : this.settings.attachEverywhere }
 			], choice => {
@@ -158,6 +159,7 @@ class AutoCorrect {
 			dontCorrectTwice : true,
 			autoCapitalization : true,
 			autoPunctuation : true,
+			autoCorrect : true,
 			ignoreEmptyStart : true,
 			ignoredPrefixes : ". ! ? % ~> /",
 			overrideReplacers : [
@@ -209,7 +211,7 @@ class AutoCorrect {
     
     onSwitch() {
 
-		if(this.initialized != true) return;
+		if(!this.initialized) return;
 
 		this.spellChecker = InternalUtilities.WebpackModules.findByUniqueProperties(["isMisspelled"]);
 		this.devilsChecker = BdApi.getPlugin("SpellCheck");
@@ -388,9 +390,11 @@ class AutoCorrect {
 
                 };
 
-				if(this.settings.useDevilsChecker) correctMisspelling(this.devilsChecker.isWordNotInDictionary(lastWord));
-				else this.spellChecker.isMisspelled(lastWord).then(correctMisspelling);
-    
+				if(this.settings.autoCorrect) {
+					if(this.settings.useDevilsChecker) correctMisspelling(this.devilsChecker.isWordNotInDictionary(lastWord));
+					else this.spellChecker.isMisspelled(lastWord).then(correctMisspelling);
+				} else trySendMessage();
+				
 				e.preventDefault();
 
             }
@@ -404,6 +408,13 @@ class AutoCorrect {
 			setTimeout(() => {
 
 				let itemGroup = document.getElementsByClassName(this.classes.itemGroup)[0];
+
+				itemGroup.insertAdjacentElement("afterbegin",
+					new PluginContextMenu.ToggleItem("Auto Correct", this.settings.autoCorrect, { onChange : newValue => {
+						this.settings.autoCorrect = newValue;
+						this.saveSettings();
+					}}).element[0]
+				);
 
 				itemGroup.insertAdjacentElement("afterbegin",
 					new PluginContextMenu.ToggleItem("Auto Capitalize", this.settings.autoCapitalization, { onChange : newValue => {

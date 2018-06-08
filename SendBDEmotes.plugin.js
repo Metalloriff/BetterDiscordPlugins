@@ -264,7 +264,7 @@ class SendBDEmotes {
 
     onSwitch(){
 
-		if(this.emotes.length == 0) this.getEmotes();
+		if(this.emotes == undefined || this.emotes[0] == undefined) this.getEmotes();
 
 		let chatbox = Metalloriff.Chatbox.get();
 

@@ -722,11 +722,11 @@ Metalloriff.Debug.reloadLib = function() {
 
     setTimeout(() => {
 
-        var lib = document.createElement("script");
+        let lib = document.createElement("script");
 
-        lib.setAttribute("type", "text/javascript");
-        lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
         lib.setAttribute("id", "NeatoBurritoLibrary");
+        lib.setAttribute("type", "text/javascript");
+        lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 
         document.head.appendChild(lib);
 

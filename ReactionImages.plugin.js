@@ -4,7 +4,7 @@ class ReactionImages {
 	
     getName() { return "ReactionImages"; }
     getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -114,12 +114,12 @@ class ReactionImages {
 			folders : {}
 		});
 
-		var lib = document.getElementById("NeatoBurritoLibrary");
+		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
 			lib = document.createElement("script");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
         if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
@@ -219,7 +219,7 @@ class ReactionImages {
 								sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content :  chatbox.value.substring(0, idx), tts : false });
 
 								chatbox.select();
-								document.execCommand("delete", false);
+								document.execCommand("delete");
 
 								autocomplete.outerHTML = "";
 
@@ -316,7 +316,7 @@ class ReactionImages {
     }
 	
     stop() {
-        if(this.chatbox) document.querySelector(".chat textarea").removeEventListener("keyup", this.onChatInput);
+        if(this.chatbox) this.chatbox.removeEventListener("keyup", this.onChatInput);
 	}
 	
 }

@@ -27,7 +27,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.7.14"; }
+    getVersion() { return "0.7.15"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -223,16 +223,16 @@ class MentionAliases {
 		});
 		this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
 
-		var lib = document.getElementById("NeatoBurritoLibrary");
+		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
 			lib = document.createElement("script");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
         if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-		else lib.addEventListener("load", () => { this.onLibLoaded(); });
+        else lib.addEventListener("load", () => { this.onLibLoaded(); });
 	}
 
 	onLibLoaded() {

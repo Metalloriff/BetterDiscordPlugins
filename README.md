@@ -57,10 +57,6 @@
 - Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel.
 - [View Preview](https://i.imgur.com/roBx2GU.png)
 
-## [Selected Channel Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SelectedChannelNotifications.plugin.js)
-- Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel.
-- [View Preview](https://i.imgur.com/roBx2GU.png)
-
 ## [Formattable Message Copier](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/FormattableMessageCopier.plugin.js)
 - Allows you to select messages in a chat to copy them in a customizable format.
 Double click the top of a message group to select it, then shift click to the next point to select all message groups between, or ctrl click another message group to append a single group to the selection.

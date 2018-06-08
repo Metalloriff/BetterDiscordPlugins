@@ -6,7 +6,7 @@ class SendLinksDirectly {
     getDescription() { return `Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
     Usage: [link] or [link, filename.fileformat]
     Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]`; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "0.0.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -38,12 +38,12 @@ class SendLinksDirectly {
         this.uploadFile = InternalUtilities.WebpackModules.findByUniqueProperties(["upload"]).upload;
         this.hasPermission = InternalUtilities.WebpackModules.findByUniqueProperties(["can"]).can;
 
-		var lib = document.getElementById("NeatoBurritoLibrary");
+		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
 			lib = document.createElement("script");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://www.dropbox.com/s/cxhekh6y9y3wqvo/NeatoBurritoLibrary.js?raw=1");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
         if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();

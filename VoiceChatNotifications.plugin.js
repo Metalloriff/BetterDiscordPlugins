@@ -9,7 +9,8 @@ class VoiceChatNotifications {
             logMutes : true,
             logDeafens : true,
             logMoves : true,
-            displayWhileFocused : false,
+            logServerMuteDeaf : true,
+            displayWhileFocused : true,
             displayUpdateNotes : true,
             suppressInDnd : true
         };
@@ -18,7 +19,7 @@ class VoiceChatNotifications {
 	
     getName() { return "Voice Chat Notifications"; }
     getDescription() { return "Displays notifications when users connect to/disconnect from, mute/unmute themselves, and deafen/undeafen themselves in the voice channel you're in. Press Alt + V to open the voice log."; }
-    getVersion() { return "1.1.2"; }
+    getVersion() { return "1.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -31,6 +32,11 @@ class VoiceChatNotifications {
                 Added a display notifications on user move setting and feature.
                 Added a suppress notifications in do not disturb setting.
                 Added a voice notification log. (Alt + V)
+            `,
+            "1.1.3" :
+            `
+                Changes are now logged while in DnD, without notifications, if suppressed.
+                Added a server mute and deafen setting.
             `
 		};
 	}
@@ -61,6 +67,7 @@ class VoiceChatNotifications {
                 { title : "Display notificaitons on user mute/unmute", value : "logMutes", setValue : this.settings.logMutes },
                 { title : "Display notifications on user deafen/undeafen", value : "logDeafens", setValue : this.settings.logDeafens },
                 { title : "Display notifications on user move", value : "logMoves", setValue : this.settings.logMoves },
+                { title : "Display notifications on user server mute/deafen", value : "logServerMuteDeaf", setValue : this.settings.logServerMuteDeaf },
                 { title : "Display notifications while Discord is focused", value : "displayWhileFocused", setValue : this.settings.displayWhileFocused },
                 { title : "Suppress notifications while in do not disturb", value : "suppressInDnd", setValue : this.settings.suppressInDnd }
             ], choice => {
@@ -99,6 +106,8 @@ class VoiceChatNotifications {
 
 	onLibLoaded() {
 
+        if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+
         this.log = [];
 
         let getVoiceStates = InternalUtilities.WebpackModules.findByUniqueProperties(["getVoiceState"]).getVoiceStates,
@@ -109,11 +118,11 @@ class VoiceChatNotifications {
 
         let localUser = PluginUtilities.getCurrentUser();
 
+        console.log(getVoiceStates(Metalloriff.getSelectedVoiceChannel().guild_id)); //
+
         this.update = setInterval(() => {
 
             if(!this.settings.displayWhileFocused && this.focused) return;
-
-            if(this.settings.suppressInDnd && Metalloriff.getLocalStatus() == "dnd") return;
         
             let currentCall = Metalloriff.getSelectedVoiceChannel();
 
@@ -129,7 +138,7 @@ class VoiceChatNotifications {
                     if(!this.settings.logConnections) continue;
                     let user = getUser(id), channel = getChannel(newStates[id].channelId);
                     if(user && channel) {
-                        new Notification(`${user.username} joined ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                        if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} joined ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                         this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Joined ${channel.name}` });
                     }
                 } else {
@@ -139,8 +148,34 @@ class VoiceChatNotifications {
                         let user = getUser(id), channel = getChannel(newStates[id].channelId);
 
                         if(user && channel) {
-                            new Notification(`${user.username} moved to ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} moved to ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Moved to ${channel.name}` });
+                        }
+
+                        continue;
+
+                    }
+
+                    if(this.settings.logServerMuteDeaf && lastStates[id].deaf != newStates[id].deaf) {
+                        
+                        let user = getUser(id);
+
+                        if(user) {
+                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].deaf ? "server deafened" : "server undeafened"}`, { silent : true, icon : user.getAvatarURL() });
+                            this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].deaf ? "Server deafened" : "Server undeafened" });
+                        }
+
+                        continue;
+
+                    }
+
+                    if(this.settings.logServerMuteDeaf && lastStates[id].mute != newStates[id].mute) {
+                        
+                        let user = getUser(id);
+
+                        if(user) {
+                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].mute ? "server muted" : "server unmuted"}`, { silent : true, icon : user.getAvatarURL() });
+                            this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].mute ? "Server muted" : "Server unmuted" });
                         }
 
                         continue;
@@ -152,7 +187,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            new Notification(`${user.username} ${newStates[id].selfDeaf ? "deafened" : "undeafened"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfDeaf ? "deafened" : "undeafened"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].selfDeaf ? "Deafened" : "Undeafened" });
                         }
 
@@ -165,7 +200,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            new Notification(`${user.username} ${newStates[id].selfMute ? "muted" : "unmuted"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfMute ? "muted" : "unmuted"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].selfMute ? "Muted" : "Unmuted" });
                         }
 
@@ -182,7 +217,7 @@ class VoiceChatNotifications {
                 if(newStates[id] == undefined && id != localUser.id) {
                     let user = getUser(id), channel = getChannel(lastStates[id].channelId);
                     if(user && channel) {
-                        new Notification(`${user.username} left ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                        if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} left ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                         this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Left ${channel.name}` });
                     }
                 }
@@ -195,12 +230,17 @@ class VoiceChatNotifications {
 
         this.focused = true;
 
-        $(window).on("focus.VCN", () => this.focused = true);
-        $(window).on("blur.VCN", () => this.focused = false);
+        this.focus = () => this.focused = true;
+        this.unfocus = () => this.focused = false;
+
+        window.addEventListener("focus", this.focus);
+        window.addEventListener("blur", this.unfocus);
 
         this.onKeyDown = e => {
 
             if(e.altKey && e.key == "v") {
+
+                if(document.getElementById("vcn-log")) return;
 
                 let list = Metalloriff.UI.createBasicScrollList("vcn-log", "Voice Notification Log", { width : 400, height : 500 });
 
@@ -238,8 +278,10 @@ class VoiceChatNotifications {
 
         clearInterval(this.update);
 
-        $(window).off("focus.VCN");
-        $(window).off("blur.VCN");
+        if(this.focus && this.unfocus) {
+            window.removeEventListener("focus", this.focus);
+            window.removeEventListener("blur", this.unfocus);
+        }
 
         if(this.onKeyDown) document.removeEventListener("keydown", this.onKeyDown);
 

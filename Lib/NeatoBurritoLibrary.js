@@ -13,6 +13,8 @@ Metalloriff.onPluginLoaded = function(plugin) {
 
             if(req.readyState == 4 && req.status == 200) {
 
+                console.log(req);
+
                 if(Metalloriff.libSize && Metalloriff.libSize != req.response.length) {
 
                     new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
@@ -31,7 +33,7 @@ Metalloriff.onPluginLoaded = function(plugin) {
 
         };
 
-        req.open("GET", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", true);
+        req.open("GET", "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", true);
         req.send(null);
 
         Metalloriff.lastCheckedForUpdate = performance.now();

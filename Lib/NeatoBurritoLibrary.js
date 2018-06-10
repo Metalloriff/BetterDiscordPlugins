@@ -13,8 +13,6 @@ Metalloriff.onPluginLoaded = function(plugin) {
 
             if(req.readyState == 4 && req.status == 200) {
 
-                console.log(req);
-
                 if(window.neatoLibSize && window.neatoLibSize != req.response.length) {
 
                     new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {

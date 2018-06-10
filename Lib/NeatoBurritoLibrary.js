@@ -1,5 +1,31 @@
 var Metalloriff = {};
 
+Metalloriff.libSize = -1;
+Metalloriff.lastCheckedForUpdate = -1;
+
+Metalloriff.onPluginLoaded = function(plugin) {
+
+    PluginUtilities.showToast(`[${plugin.getName()}]: Plugin loaded.`, { type : "success" });
+    console.log(plugin.getName() + " loaded.");
+
+    if(performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
+        Metalloriff.requestFile("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", "", lib => {
+            if(Metalloriff.libSize != -1 && lib.size != Metalloriff.libSize) {
+                new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
+                    try { plugin.stop(); }
+                    catch(e) { console.error(e); }
+                    setTimeout(() => {
+                        plugin.start();
+                    }, 100);
+                    document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+                };
+            }
+            Metalloriff.libSize = lib.size;
+        });
+    }
+
+};
+
 Metalloriff.Changelog = {};
 
 Metalloriff.Changelog.compareVersions = function(name, changes) {
@@ -419,6 +445,155 @@ Metalloriff.Settings.Elements.createGroup = function(title, options = {}) {
 
 };
 
+Metalloriff.Settings.Elements.createKeybindInput = function(title, value, callback, options = {}) {
+
+    let element = document.createElement("div"), v = value.primaryKey || "", oldValue = value;
+
+    if(value.modifiers && value.modifiers[0]) v = value.modifiers.join(" + ") || "" + " + " + (value.primaryKey || "");
+
+    if(options.global) v = value;
+
+    element.insertAdjacentHTML("beforeend", `
+        <style>
+            #app-mount .card-FDVird.active-nvdKfC:before, .card-FDVird:before {
+                opacity: 0.5 !important;
+            }
+        </style>
+        <div class="row-2okwlC">
+            <div class="flex-1xMQg5 flex-1O1GKY vertical-V37hAW flex-1O1GKY directionColumn-35P_nr justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 keybindGroup-JQs9x_ card-FDVird" style="flex: 1 1 auto; margin: 10px 25px">
+                <div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 marginBottom8-AtZOdT" style="flex: 1 1 auto;">
+                    <div class="item-rJ_Cmt flexChild-faoVW3" style="flex: 1 1 50%;">
+                        <h5 class="h5-18_1nd title-3sZWYQ size12-3R0845 height16-2Lv3qA weightSemiBold-NJexzi defaultMarginh5-2mL-bP marginBottom8-AtZOdT">${title}</h5>
+                        <div class="container-CpszHS container-1nZlH6 hasValue-3pdcdm">
+                            <div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 layout-FSaTy9 layout-eEMo5y" style="flex: 1 1 auto;"><input placeholder="No Keybind Set" type="text" readonly="" class="input-1G2o7i input-1UhAnY base-96ewKC" value="${v.replace("Key", "")}" style="flex: 1 1 auto;">
+                                <div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6"
+                                    style="flex: 0 1 auto; margin: 0px;">
+                                    <button type="button" class="button-34kXw5 button-3tQuzi button-38aScr lookGhost-2Fn_0- colorGrey-2DXtkV sizeMin-1mJd1x grow-q77ONN nbl-keybind-button">
+                                        <div class="contents-18-Yxp nbl-keybind-button">
+                                            <span class="text-2sI5Sd nbl-keybind-button">Edit Keybind</span>
+                                                <span class="editIcon-13gaox nbl-keybind-button">
+                                            </span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="description-3_Ncsb formText-3fs7AJ keybindMessage-20JT9A flexChild-faoVW3 modeDefault-3a2Ph1 primary-jw0I4K" style="flex: 1 1 auto;">${options.description || ""}</div>
+            </div>
+        </div>
+    `);
+
+    let isRecording = false, primaryKey = value.primaryKey, modifiers = value.modifiers || [], globalKeys = [];
+
+    let keyEvent = e => {
+
+        e.preventDefault();
+
+        if(options.global) {
+
+            let key = e.key;
+
+            if(key.length == 1) key = key.toUpperCase();
+
+            if(globalKeys.indexOf(key) == -1) globalKeys.push(key);
+            if(globalKeys[0] == "") globalKeys.splice(0, 1);
+            input.value = globalKeys.join(" + ");
+
+            if(e.location == 0 && globalKeys.length > 1) button.click();
+            else input.value += " + ...";
+
+        } else {
+
+            if(e.location == 0) primaryKey = e.code;
+            else if(modifiers.indexOf(e.code) == -1) modifiers.push(e.code);
+
+            if(primaryKey && modifiers[0]) {
+                input.value = `${modifiers.join(" + ")} + ${primaryKey}`;
+                button.click();
+            } else if(primaryKey) input.value = primaryKey;
+            else if(modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
+            else input.value = "";
+
+            input.value = input.value.replace("Key", "");
+
+        }
+        
+    };
+
+    let keyUpEvent = e => {
+
+        e.preventDefault();
+
+        if(options.global) {
+
+            let key = e.key;
+
+            if(key.length == 1) key = key.toUpperCase();
+
+            if(globalKeys.indexOf(key) != -1) globalKeys.splice(globalKeys.indexOf(key), 1);
+            if(globalKeys[0] == "") globalKeys.splice(0, 1);
+            input.value = globalKeys.join(" + ");
+
+        } else {
+
+            if(e.location == 0) primaryKey = undefined;
+            else if(modifiers.indexOf(e.code) != -1) modifiers.splice(modifiers.indexOf(e.code), 1);
+
+            if(primaryKey && modifiers[0]) input.value = `${modifiers.join(" + ")} + ${primaryKey}`;
+            else if(primaryKey) input.value = primaryKey;
+            else if(modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
+            else input.value = "";
+
+            input.value = input.value.replace("Key", "");
+
+        }
+
+    };
+
+    let toggleRecording = () => {
+
+        isRecording = !isRecording;
+
+        if(isRecording) {
+            if(options.global) Metalloriff.Keybinds.unregisterGlobal(oldValue);
+            document.addEventListener("keydown", keyEvent);
+            document.addEventListener("keyup", keyUpEvent);
+            document.addEventListener("click", documentClick);
+            container.classList.add("recording-1H2dS7");
+            label.innerText = "Save Keybind";
+        } else {
+            oldValue = globalKeys.join(" + ");
+            if(options.global) callback(oldValue);
+            else callback({ primaryKey : primaryKey, modifiers : modifiers });
+            primaryKey = undefined;
+            modifiers = [];
+            globalKeys = [];
+            document.removeEventListener("keydown", keyEvent);
+            document.removeEventListener("keyup", keyUpEvent);
+            document.removeEventListener("click", documentClick);
+            container.classList.remove("recording-1H2dS7");
+            label.innerText = "Edit Keybind";
+        }
+
+    };
+
+    let documentClick = e => {
+        if(!e.target.classList.contains("nbl-keybind-button")) toggleRecording();
+    };
+
+    let input = element.getElementsByTagName("input")[0],
+    container = element.getElementsByClassName("container-CpszHS")[0],
+    button = element.getElementsByTagName("button")[0],
+    label = element.getElementsByClassName("text-2sI5Sd")[0];
+
+    button.addEventListener("click", toggleRecording);
+
+    return element;
+
+};
+
 Metalloriff.Settings.pushChangelogElements = function(plugin) {
 
     var element = document.createElement("div");
@@ -696,6 +871,67 @@ Metalloriff.UI.createBasicScrollList = function(id, title, options = {}) {
 
     return { window : window, scroller : scroller, backdrop : backdrop };
 
+};
+
+Metalloriff.Keybinds = {};
+
+Metalloriff.Keybinds.globalShortcut = require("electron").remote.globalShortcut;
+
+Metalloriff.Keybinds.activeListeners = {};
+
+Metalloriff.Keybinds.attachListener = function(id, key, event, options = {}) {
+
+    let node = options.node || document;
+
+    if(this.activeListeners[id]) {
+        console.warn("There is already a keybind listener with the id '" + id + "'!");
+        return;
+    }
+
+    this.activeListeners[id] = {
+        heldKeys : [],
+        keydown : e => {
+            if(this.activeListeners[id].heldKeys.indexOf(e.code) == -1) this.activeListeners[id].heldKeys.push(e.code);
+            if(this.activeListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
+                let heldModifiers = 0;
+                for(let i = 0; i < key.modifiers.length; i++) if(this.activeListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
+                if(key.modifiers.length == heldModifiers) event(e);
+            }
+        },
+        keyup : e => {
+            if(this.activeListeners[id].heldKeys.indexOf(e.code) != -1) this.activeListeners[id].heldKeys.splice(this.activeListeners[id].heldKeys.indexOf(e.code), 1);
+        }
+    };
+
+    node.addEventListener("keydown", this.activeListeners[id].keydown);
+    node.addEventListener("keyup", this.activeListeners[id].keyup);
+
+    return this.activeListeners[id];
+
+};
+
+Metalloriff.Keybinds.detachListener = function(id, node = document) {
+    
+    if(!Metalloriff.Keybinds.activeListeners[id]) {
+        console.warn("There is no keybind listener with the id '" + id + "'!");
+        return;
+    }
+
+    node.removeEventListener("keydown", Metalloriff.Keybinds.activeListeners[id].keydown);
+    node.removeEventListener("keyup", Metalloriff.Keybinds.activeListeners[id].keyup);
+
+    delete Metalloriff.Keybinds.activeListeners[id];
+
+};
+
+Metalloriff.Keybinds.registerGlobal = function(key, event, debug = false) {
+    try { this.globalShortcut.register(key, event); }
+    catch(e) { if(debug) console.error(e); }
+};
+
+Metalloriff.Keybinds.unregisterGlobal = function(key, debug = false) {
+    try { this.globalShortcut.unregister(key); }
+    catch(e) { if(debug) console.error(e); }
 };
 
 Metalloriff.ContextMenu = {};

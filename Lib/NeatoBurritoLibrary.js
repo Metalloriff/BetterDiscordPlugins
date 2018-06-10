@@ -1,27 +1,41 @@
 var Metalloriff = {};
 
-Metalloriff.libSize = -1;
-Metalloriff.lastCheckedForUpdate = -1;
-
 Metalloriff.onPluginLoaded = function(plugin) {
 
     PluginUtilities.showToast(`[${plugin.getName()}]: Plugin loaded.`, { type : "success" });
     console.log(plugin.getName() + " loaded.");
 
-    if(performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
-        Metalloriff.requestFile("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", "", lib => {
-            if(Metalloriff.libSize != -1 && lib.size != Metalloriff.libSize) {
-                new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
-                    try { plugin.stop(); }
-                    catch(e) { console.error(e); }
-                    setTimeout(() => {
-                        plugin.start();
-                    }, 100);
-                    document.getElementById("NeatoBurritoLibrary").outerHTML = "";
-                };
+    if(true || !Metalloriff.lastCheckedForUpdate && performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
+
+        let req = new XMLHttpRequest();
+
+        req.onreadystatechange = () => {
+
+            if(req.readyState == 4 && req.status == 200) {
+
+                if(Metalloriff.libSize && Metalloriff.libSize != req.response.length) {
+
+                    new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
+                        try { plugin.stop(); }
+                        catch(e) { console.error(e); }
+                        setTimeout(() => {
+                            plugin.start();
+                        }, 100);
+                        document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+                    }
+
+                }
+
+                Metalloriff.libSize = req.response.length;
             }
-            Metalloriff.libSize = lib.size;
-        });
+
+        };
+
+        req.open("GET", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", true);
+        req.send(null);
+
+        Metalloriff.lastCheckedForUpdate = performance.now();
+
     }
 
 };

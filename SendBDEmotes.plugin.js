@@ -4,7 +4,7 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "1.5.10"; }
+    getVersion() { return "1.5.11"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
@@ -223,7 +223,9 @@ class SendBDEmotes {
 
 		NeatoLib.Events.onPluginLoaded(this);
 
-		this.switchEvent();
+		this.switch();
+
+		this.switchEvent = () => this.switch();
 
 		NeatoLib.Events.attach("switch", this.switchEvent);
 
@@ -264,7 +266,7 @@ class SendBDEmotes {
 
 	}
 
-    switchEvent(){
+    switch(){
 
 		if(!this.ready) return;
 

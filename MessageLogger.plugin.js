@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.5.4"; }
+    getVersion() { return "0.5.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -52,16 +52,21 @@ class MessageLogger {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.Metalloriff !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -69,7 +74,7 @@ class MessageLogger {
 
 		setTimeout(() => {
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ml-gen-toggles", "General settings", [
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ml-gen-toggles", "General settings", [
 				{ title : "Ignore muted channels and server", value : "ignoreMuted", setValue : this.settings.ignoreMuted },
 				{ title : "Ignore bots", value : "ignoreBots", setValue : this.settings.ignoreBots },
 				{ title : "Ignore message posted by you", value : "ignoreSelf", setValue : this.settings.ignoreSelf },
@@ -81,7 +86,7 @@ class MessageLogger {
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createRadioGroup("ml-sort-type", "Sort direction", [
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createRadioGroup("ml-sort-type", "Sort direction", [
 				{ title : "New - old", value : true },
 				{ title : "Old - new", value : false }
 			], this.settings.reverseOrder, (choiceButton, choice) => {
@@ -89,7 +94,7 @@ class MessageLogger {
 				this.saveSettings();
 			}, "Hint: You can also click the selected tab to reverse the order direction."), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createRadioGroup("ml-visibility-type", "Log type", [
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createRadioGroup("ml-visibility-type", "Log type", [
 				{ title : "All", value : "all" },
 				{ title : "Whitelist", value : "whitelist" },
 				{ title : "Blacklsit", value : "blacklist" }
@@ -98,7 +103,7 @@ class MessageLogger {
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ml-toast-toggles", "Display toast notifications for every", [
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ml-toast-toggles", "Display toast notifications for every", [
 				{ title : "Message sent", value : "sent", setValue : this.settings.toastToggles.sent },
 				{ title : "Message edited", value : "edited", setValue : this.settings.toastToggles.edited },
 				{ title : "Message deleted", value : "deleted", setValue : this.settings.toastToggles.deleted }
@@ -107,17 +112,17 @@ class MessageLogger {
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Sent message cap", "number", this.settings.cap, e => {
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Sent message cap", "number", this.settings.cap, e => {
 				this.settings.cap = e.target.value;
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Saved message cap", "number", this.settings.savedCap, e => {
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Saved message cap", "number", this.settings.savedCap, e => {
 				this.settings.savedCap = e.target.value;
 				this.saveSettings();
 			}), this.getName());
 
-			/* Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ml-count-toggles", "Display amount of new messages since the last time the channel was visited", [
+			/* NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ml-count-toggles", "Display amount of new messages since the last time the channel was visited", [
 				{ title : "Sent messages", value : "sent", setValue : this.settings.countToggles.sent },
 				{ title : "Edited messages", value : "edited", setValue : this.settings.countToggles.edited },
 				{ title : "Deleted messages", value : "deleted", setValue : this.settings.countToggles.deleted }
@@ -126,30 +131,30 @@ class MessageLogger {
 				this.saveSettings();
 			}), this.getName()); */
 
-			Metalloriff.Settings.pushChangelogElements(this);
+			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
 
-        return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
+        return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
         
 	}
 	
 	saveSettings() {
-		PluginUtilities.saveSettings(this.getName(), this.settings);
+		NeatoLib.Settings.save(this);
 	}
 
 	saveData() {
-		PluginUtilities.saveData(this.getName() + "Data", "data", {
+		NeatoLib.Data.save(this.getName() + "Data", "data", {
 			deletedMessageRecord : this.deletedMessageRecord,
 			editedMessageRecord : this.editedMessageRecord
 		});
 	}
-	
-	initialize() {
 
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/MessageLogger.plugin.js");
+	onLibLoaded() {
 
-		this.settings = PluginUtilities.loadSettings(this.getName(), {
+		NeatoLib.Updates.check(this);
+
+		this.settings = NeatoLib.Settings.load(this, {
 			displayUpdateNotes : true,
 			ignoreMuted : true,
 			ignoreBots : true,
@@ -180,7 +185,7 @@ class MessageLogger {
 			cacheAllImages : true
 		});
 
-		let data = PluginUtilities.loadData(this.getName() + "Data", "data", {
+		let data = NeatoLib.Data.load(this.getName() + "Data", "data", {
 			deletedMessageRecord : [],
 			editedMessageRecord : []
 		});
@@ -193,9 +198,9 @@ class MessageLogger {
 		this.getServer = DiscordModules.GuildStore.getGuild;
 		this.getChannel = DiscordModules.ChannelStore.getChannel;
 
-		this.openUserContextMenu = InternalUtilities.WebpackModules.findByUniqueProperties(["openUserContextMenu"]).openUserContextMenu;
+		this.openUserContextMenu = NeatoLib.Modules.get(["openUserContextMenu"]).openUserContextMenu;
 
-		this.isMuted = InternalUtilities.WebpackModules.findByUniqueProperties(["isMuted"]).isMuted;
+		this.isMuted = NeatoLib.Modules.get(["isMuted"]).isMuted;
 
 		this.filter = "";
 
@@ -209,23 +214,12 @@ class MessageLogger {
 
 			if(e.key == "Escape") $(".ml-backdrop").click();
 
-			let channel = Metalloriff.getSelectedChannel();
+			let channel = NeatoLib.getSelectedTextChannel();
 			if(channel && !this.settings.disableKeybind && e.ctrlKey && e.altKey && e.key == "m") this.filter = "channel: " + channel.id;
 
 			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("deleted");
 
 		});
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
 
 		this.helpMessage = 
 		`
@@ -245,23 +239,19 @@ class MessageLogger {
 			"Ctrl + M" - Open message log.
 			"Ctrl + Alt + M" - Open message log with selected channel filtered.
 		`;
-		
-	}
 
-	onLibLoaded() {
+		this.classes = NeatoLib.getClasses(["contextMenu"]);
 
-		this.classes = Metalloriff.getClasses(["contextMenu"]);
-
-		this.localUser = PluginUtilities.getCurrentUser();
+		this.localUser = NeatoLib.getLocalUser();
 
 		this.electron = require("electron");
 
-		this.getMessage = InternalUtilities.WebpackModules.findByUniqueProperties(["getMessages"]).getMessage;
+		this.getMessage = NeatoLib.Modules.get(["getMessages"]).getMessage;
 
-		this.transitionTo = InternalUtilities.WebpackModules.findByUniqueProperties(["transitionTo"]).transitionTo;
+		this.transitionTo = NeatoLib.Modules.get(["transitionTo"]).transitionTo;
 		
-        Metalloriff.unpatchInternalFunction("handleMessage", this.getName());
-        Metalloriff.patchInternalFunction("handleMessage", data => {
+        NeatoLib.unpatchInternalFunction("handleMessage", this.getName());
+        NeatoLib.patchInternalFunction("handleMessage", data => {
 
 			if(data.message != undefined && data.message.state === "SENDING") return;
 
@@ -299,8 +289,8 @@ class MessageLogger {
 				deletedMessage.timestamp = timestamp;
 
 				if(this.settings.toastToggles.deleted) {
-					if(server && channel) PluginUtilities.showToast(`Message deleted from ${server.name}, #${channel.name}.`, { type : "error", icon : server.getIconURL() });
-					else PluginUtilities.showToast("Message deleted from DM.", { type : "error", icon : this.getAvatarOf(deletedMessage.message.author) });
+					if(server && channel) NeatoLib.showToast(`Message deleted from ${server.name}, #${channel.name}.`, "error", { icon : server.getIconURL() });
+					else NeatoLib.showToast("Message deleted from DM.", "error", { icon : this.getAvatarOf(deletedMessage.message.author) });
 				}
 
                 this.deletedMessageRecord.push(deletedMessage);
@@ -328,8 +318,8 @@ class MessageLogger {
 					lastMessage.edited = true;
 					
 					if(this.settings.toastToggles.edited) {
-						if(server && channel) PluginUtilities.showToast(`Message edited in ${server.name}, #${channel.name}.`, { icon : server.getIconURL() });
-						else PluginUtilities.showToast("Message edited in DM.", { icon : this.getAvatarOf(lastMessage.message.author) });
+						if(server && channel) NeatoLib.showToast(`Message edited in ${server.name}, #${channel.name}.`, { icon : server.getIconURL() });
+						else NeatoLib.showToast("Message edited in DM.", { icon : this.getAvatarOf(lastMessage.message.author) });
 					}
 
 					this.editedMessageRecord.splice(lastEditedIDX, 1);
@@ -359,8 +349,8 @@ class MessageLogger {
 			}
 
 			if(this.settings.toastToggles.sent) {
-				if(server && channel) PluginUtilities.showToast(`Message sent in ${server.name}, #${channel.name}.`, { type : "success", icon : server.getIconURL() });
-				else PluginUtilities.showToast("Message sent in DM.", { type : "success", icon : this.getAvatarOf(data.message.author) });
+				if(server && channel) NeatoLib.showToast(`Message sent in ${server.name}, #${channel.name}.`, "success", { icon : server.getIconURL() });
+				else NeatoLib.showToast("Message sent in DM.", "success", { icon : this.getAvatarOf(data.message.author) });
 			}
 
 			if(this.settings.cacheAllImages) for(let i = 0; i < data.message.attachments.length; i++) new Image().src = data.message.attachments[i].url;
@@ -369,17 +359,23 @@ class MessageLogger {
 
 		}, this.getName());
 		
-		if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
-		this.onSwitch();
+		this.switchEvent();
+
+		NeatoLib.Events.attach("switch", this.switchEvent);
+
+		NeatoLib.Events.onPluginLoaded(this);
 
 	}
 
-	onSwitch() {
+	switchEvent() {
+
+		if(this.ready != true || document.getElementsByClassName("messages scroller")[0] == undefined) return;
 
 		let onMessage = e => {
 
-			let messageID = ReactUtilities.getOwnerInstance(e.currentTarget.parentElement).props.message.id;
+			let messageID = NeatoLib.ReactData.getProps(e.currentTarget.parentElement).message.id;
 
 			if(this.editedMessageRecord.findIndex(x => x.message.id == messageID)) {
 				this.filter = "message: " + messageID;
@@ -410,7 +406,7 @@ class MessageLogger {
 
 		for(let i = 0; i < foundEdited.length; i++) foundEdited[i].addEventListener("click", e => onMessage(e));
 
-		let channel = Metalloriff.getSelectedChannel();
+		let channel = NeatoLib.getSelectedTextChannel();
 
 	}
 
@@ -678,53 +674,43 @@ class MessageLogger {
 
 				e.preventDefault();
 
-				let user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id), contextGroup = new PluginContextMenu.ItemGroup();
+				let user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id);
 
 				if(e.target.classList.contains("markup")) {
 
-					let menu = new PluginContextMenu.Menu(), messageID = e.target.getAttribute("data-message-id");
+					let items = [], messageID = e.target.getAttribute("data-message-id");
 
 					if(messageID != undefined) {
 
-						if(channel != undefined && this.getMessage(channel.id, messages[i].message.id) != undefined) menu.addItems(
-							new PluginContextMenu.ItemGroup().addItems(
-								new PluginContextMenu.TextItem("Jump To", { callback : () => {
-									this.transitionTo(`/channels/${messages[i].message.guild_id}/${messages[i].message.channel_id}?jump=${messages[i].message.id}`);
-									$backdrop.click();
-									this.getContextMenu().style.display = "none";
-								}})
-							)
-						);
+						if(channel != undefined && this.getMessage(channel.id, messages[i].message.id) != undefined) {
+							items.push(NeatoLib.ContextMenu.createItem("Jump To", () => {
+								this.transitionTo(`/channels/${messages[i].message.guild_id}/${messages[i].message.channel_id}?jump=${messages[i].message.id}`);
+								$backdrop.click();
+								this.getContextMenu().style.display = "none";
+							}));
+						}
 
-						contextGroup.addItems(
-							new PluginContextMenu.TextItem("Remove From Log", { callback : () => {
-								let messageA;
-								if(type == "sent") messageA = this.messageRecord;
-								if(type == "edited") messageA = this.editedMessageRecord;
-								if(type == "deleted" || type == "ghostpings") messageA = this.deletedMessageRecord;
-								let ii = messageA.findIndex(x => x.message.id == messageID);
-								if(ii != -1) messageA.splice(ii, 1);
-								this.saveData();
-								Metalloriff.ContextMenu.close();
-								this.openWindow(type);
-							}})
-						);
+						items.push(NeatoLib.ContextMenu.createItem("Remove From Log", () => {
+							let messageA;
+							if(type == "sent") messageA = this.messageRecord;
+							if(type == "edited") messageA = this.editedMessageRecord;
+							if(type == "deleted" || type == "ghostpings") messageA = this.deletedMessageRecord;
+							let ii = messageA.findIndex(x => x.message.id == messageID);
+							if(ii != -1) messageA.splice(ii, 1);
+							this.saveData();
+							NeatoLib.ContextMenu.close();
+							this.openWindow(type);
+						}));
 
 					}
 
-					contextGroup.addItems(
-						new PluginContextMenu.TextItem("Copy Text", { callback : () => {
-							this.electron.clipboard.writeText(messages[i].message.content);
-							this.getContextMenu().style.display = "none";
-							PluginUtilities.showToast("Text copied to clipboard!", { type : "success" });
-						}})
-					);
-
-					menu.addItems(contextGroup);
-
-					menu.show(e.clientX, e.clientY);
-				
-					this.getContextMenu().style.zIndex = "10000";
+					items.push(NeatoLib.ContextMenu.createItem("Copy Text", () => {
+						this.electron.clipboard.writeText(messages[i].message.content);
+						this.getContextMenu().style.display = "none";
+						NeatoLib.showToast("Text copied to clipboard!", "success");
+					}));
+					
+					NeatoLib.ContextMenu.create(items, e);
 
 					return;
 
@@ -756,12 +742,12 @@ class MessageLogger {
 		</div>`);
 
 		document.getElementById("ml-clear-log-button").addEventListener("click", () => {
-			Metalloriff.UI.createPrompt("ml-clear-log-prompt", "Clear log", `Are you sure you want to clear all ${type} messages?`, prompt => {
+			NeatoLib.UI.createPrompt("ml-clear-log-prompt", "Clear log", `Are you sure you want to clear all ${type} messages?`, prompt => {
 				if(type == "sent") this.messageRecord = [];
 				if(type == "edited") this.editedMessageRecord = [];
 				if(type == "deleted") this.deletedMessageRecord = [];
 				this.saveData();
-				PluginUtilities.showToast("Log cleared!", { type : "success" });
+				NeatoLib.showToast("Log cleared!", "success");
 				this.openWindow(type);
 				prompt.close();
 			});
@@ -861,15 +847,15 @@ class MessageLogger {
 		return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
 	}
 
-	onGuildContext(e) {
+	onGuildContext(e) { //change this back to have a "message logger" submenu, when I'm not lazy.
 
 		if(this.settings.type == "all") return;
 
 		let id = e.target.href.match(/\d+/)[0], updateButtonContent = () => {
-			button.element[0].firstChild.innerText = (this.settings.list.includes(id) ? "Remove From " : "Add To ") + (this.settings.type == "blacklist" ? "Blacklist" : "Whitelist");
+			button.firstChild.innerText = (this.settings.list.includes(id) ? "Remove From Log " : "Add To Log ") + (this.settings.type == "blacklist" ? "Blacklist" : "Whitelist");
 		};
 
-		let button = new PluginContextMenu.TextItem("...", { callback : () => {
+		let button = NeatoLib.ContextMenu.createItem("...", () => {
 
 			if(this.settings.list.includes(id)) this.settings.list.splice(this.settings.list.indexOf(id), 1);
 			else this.settings.list.push(id);
@@ -878,15 +864,17 @@ class MessageLogger {
 
 			updateButtonContent();
 
-		}});
+		});
 
 		updateButtonContent();
 
-		document.getElementsByClassName(this.classes.itemGroup)[1].insertAdjacentElement("beforeend", new PluginContextMenu.SubMenuItem("Message Logger", new PluginContextMenu.Menu().addItems(button)).element[0]);
+		document.getElementsByClassName(this.classes.itemGroup)[1].appendChild(button);
 
 	}
 
-	onMessageContext() {
+	onMessageContext() { //and re-add this.
+
+		return;
 
 		let menu = new PluginContextMenu.Menu();
 
@@ -895,7 +883,7 @@ class MessageLogger {
 			new PluginContextMenu.TextItem("View Deleted Messages", { callback : () => { this.openWindow("deleted"); this.getContextMenu().style.display = "none"; }}),
 			new PluginContextMenu.TextItem("View Edited Messages", { callback : () => { this.openWindow("edited"); this.getContextMenu().style.display = "none"; }}),
 			new PluginContextMenu.TextItem("View Ghost Pings", { callback : () => { this.openWindow("ghostpings"); this.getContextMenu().style.display = "none"; }}),
-			new PluginContextMenu.TextItem("Settings", { callback : () => Metalloriff.Settings.showPluginSettings(this.getName()) })
+			new PluginContextMenu.TextItem("Settings", { callback : () => NeatoLib.Settings.showPluginSettings(this.getName()) })
 		);
 
 		let itemGroups = document.getElementsByClassName(this.classes.itemGroup);
@@ -917,7 +905,7 @@ class MessageLogger {
 	
     stop() {
 
-		Metalloriff.unpatchInternalFunction("handleMessage", this.getName());
+		NeatoLib.unpatchInternalFunction("handleMessage", this.getName());
 		
 		this.$document.off("contextmenu.MessageLogger");
 		this.$document.off("keydown.MessageLogger");
@@ -925,6 +913,8 @@ class MessageLogger {
 		if(this.updateWindow) clearInterval(this.updateWindow);
 
 		if(this.messageObserver) this.messageObserver.disconnect();
+
+		NeatoLib.Events.detach("switch", this.switchEvent);
 
 	}
 	

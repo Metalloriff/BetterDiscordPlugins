@@ -970,6 +970,8 @@ NeatoLib.Updates.requestUpdateCheck = function(pluginName, url) {
         if(!latestVersion) return;
         latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
 
+        console.log(window.PluginUpdates[url].version, latestVersion);
+
         if(window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
         else NeatoLib.Updates.hideNotice(pluginName);
 

@@ -4,7 +4,7 @@ class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "0.1.3"; }
+    getVersion() { return "1.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -16,16 +16,21 @@ class AutoCorrect {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -33,7 +38,7 @@ class AutoCorrect {
 
 		setTimeout(() => {
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ac-toggle-group", "General options", [
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ac-toggle-group", "General options", [
 				{ title : "Use DevilBro's SpellCheck", value : "useDevilsChecker", setValue : this.settings.useDevilsChecker },
 				{ title : "Don't correct the same word twice", value : "dontCorrectTwice", setValue : this.settings.dontCorrectTwice },
 				{ title : "Automatically capitalize the first letter of every sentence", value : "autoCapitalization", setValue : this.settings.autoCapitalization },
@@ -46,14 +51,14 @@ class AutoCorrect {
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createNewTextField("Ignored prefixes", this.settings.ignoredPrefixes, e => {
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Ignored prefixes", this.settings.ignoredPrefixes, e => {
 				this.settings.ignoredPrefixes = e.target.value;
 				this.saveSettings();
 			}, { description : "Any messages beginning with any of these prefixes will be ignored. Good for preventing bot commands from failing due to corrections. Separate with spaces." }), this.getName());
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createHint("Hint: You can stop a word from being corrected by selecting the word, right clicking, and clicking \"Learn Word\", or by adding it to your learned words list in the settings."), this.getName());
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint("Hint: You can stop a word from being corrected by selecting the word, right clicking, and clicking \"Learn Word\", or by adding it to your learned words list in the settings."), this.getName());
 
-			let group = Metalloriff.Settings.Elements.createGroup("Override replacers", { style : "background-color:rgba(0,0,0,0.2);border-radius:5px;padding:10px;text-align:center;" }), list = group.lastChild;
+			let group = NeatoLib.Settings.Elements.createGroup("Override replacers", { style : "background-color:rgba(0,0,0,0.2);border-radius:5px;padding:10px;text-align:center;" }), list = group.lastChild;
 
 			group.insertAdjacentHTML("afterbegin", `<style>.ac-selected{background-color:#7289da;border-radius:5px;}</style>`);
 
@@ -65,7 +70,7 @@ class AutoCorrect {
 
 				for(let i = 0; i < this.settings.overrideReplacers.length; i++) {
 
-					list.insertAdjacentHTML("beforeend", `<div type="text" class="ac-replacer-field"><input value="${this.settings.overrideReplacers[i].word}" style="${Metalloriff.Settings.Styles.textField}width:45%;margin:2.5%;border:2px solid white;"><input value="${this.settings.overrideReplacers[i].replacement}" style="${Metalloriff.Settings.Styles.textField}width:45%;margin:2.5%;border:2px solid white;"></div>`);
+					list.insertAdjacentHTML("beforeend", `<div type="text" class="ac-replacer-field"><input value="${this.settings.overrideReplacers[i].word}" style="${NeatoLib.Settings.Styles.textField}width:45%;margin:2.5%;border:2px solid white;"><input value="${this.settings.overrideReplacers[i].replacement}" style="${NeatoLib.Settings.Styles.textField}width:45%;margin:2.5%;border:2px solid white;"></div>`);
 
 					let added = document.getElementsByClassName("ac-replacer-field")[i];
 
@@ -84,39 +89,39 @@ class AutoCorrect {
 
 				}
 
-				list.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Add New Replacer", () => {
+				list.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createButton("Add New Replacer", () => {
 					this.settings.overrideReplacers.push({ word : "", replacement : "" });
 					this.saveSettings();
 					buildGroup();
 				}, "margin-right:20px"));
 
-				list.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("Remove Selected", () => {
+				list.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createButton("Remove Selected", () => {
 					if(this.selectedReplacer == -1) {
-						PluginUtilities.showToast("No replacer selected!");
+						NeatoLib.showToast("No replacer selected!");
 						return;
 					}
 					this.settings.overrideReplacers.splice(this.selectedReplacer, 1);
 					this.saveSettings();
 					buildGroup();
-					PluginUtilities.showToast("Replacer removed!", { type : "success" });
+					NeatoLib.showToast("Replacer removed!", "success");
 				}, "margin-left:20px"));
 
 			};
 
-			Metalloriff.Settings.pushElement(group, this.getName());
+			NeatoLib.Settings.pushElement(group, this.getName());
 
 			buildGroup();
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createNewTextField("Learned words (separate with spaces)", this.settings.learnedWords.join(" "), e => {
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Learned words (separate with spaces)", this.settings.learnedWords.join(" "), e => {
 				this.settings.learnedWords = Array.filter(e.target.value.trim().toLowerCase().split(" "), x => x != "");
 				this.saveSettings();
 			}), this.getName());
 
-			Metalloriff.Settings.pushChangelogElements(this);
+			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
 
-		return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
 		
 	}
 
@@ -132,29 +137,31 @@ class AutoCorrect {
 
 				if(window.pluginCookie["SpellCheck"] == false) {
 
-					PluginUtilities.showToast("DevilBro's SpellCheck is not enabled! Please enable it and re-enable this setting.", { type : "error" });
+					NeatoLib.showToast("DevilBro's SpellCheck is not enabled! Please enable it and re-enable this setting.", "error");
 					if(toggle) toggle.click();
 
 				}else for(let i = 0; i < this.settings.learnedWords.length; i++) this.devilsChecker.addToOwnDictionary(this.settings.learnedWords[i]);
 
 			} else {
 
-				PluginUtilities.showToast("You do not have DevilBro's SpellCheck plugin installed!", { type : "error" });
+				NeatoLib.showToast("You do not have DevilBro's SpellCheck plugin installed!", "error");
 				if(toggle) toggle.click();
 
 			}
 
 		} else this.spellChecker.setLearnedWords(new Set(this.settings.learnedWords));
 
-		PluginUtilities.saveSettings(this.getName(), this.settings);
+		NeatoLib.Settings.save(this);
 		
 	}
-	
-	initialize() {
 
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/AutoCorrect.plugin.js");
+	onLibLoaded() {
 		
-		this.settings = PluginUtilities.loadSettings(this.getName(), {
+		//if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+
+		NeatoLib.Updates.check(this);
+		
+		this.settings = NeatoLib.Settings.load(this, {
 			displayUpdateNotes : true,
 			dontCorrectTwice : true,
 			autoCapitalization : true,
@@ -176,25 +183,8 @@ class AutoCorrect {
 			learnedWords : [],
 			attachEverywhere : false
 		});
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
 		
-	}
-
-	onLibLoaded() {
-		
-		//if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
-		
-		this.classes = Metalloriff.getClasses(["contextMenu"]);
+		this.classes = NeatoLib.getClasses(["contextMenu"]);
 
 		this.emoteNames = [];
 
@@ -205,15 +195,19 @@ class AutoCorrect {
 
 		this.initialized = true;
         
-        this.onSwitch();
+		this.switchEvent();
+		
+		NeatoLib.Events.attach("switch", this.switchEvent);
+		
+		NeatoLib.Events.onPluginLoaded(this);
 
     }
     
-    onSwitch() {
+    switchEvent() {
 
 		if(!this.initialized) return;
 
-		this.spellChecker = InternalUtilities.WebpackModules.findByUniqueProperties(["isMisspelled"]);
+		this.spellChecker = NeatoLib.Modules.get("isMisspelled");
 		this.devilsChecker = BdApi.getPlugin("SpellCheck");
 
 		this.attach();
@@ -325,7 +319,7 @@ class AutoCorrect {
 						document.execCommand("insertText", false, newValue);
 					}
 
-					if(e.which == 13) ReactUtilities.getOwnerInstance(chatbox).props.onKeyPress({ which : 13, preventDefault : function(){} });
+					if(e.which == 13) NeatoLib.ReactData.getProps(chatbox).onKeyPress({ which : 13, preventDefault : function(){} });
 
 				};
 
@@ -441,13 +435,13 @@ class AutoCorrect {
 						new PluginContextMenu.TextItem("Forget Word", { callback : () => {
 							this.settings.learnedWords.splice(this.settings.learnedWords.indexOf(selectedWords[0]), 1);
 							this.saveSettings();
-							Metalloriff.ContextMenu.close();
+							NeatoLib.ContextMenu.close();
 						}}).element[0] :
 
 						new PluginContextMenu.TextItem("Learn Word", { callback : () => {
 							this.settings.learnedWords.push(selectedWords[0]);
 							this.saveSettings();
-							Metalloriff.ContextMenu.close();
+							NeatoLib.ContextMenu.close();
 						}}).element[0]
 
 					);
@@ -473,6 +467,8 @@ class AutoCorrect {
 		areas.off("contextmenu.autocorrect");
 
 		if(this.chatObserver) this.chatObserver.disconnect();
+
+		NeatoLib.Events.detach("switch", this.switchEvent);
 
 	}
 	

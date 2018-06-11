@@ -305,7 +305,7 @@ NeatoLib.Settings.Elements.createTextField = function(label, type, value, callba
         <input value="${value}" type="${type}" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
     `);
 
-    if(options.tooltip) NeatoLib.Tooltip.bind(options.tooltip, element, { side : "left" });
+    if(options.tooltip) NeatoLib.Tooltip.attach(options.tooltip, element, { side : "left" });
 
     element.querySelector("input").addEventListener(options.callbackType || "focusout", e => callback(e));
 

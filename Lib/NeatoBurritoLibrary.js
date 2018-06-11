@@ -1,51 +1,11 @@
 var Metalloriff = {};
 
-Metalloriff.onPluginLoaded = function(plugin) {
-
-    PluginUtilities.showToast(`[${plugin.getName()}]: Plugin loaded.`, { type : "success" });
-    console.log(plugin.getName() + " loaded.");
-
-    if(true || !Metalloriff.lastCheckedForUpdate && performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
-
-        let req = new XMLHttpRequest();
-
-        req.onreadystatechange = () => {
-
-            if(req.readyState == 4 && req.status == 200) {
-
-                if(window.neatoLibSize && window.neatoLibSize != req.response.length) {
-
-                    new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
-                        try { plugin.stop(); }
-                        catch(e) { console.error(e); }
-                        setTimeout(() => {
-                            plugin.start();
-                        }, 100);
-                        document.getElementById("NeatoBurritoLibrary").outerHTML = "";
-                    }
-
-                }
-
-                window.neatoLibSize = req.response.length;
-            }
-
-        };
-
-        req.open("GET", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?" + performance.now(), true);
-        req.send(null);
-
-        Metalloriff.lastCheckedForUpdate = performance.now();
-
-    }
-
-};
-
 Metalloriff.Changelog = {};
 
 Metalloriff.Changelog.compareVersions = function(name, changes) {
 
     var spacelessName = name.split(" ").join(""),
-    updateData = PluginUtilities.loadData("MetalloriffUpdateData", spacelessName, {}),
+    updateData = Metalloriff.Data.load("MetalloriffUpdateData", spacelessName, {}),
     unreadChanges = [],
     thisUpdateData = updateData[spacelessName],
     first = false;
@@ -81,15 +41,15 @@ Metalloriff.Changelog.createChangeWindow = function(name, changes, allChanges, n
     let changeKeys = Object.keys(allChanges);
 
     if(changeKeys.length == 0) {
-        PluginUtilities.showToast("There are no updates notes for this plugin yet!", { type : "error" });
+        Metalloriff.showToast("There are no updates notes for this plugin yet!", "error");
         return;
     }
 
     let spacelessName = name.split(" ").join("");
 
-    $("#" + spacelessName + "-changelog").remove();
+    if(document.getElementById(spacelessName + "-changelog")) document.getElementById(spacelessName + "-changelog").remove();
 
-    $(".app").last().append(`
+    document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
 
         <div id="${spacelessName}-changelog">
 
@@ -186,24 +146,22 @@ Metalloriff.Changelog.createChangeWindow = function(name, changes, allChanges, n
 
     `);
 
-    $(".metalloriff-changelog-backdrop").on("click", () => {
-        if(newUpdateData != undefined){ PluginUtilities.saveData("MetalloriffUpdateData", spacelessName, newUpdateData); }
-        $(".metalloriff-changelog-backdrop").parent().remove();
+    document.getElementsByClassName("metalloriff-changelog-backdrop")[0].addEventListener("click", () => {
+        if(newUpdateData != undefined) Metalloriff.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
+        document.getElementById(spacelessName + "-changelog").remove();
     });
 
-    let scroller = $("#" + spacelessName + "-changelog-scroller");
+    let scroller = document.getElementById(spacelessName + "-changelog-scroller");
 
     if(changes.length == 0) changes = changeKeys;
 
-    changes.reverse();
-
-    for(let i in changes){
-        scroller.append(`
-        <div class="metalloriff-update-item">
-            <p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
-                + allChanges[changes[i]].split("\n").join("<br><br>") +
-            `</p>
-        </div>
+    for(let i = 0; i < changes.length; i++){
+        scroller.insertAdjacentHTML("afterbegin", `
+            <div class="metalloriff-update-item">
+                <p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
+                    + allChanges[changes[i]].split("\n").join("<br><br>") +
+                `</p>
+            </div>
         `);
     }
 
@@ -667,6 +625,14 @@ Metalloriff.Settings.showPluginSettings = function(name) {
 
 };
 
+Metalloriff.Settings.save = function(plugin) {
+    Metalloriff.Data.save(plugin.getName().split(" ").join(""), "settings", plugin.settings);
+};
+
+Metalloriff.Settings.load = function(plugin, defaultSettings) {
+    return Metalloriff.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings);
+};
+
 Metalloriff.UI = {};
 
 Metalloriff.UI.createPrompt = function(id, title, description, yesCallback, noCallback = "close", options = {}) {
@@ -951,7 +917,7 @@ Metalloriff.Keybinds.unregisterGlobal = function(key, debug = false) {
 Metalloriff.ContextMenu = {};
 
 Metalloriff.ContextMenu.close = function() {
-    document.getElementsByClassName(InternalUtilities.WebpackModules.findByUniqueProperties(["contextMenu"]).contextMenu)[0].style.display = "none";
+    document.getElementsByClassName(Metalloriff.Modules.get("contextMenu").contextMenu)[0].style.display = "none";
 };
 
 Metalloriff.Chatbox = {};
@@ -964,6 +930,342 @@ Metalloriff.Chatbox.get = function() {
 Metalloriff.Chatbox.setText = function(newText) {
     Metalloriff.Chatbox.get().select();
     document.execCommand("insertText", false, newText);
+};
+
+Metalloriff.Modules = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+
+Metalloriff.Modules.req = webpackJsonp.push([[], { "__extra_id__" : (m, e, r) => m.exports = r }, [["__extra_id__"]]]);
+
+Metalloriff.Modules.find = function(filter) {
+    
+    for(let i in this.req.c) {
+
+        if(this.req.c.hasOwnProperty(i)) {
+            let m = this.req.c[i].exports;
+            if(m && m.__esModule && m.default && filter(m.default)) return m.default;
+            if(m && filter(m)) return m;
+        }
+
+    }
+
+    console.warn("No module found with this filter!", filter);
+
+    return null;
+
+};
+
+Metalloriff.Modules.get = function(props) {
+    return typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
+};
+
+Metalloriff.Modules.getById = function(id) {
+    return this.find(x => x._dispatchToken == "ID_" + id);
+};
+
+Metalloriff.Updates = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+
+Metalloriff.Updates.requestUpdateCheck = function(pluginName, url) {
+
+    require("request")(url, (err, response, res) => {
+
+        if(err) return console.error(pluginName, "Failed to check for updates!", err);
+
+        let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i);
+        if(!latestVersion) return;
+        latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
+
+        if(window.PluginUpdates.plugins[url].version != latestVersion) Metalloriff.Updates.displayNotice(pluginName, url);
+        else Metalloriff.Updates.hideNotice(pluginName);
+
+    });
+
+};
+
+Metalloriff.Updates.displayNotice = function(pluginName, url) {
+
+    if(document.getElementById("pluginNotice") == undefined) {
+
+        let classes = Metalloriff.Modules.get("noticeInfo");
+
+        document.getElementsByClassName("app")[0].insertAdjacentHTML("afterbegin", `<div class="${classes.notice} ${classes.noticeInfo}" id="pluginNotice"><div class="${classes.dismiss}" id="pluginNoticeDismiss"></div><span class="notice-message">The following plugins have updates:</span>&nbsp;&nbsp;<strong id="outdatedPlugins"></strong></div>`);
+
+        document.getElementById("pluginNoticeDismiss").addEventListener("click", () => document.getElementById("pluginNotice").outerHTML = "");
+
+    }
+
+    if(document.getElementById(pluginName + "-notice") == undefined) {
+
+        let element = document.createElement("span"), outdated = document.getElementById("outdatedPlugins");
+
+        element.setAttribute("id", pluginName + "-notice");
+        element.innerText = pluginName;
+
+        element.addEventListener("click", () => Metalloriff.Updates.download(pluginName, url));
+
+        if(outdated.getElementsByTagName("span")[0] != undefined) outdated.insertAdjacentHTML("beforeend", "<span class='separator'>, </span>");
+        outdated.appendChild(element);
+
+    }
+
+};
+
+Metalloriff.Updates.hideNotice = function(pluginName) {
+
+    let notice = $("#" + pluginName + "-notice");
+
+    if(notice.length) {
+        if(notice.next(".separator").length) notice.next().remove();
+        else if(notice.prev(".separator").length) notice.prev().remove();
+        notice.remove();
+    } else if(!$("#outdatedPlugins").children("span").length && $("#pluginNotice .btn-reload").length) $("#pluginNotice .notice-message").text("To finish updating you need to reload.");
+
+};
+
+Metalloriff.Updates.download = function(pluginName, url) {
+    
+    let req = require("request"), fs = require("fs"), path = require("path");
+
+    req(url, (err, response, res) => {
+
+        if(err) return console.error(pluginName, "Failed to download update!", err);
+
+        let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i).toString().replace(/['"]/g, "").trim(), fileName = url.split("/");
+        fileName = fileName[fileName.length - 1];
+
+        let file = path.join(Metalloriff.getPluginsFolderPath(), fileName);
+
+        fs.writeFileSync(file, res);
+
+        Metalloriff.showToast(`${pluginName} was updated to v${latestVersion}.`, "success");
+
+        let rnm = (window.bdplugins["Restart-No-More"] && window.pluginCookie["Restart-No-More"]) || (window.bdplugins["Restart No More"] && window.pluginCookie["Restart No More"]);
+
+        if(!rnm) {
+
+            if(!window.PluginUpdates.downloaded) {
+                
+                window.PluginUpdates.downloaded = [];
+
+                let button = $(`<button class="btn btn-reload ${DiscordModules.NoticeBarClasses.btn} ${DiscordModules.NoticeBarClasses.button}">Reload</button>`);
+
+                button.on("click", e => {
+                    e.preventDefault();
+                    window.location.reload(false);
+                });
+
+                let tooltip = document.createElement("div");
+                tooltip.className = "tooltip tooltip-bottom tooltip-black";
+
+                tooltip.style.maxWidth = "400px";
+                
+                button.on("mouseenter", () => {
+                    document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
+                    tooltip.innerText = window.PluginUpdates.downloaded.join(", ");
+                    tooltip.style.left = button.offset().left + (button.outerWidth() / 2) - ($(tooltip).outerWidth() / 2) + "px";
+                    tooltip.style.top = button.offset().top + button.outerHeight() + "px";
+                });
+
+                button.on("mouseleave", () => tooltip.remove());
+
+                document.getElementById("pluginNotice").appendChild(button);
+
+            }
+
+            window.PluginUpdates.plugins[url].version = latestVersion;
+            window.PluginUpdates.downloaded.push(pluginName);
+            Metalloriff.Updates.hideNotice(pluginName);
+
+        }
+
+    });
+
+};
+
+Metalloriff.Updates.check = function(plugin) {
+
+    let url = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
+
+    if(typeof window.PluginUpdates == "undefined") window.PluginUpdates = { plugins : {} };
+    window.PluginUpdates.plugins[url] = { name : plugin.getName(), raw : url, version : plugin.getVersion() };
+
+    Metalloriff.Updates.requestUpdateCheck(plugin.getName(), url);
+
+    if(typeof window.PluginUpdates.interval == "undefined") {
+        window.PluginUpdates.interval = setInterval(() => {
+            window.PluginUpdates.checkAll();
+        }, 7200000);
+    }
+
+    if(typeof window.PluginUpdates.checkAll == "undefined") {
+        window.PluginUpdates.checkAll = function() {
+            for(let key in this.plugins) {
+                Metalloriff.Updates.requestUpdateCheck(this.plugins[key].name, this.plugins[key].raw);
+            }
+        };
+    }
+
+};
+
+Metalloriff.Data = {};
+
+Metalloriff.Data.save = function(name, key, data) {
+    try { bdPluginStorage.set(name, key, data); }
+    catch(err) { console.warn(name, "failed to save data.", err); }
+};
+
+Metalloriff.Data.load = function(name, key, fallback) {
+    try { return $.extend(true, fallback ? fallback : {}, bdPluginStorage.get(name, key)); }
+    catch(err) { console.warn(name, "failed to load data.", err); }
+    return {};
+};
+
+Metalloriff.Events = {};
+
+Metalloriff.Events.onPluginLoaded = function(plugin) {
+
+    Metalloriff.showToast(`[${plugin.getName()}]: Plugin loaded.`, "success");
+    console.log(plugin.getName(), "loaded.");
+
+    plugin.ready = true;
+
+    try {
+
+        if(true || !Metalloriff.lastCheckedForUpdate && performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
+
+            let req = new XMLHttpRequest();
+
+            req.onreadystatechange = () => {
+
+                if(req.readyState == 4 && req.status == 200) {
+
+                    if(window.neatoLibSize && window.neatoLibSize != req.response.length) {
+
+                        new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
+                            try { plugin.stop(); }
+                            catch(e) { console.error(e); }
+                            setTimeout(() => {
+                                plugin.start();
+                            }, 100);
+                            document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+                        }
+
+                    }
+
+                    window.neatoLibSize = req.response.length;
+                }
+
+            };
+
+            req.open("GET", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?" + performance.now(), true);
+            req.send(null);
+
+            Metalloriff.lastCheckedForUpdate = performance.now();
+
+        }
+
+    } catch(err) { console.error(plugin.getName(), "failed to call onPluginLoaded event. If you see this, please screenshot it and send it to Metalloriff, because I probably broke something again.", err); }
+
+};
+
+Metalloriff.Events.classes = {
+    activityFeed : Metalloriff.Modules.get("activityFeed").activityFeed,
+    layer : Metalloriff.Modules.get("layer").layer,
+    socialLinks : Metalloriff.Modules.get("socialLinks").socialLinks
+};
+
+if(window.activeNeatoEvents == undefined) window.activeNeatoEvents = [];
+
+if(window.neatoObserver) window.neatoObserver.disconnect();
+window.neatoObserver = new MutationObserver(mutations => {
+
+    let call = type => {
+        for(let i = 0; i < window.activeNeatoEvents.length; i++) {
+            if(window.activeNeatoEvents[i].type == type) {
+                if(typeof(window.activeNeatoEvents[i].callback) == "function") {
+                    try { window.activeNeatoEvents[i].callback(); }
+                    catch(err) { console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback); }
+                }
+            }
+        }
+    };
+
+    for(let i = 0; i < mutations.length; i++) {
+
+        if(mutations[i].removedNodes[0] != undefined && mutations[i].removedNodes[0] instanceof Element) {
+            if(mutations[i].removedNodes[0].classList.contains(Metalloriff.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
+                call("switch");
+            }
+        }
+
+        let added = mutations[i].addedNodes[0];
+
+        if(added == undefined || !(added instanceof Element)) continue;
+
+        if(added.classList.contains(Metalloriff.Events.classes.layer) && added.getElementsByClassName(Metalloriff.Events.classes.socialLinks[0] != undefined)) call("settings");
+
+        if(added.classList.contains(Metalloriff.Events.classes.activityFeed) || added.id == "friends") call("switch");
+
+        if(added.classList.contains("messages-wrapper") || added.getElementsByClassName("messages-wrapper")[0] != undefined) call("switch");
+
+        if(added.classList.contains("message") && !added.classList.contains("message-sending")) call("message");
+
+    }
+
+});
+window.neatoObserver.observe(document, { childList : true, subtree : true });
+
+Metalloriff.Events.attach = function(eventType, event, options = {}) {
+    window.activeNeatoEvents.push({ callback : event, type : eventType, options : options });
+};
+
+Metalloriff.Events.detach = function(eventType, event) {
+    let idx = window.activeNeatoEvents.findIndex(e => e.callback == event && e.type == eventType);
+    if(idx != -1) window.activeNeatoEvents.splice(idx, 1);
+    else console.warn("Event could not be found.", event);
+};
+
+Metalloriff.ReactData = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+
+Metalloriff.ReactData.get = function(element) {
+
+    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+
+    return element[Object.keys(element).find(key => key.startsWith("__reactInternalInstance"))];
+
+};
+
+Metalloriff.ReactData.getEvents = function(element) {
+
+    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+
+    return element[Object.keys(element).find(key => key.startsWith("__reactEventHandlers"))];
+
+};
+
+Metalloriff.ReactData.getOwner = function(element) {
+
+    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+    
+    let reactData = this.get(element);
+
+    if(reactData == undefined) return null;
+
+    for(let c = reactData.return; !_.isNil(c); c = c.return) {
+        if(_.isNil(c)) continue;
+        let owner = c.stateNode;
+        if(!_.isNil(owner) && !(owner instanceof HTMLElement)) return owner;
+    }
+
+};
+
+Metalloriff.ReactData.getProps = function(element) {
+
+    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+
+    let owner = this.getOwner(element);
+
+    return owner ? owner.props : null;
+
 };
 
 Metalloriff.Debug = {};
@@ -996,11 +1298,11 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
 
     if(path.lastIndexOf("?") != -1) path = path.substring(0, path.lastIndexOf("?"));
 
-    PluginUtilities.showToast("Download started...");
+    Metalloriff.showToast("Download started...");
 
     if(fileSys.existsSync(path)) {
 
-        PluginUtilities.showToast("File already exists, random characters will be appended to the file name!", { type : "error" });
+        Metalloriff.showToast("File already exists, random characters will be appended to the file name!", "error");
 
         let fileExtension = path.substring(path.lastIndexOf("."), path.length);
 
@@ -1017,8 +1319,8 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
         x.on("end", () => {
 
             fileSys.writeFile(path, Buffer.concat(data), error => {
-                if(error) PluginUtilities.showToast("Failed to save file! Error: " + error.message, { type : "error" });
-                else PluginUtilities.showToast("File saved successfully!", { type : "success" });
+                if(error) Metalloriff.showToast("Failed to save file! Error: " + error.message, "error");
+                else Metalloriff.showToast("File saved successfully!", "success");
             });
 
             if(onCompleted != undefined) onCompleted(path);
@@ -1027,7 +1329,7 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
 
     });
 
-    request.on("error", error => { PluginUtilities.showToast("Failed to save file! Error: " + error.message, { type : "error" }); });
+    request.on("error", error => { Metalloriff.showToast("Failed to save file! Error: " + error.message, "error"); });
 
     request.end();
 
@@ -1051,7 +1353,7 @@ Metalloriff.requestFile = function(url, name = "unknown.png", onCompleted) {
 
     });
 
-    request.on("error", error => { PluginUtilities.showToast("Failed to request file! Error: " + error.message, { type : "error" }); });
+    request.on("error", error => { Metalloriff.showToast("Failed to request file! Error: " + error.message, "error"); });
 
     request.end();
 
@@ -1063,7 +1365,7 @@ Metalloriff.getClasses = function(classes, returnAll = true) {
 
     for(var i = 0; i < classes.length; i++) {
 
-        var module = InternalUtilities.WebpackModules.findByUniqueProperties([classes[i]]);
+        var module = Metalloriff.Modules.get(classes[i]);
 
         if(module != undefined) {
 
@@ -1083,21 +1385,21 @@ Metalloriff.getClasses = function(classes, returnAll = true) {
 
 };
 
+Metalloriff.getSelectedServer = function() {
+    return Metalloriff.Modules.get("getGuild").getGuild(Metalloriff.Modules.get("getGuildId").getGuildId());
+};
+
 Metalloriff.getSelectedChannel = function() {
-
-    return InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel"]).getChannel(InternalUtilities.WebpackModules.findByUniqueProperties(["getChannelId"]).getChannelId());
-
+    return Metalloriff.Modules.get("getChannel").getChannel(Metalloriff.Modules.get("getChannelId").getChannelId());
 };
 
 Metalloriff.getSelectedVoiceChannel = function() {
-
-    return InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel"]).getChannel(InternalUtilities.WebpackModules.findByUniqueProperties(["getVoiceChannelId"]).getVoiceChannelId());
-
+    return Metalloriff.Modules.get("getChannel").getChannel(Metalloriff.Modules.get("getVoiceChannelId").getVoiceChannelId());
 };
 
 Metalloriff.patchInternalFunction = function(functionName, newFunction, pluginName, replace = false) {
 
-    let module = InternalUtilities.WebpackModules.findByUniqueProperties([functionName]);
+    let module = Metalloriff.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1118,7 +1420,7 @@ Metalloriff.patchInternalFunction = function(functionName, newFunction, pluginNa
 
 Metalloriff.unpatchInternalFunction = function(functionName, pluginName) {
 
-    let module = InternalUtilities.WebpackModules.findByUniqueProperties([functionName]);
+    let module = Metalloriff.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1143,7 +1445,7 @@ Metalloriff.unpatchInternalFunction = function(functionName, pluginName) {
 
 Metalloriff.internalFunctionIsPatched = function(functionName, pluginName) {
 
-    let module = InternalUtilities.WebpackModules.findByUniqueProperties([functionName]);
+    let module = Metalloriff.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1165,8 +1467,8 @@ Metalloriff.unpatchInternalFunctions = function(functionNames, pluginName) {
     for(let i = 0; i < functionNames.length; i++) Metalloriff.unpatchInternalFunction(functionNames[i], pluginName);
 };
 
-Metalloriff.getModuleById = function(id) {
-    return InternalUtilities.WebpackModules.find(x => x._dispatchToken == "ID_" + id);
+Metalloriff.getLocalUser = function() {
+    return Metalloriff.Modules.get("getCurrentUser").getCurrentUser();
 };
 
 Metalloriff.getLocalStatus = function() {
@@ -1215,5 +1517,77 @@ Metalloriff.shuffleArray = function(array) {
     }
 
     return array;
+
+};
+
+Metalloriff.getPluginsFolderPath = function() {
+
+    let proc = require("process"), path = require("path");
+
+    switch(proc.platform) {
+        case "win32" : return path.resolve(proc.env.appdata, "BetterDiscord/plugins/");
+        case "darwin" : return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/plugins/");
+        default : path.resolve(proc.env.HOME, ".config/", "BetterDiscord/plugins/");
+    }
+
+};
+
+Metalloriff.getThemesFolderPath = function() {
+
+    let proc = require("process"), path = require("path");
+
+    switch(proc.platform) {
+        case "win32" : return path.resolve(proc.env.appdata, "BetterDiscord/themes/");
+        case "darwin" : return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/themes/");
+        default : path.resolve(proc.env.HOME, ".config/", "BetterDiscord/themes/");
+    }
+
+};
+
+Metalloriff.showToast = function(text, type, options = {}) {
+
+    if(document.getElementsByClassName("toasts")[0] == undefined) {
+        
+		let container = document.querySelector(".channels-3g2vYe + div, .channels-Ie2l6A + div"),
+		memberlist = container.getElementsByClassName("membersWrap-2h-GB4")[0],
+		form = container ? container.getElementsByTagName("form")[0] : undefined,
+		left = container ? container.getBoundingClientRect().left : 310,
+		right = memberlist ? memberlist.getBoundingClientRect().left : 0,
+		width = right ? right - container.getBoundingClientRect().left : container.offsetWidth,
+        bottom = form ? form.offsetHeight : 80,
+        toastWrapper = document.createElement("div");
+
+        toastWrapper.classList.add("toasts");
+
+        toastWrapper.style.setProperty("left", left + "px");
+        toastWrapper.style.setProperty("width", width + "px");
+        toastWrapper.style.setProperty("bottom", bottom + "px");
+
+        document.getElementsByClassName("app")[0].appendChild(toastWrapper);
+
+    }
+
+    let toast = document.createElement("div");
+
+    toast.classList.add("toast");
+    if(type) toast.classList.add("toast-" + type);
+    if(options.icon) toast.classList.add("icon");
+    if(options.color) toast.style.backgroundColor = options.color;
+
+    if(options.onclick) toast.addEventListener("click", options.onclick);
+
+    toast.innerText = text;
+
+    document.getElementsByClassName("toasts")[0].appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("closing");
+        setTimeout(() => {
+            toast.remove();
+            if(document.getElementsByClassName("toast")[0] == undefined) document.getElementsByClassName("toasts")[0].remove();
+        }, 300);
+    }, options.timeout || 3000);
+
+    return toast;
 
 };

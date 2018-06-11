@@ -4,7 +4,7 @@ class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "1.1.3"; }
+    getVersion() { return "1.1.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -194,8 +194,10 @@ class AutoCorrect {
 		}
 
 		this.initialized = true;
-        
-		this.switchEvent();
+
+		this.switch();
+
+		this.switchEvent = () => this.switch();
 		
 		NeatoLib.Events.attach("switch", this.switchEvent);
 		
@@ -203,7 +205,7 @@ class AutoCorrect {
 
     }
     
-    switchEvent() {
+    switch() {
 
 		if(!this.initialized) return;
 

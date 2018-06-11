@@ -4,7 +4,7 @@ class BDEmoteAutocomplete {
 	
     getName() { return "BDEmoteAutocomplete"; }
     getDescription() { return "Adds an auto-complete menu for BetterDiscord emotes."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "1.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -16,16 +16,21 @@ class BDEmoteAutocomplete {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -33,12 +38,12 @@ class BDEmoteAutocomplete {
 
 		setTimeout(() => {
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleSwitch("Case-sensitive", this.settings.caseSensitive, () => {
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleSwitch("Case-sensitive", this.settings.caseSensitive, () => {
                 this.settings.caseSensitive = !this.settings.caseSensitive;
                 this.saveSettings();
             }), this.getName());
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("bdea-enabled-channels", "Enabled emote channels", [
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("bdea-enabled-channels", "Enabled emote channels", [
                 { title : "TwitchGlobal", value : "TwitchGlobal", setValue : this.settings.enabledChannels.includes("TwitchGlobal") },
                 { title : "TwitchSubscriber", value : "TwitchSubscriber", setValue : this.settings.enabledChannels.includes("TwitchSubscriber") },
                 { title : "BTTV", value : "BTTV", setValue : this.settings.enabledChannels.includes("BTTV") },
@@ -51,64 +56,37 @@ class BDEmoteAutocomplete {
                 this.getEmotes();
             }), this.getName());
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Prefix to display autocomplete", "text", this.settings.prefix, e => {
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Prefix to display autocomplete", "text", this.settings.prefix, e => {
                 this.settings.prefix = e.target.value;
                 this.saveSettings();
             }, { tooltip : "If you set this, it will be required before an emote to display the auto-complete menu." }), this.getName());
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Auto-complete emote size", "number", this.settings.size, e => {
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Auto-complete emote size", "number", this.settings.size, e => {
                 this.settings.size = e.target.value;
                 this.saveSettings();
             }, { tooltip : "The size in pixels to display the auto-complete emotes." }), this.getName());
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Auto-complete results limit", "number", this.settings.resultsCap, e => {
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Auto-complete results limit", "number", this.settings.resultsCap, e => {
                 this.settings.resultsCap = e.target.value;
                 this.saveSettings();
             }, { tooltip : "Maximum amount of results to display. The higher this is, the slower larger results will be." }), this.getName());
             
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Auto-complete display delay (ms)", "number", this.settings.autocompleteDelay, e => {
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Auto-complete display delay (ms)", "number", this.settings.autocompleteDelay, e => {
                 this.settings.autocompleteDelay = e.target.value;
                 this.saveSettings();
             }, { tooltip : "Delay in millseconds to display the auto-complete menu after pressing a key." }), this.getName());
 
-            Metalloriff.Settings.pushChangelogElements(this);
+            NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
 
-		return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
 		
 	}
 
 	saveSettings() {
-		PluginUtilities.saveSettings(this.getName(), this.settings);		
+		NeatoLib.Settings.save(this);	
 	}
-	
-	initialize() {
-
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/BDEmoteAutocomplete.plugin.js");
-		
-		this.settings = PluginUtilities.loadSettings(this.getName(), {
-            displayUpdateNotes : true,
-            enabledChannels : ["TwitchGlobal", "TwitchSubscriber", "BTTV", "FrankerFaceZ", "BTTV2"],
-            prefix : "",
-            size : 16,
-            caseSensitive : true,
-            resultsCap : 15,
-            autocompleteDelay : 750
-		});
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
-		
-    }
     
     updateSelected() {
 
@@ -122,8 +100,20 @@ class BDEmoteAutocomplete {
     }
 
 	onLibLoaded() {
+        
+        NeatoLib.Updates.check(this);
 		
-		//if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+		this.settings = NeatoLib.Settings.load(this, {
+            displayUpdateNotes : true,
+            enabledChannels : ["TwitchGlobal", "TwitchSubscriber", "BTTV", "FrankerFaceZ", "BTTV2"],
+            prefix : "",
+            size : 16,
+            caseSensitive : true,
+            resultsCap : 15,
+            autocompleteDelay : 750
+        });
+		
+		//if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
         this.selectedIDX = 0;
         this.results = [];
@@ -229,7 +219,7 @@ class BDEmoteAutocomplete {
 
                 items[items.length - 1].addEventListener("click", e => {
                     words[words.length - 1] = emotes[this.selectedIDX].name + " ";
-                    Metalloriff.Chatbox.setText(words.join(" "));
+                    NeatoLib.Chatbox.setText(words.join(" "));
                     autocomplete.outerHTML = "";
                 });
 
@@ -248,19 +238,23 @@ class BDEmoteAutocomplete {
 
         this.initialized = true;
 
-        this.onSwitch();
-
         document.addEventListener("keydown", this.onGlobalKey);
+        
+        NeatoLib.Events.onPluginLoaded(this);
+
+        this.switchEvent();
+
+        NeatoLib.Events.attach("switch", this.switchEvent);
 
 	}
 
-    onSwitch() {
+    switchEvent() {
 
         if(this.initialized != true) return;
 
         if(this.emotes.length == 0) this.getEmotes();
 
-        let chatbox = Metalloriff.Chatbox.get();
+        let chatbox = NeatoLib.Chatbox.get();
 
         if(chatbox) chatbox.addEventListener("keyup", this.onChatInput);
 
@@ -288,13 +282,15 @@ class BDEmoteAutocomplete {
 	
     stop() {
 
-        let chatbox = Metalloriff.Chatbox.get();
+        let chatbox = NeatoLib.Chatbox.get();
 
         if(chatbox) chatbox.removeEventListener("keyup", this.onChatInput);
 
         document.removeEventListener("keydown", this.onGlobalKey);
 
         if(this.inputTimeout) clearTimeout(this.inputTimeout);
+
+        NeatoLib.Events.detach("switch", this.switchEvent);
 
 	}
 	

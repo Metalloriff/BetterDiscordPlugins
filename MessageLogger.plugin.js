@@ -194,9 +194,9 @@ class MessageLogger {
 		this.deletedMessageRecord = data.deletedMessageRecord;
 		this.editedMessageRecord = data.editedMessageRecord;
 
-		this.getUser = DiscordModules.UserStore.getUser;
-		this.getServer = DiscordModules.GuildStore.getGuild;
-		this.getChannel = DiscordModules.ChannelStore.getChannel;
+		this.getUser = NeatoLib.Modules.get("getUser").getUser;
+		this.getServer = NeatoLib.Modules.get("getGuild").getGuild;
+		this.getChannel = NeatoLib.Modules.get("getChannel").getChannel;
 
 		this.openUserContextMenu = NeatoLib.Modules.get(["openUserContextMenu"]).openUserContextMenu;
 

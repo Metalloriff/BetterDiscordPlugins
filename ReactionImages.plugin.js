@@ -4,7 +4,7 @@ class ReactionImages {
 	
     getName() { return "ReactionImages"; }
     getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
-    getVersion() { return "0.0.2"; }
+    getVersion() { return "1.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -16,16 +16,21 @@ class ReactionImages {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -33,7 +38,7 @@ class ReactionImages {
 
 		setTimeout(() => {
 
-			let group = Metalloriff.Settings.Elements.createGroup("Reaction folders"), list = group.lastChild;
+			let group = NeatoLib.Settings.Elements.createGroup("Reaction folders"), list = group.lastChild;
 
 			group.style.padding = "20px 0px";
 
@@ -47,7 +52,7 @@ class ReactionImages {
 
 				for(let i in this.settings.folders) {
 
-					list.appendChild(Metalloriff.Settings.Elements.createTextField(i, "text", this.settings.folders[i].path, e => {
+					list.appendChild(NeatoLib.Settings.Elements.createTextField(i, "text", this.settings.folders[i].path, e => {
 
 						let newPath = e.target.value, newName = newPath.substring(newPath.lastIndexOf("/") + 1, newPath.length);
 
@@ -56,7 +61,7 @@ class ReactionImages {
 							delete this.settings.folders[i];
 							this.refreshFolderDatas();
 							populateList();
-						} else if(newName != i) PluginUtilities.showToast("This folder does not exist!", { type : "error" });
+						} else if(newName != i) NeatoLib.showToast("This folder does not exist!", "error");
 
 					}));
 
@@ -70,8 +75,8 @@ class ReactionImages {
 
 				}
 
-				list.appendChild(Metalloriff.Settings.Elements.createButton("Add Folder", () => {
-					Metalloriff.browseForFile(folder => {
+				list.appendChild(NeatoLib.Settings.Elements.createButton("Add Folder", () => {
+					NeatoLib.browseForFile(folder => {
 						let path = folder.path.split("\\").join("/");
 						this.settings.folders[path.substring(path.lastIndexOf("/") + 1, path.length)] = { path : path, files : [] };
 						this.refreshFolderDatas();
@@ -79,7 +84,7 @@ class ReactionImages {
 					}, { directory : true });
 				}, "margin-right:20px;margin-top:20px;"));
 
-				list.appendChild(Metalloriff.Settings.Elements.createButton("Remove Selected Folder", () => {
+				list.appendChild(NeatoLib.Settings.Elements.createButton("Remove Selected Folder", () => {
 					delete this.settings.folders[this.selectedFolder];
 					this.refreshFolderDatas();
 					populateList();
@@ -87,49 +92,34 @@ class ReactionImages {
 
 			};
 
-			Metalloriff.Settings.pushElement(group, this.getName());
+			NeatoLib.Settings.pushElement(group, this.getName());
 
 			populateList();
 
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createHint("Hint: Hold shift when clicking a reaction image to send the image alone, without the message and without clearing the chat box."), this.getName());
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint("Hint: Hold shift when clicking a reaction image to send the image alone, without the message and without clearing the chat box."), this.getName());
 
-			Metalloriff.Settings.pushChangelogElements(this);
+			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
 
-		return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
 		
 	}
 
 	saveSettings() {
-		PluginUtilities.saveSettings(this.getName(), this.settings);		
-	}
-	
-	initialize() {
-
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/ReactionImages.plugin.js");
-		
-		this.settings = PluginUtilities.loadSettings(this.getName(), {
-			displayUpdateNotes : true,
-			folders : {}
-		});
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
-		
+		NeatoLib.Settings.save(this);
 	}
 
 	onLibLoaded() {
+
+		NeatoLib.Updates.check(this);
 		
-        //if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+		this.settings = NeatoLib.Settings.load(this, {
+			displayUpdateNotes : true,
+			folders : {}
+		});
+		
+        //if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
         
 		this.fs = require("fs");
 		
@@ -148,7 +138,7 @@ class ReactionImages {
 				if(idx == -1) continue;
 				else noneFound = false;
 
-				let folder = this.folders[folderName], sendFile = InternalUtilities.WebpackModules.findByUniqueProperties(["upload"]).upload;
+				let folder = this.folders[folderName], sendFile = NeatoLib.Modules.get("upload").upload;
 
 				if(folder) {
 
@@ -181,9 +171,9 @@ class ReactionImages {
 
 						shuffleButton.addEventListener("click", () => this.onChatInput(e, true));
 
-						new PluginTooltip.Tooltip($(shuffleButton), "Shuffle");
-
 						buttons.appendChild(shuffleButton);
+
+						NeatoLib.Tooltip.bind("Shuffle", shuffleButton);
 
 					}
 
@@ -193,7 +183,7 @@ class ReactionImages {
 
 					let i = 0, searchFilter = chatbox.value.substring(idx + folderName.length + 1, chatbox.length), filteredResults = searchFilter ? Array.filter(folder.files, x => x.fileName.toLowerCase().includes(searchFilter)) : folder.files;
 
-					if(shuffle) filteredResults = Metalloriff.shuffleArray(filteredResults);
+					if(shuffle) filteredResults = NeatoLib.shuffleArray(filteredResults);
 
 					for(let file of filteredResults) {
 
@@ -211,7 +201,7 @@ class ReactionImages {
 
 						images[images.length - 1].addEventListener("click", e => {
 
-							let channel = Metalloriff.getSelectedChannel();
+							let channel = NeatoLib.getSelectedChannel();
 
 							if(e.shiftKey) sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
 							else {
@@ -239,14 +229,18 @@ class ReactionImages {
 
         };
 
-		this.initialized = true;
+		NeatoLib.Events.onPluginLoaded(this);
 		
-		this.onSwitch();
+		this.switch();
+
+		this.switchEvent = () => this.switch();
+
+		NeatoLib.Events.attach("switch", this.switchEvent);
 
 	}
 
 	refreshFolderDatas() {
-		PluginUtilities.showToast("ReactionImages: Loading reaction data and generating icons, Discord may freeze temporarily.");
+		NeatoLib.showToast("ReactionImages: Loading reaction data and generating icons, Discord may freeze temporarily.");
 		this.folders = jQuery.extend(true, {}, this.settings.folders);
 		for(let i in this.folders) {
 			this.folders[i].files = [];
@@ -305,18 +299,19 @@ class ReactionImages {
 
 	}
 
-    onSwitch() {
+    switch() {
 
-        if(!this.initialized) return;
+        if(!this.ready) return;
 
-        this.chatbox = document.querySelector(".chat textarea");
+        this.chatbox = NeatoLib.Chatbox.get();
 
         if(this.chatbox) this.chatbox.addEventListener("keyup", this.onChatInput);
 
     }
 	
     stop() {
-        if(this.chatbox) this.chatbox.removeEventListener("keyup", this.onChatInput);
+		if(this.chatbox) this.chatbox.removeEventListener("keyup", this.onChatInput);
+		NeatoLib.Events.detach("switch", this.switchEvent);
 	}
 	
 }

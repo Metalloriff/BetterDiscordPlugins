@@ -26,7 +26,7 @@
 
 ## [Message Logger](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MessageLogger.plugin.js)
 - Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and all direct messages.
-- Keybind: Ctrl + M
+- Keybind Defaults: Ctrl + M, Ctrl + Alt + M
 - [View Preview](https://imgur.com/a/wxTZpym)
 - [View Video Preview](https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VideoExamples/MessageLogger.mp4)
 

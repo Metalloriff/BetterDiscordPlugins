@@ -1358,6 +1358,69 @@ NeatoLib.Debug.reloadLib = function() {
 
 };
 
+NeatoLib.Tooltip = {};
+
+NeatoLib.Tooltip.bind = function(content, element, options = {}) {
+
+    if(element.tooltip != undefined) element.tooltip.unbind();
+
+    const { side = "top", color = undefined, onShow = undefined, onHide = undefined } = options;
+
+    element.tooltip = {
+        tooltip : undefined,
+        node : element,
+        event : {
+            mouseenter : () => {
+                let tooltip = document.createElement("div");
+                tooltip.classList.add("tooltip", "tooltip-" + side, "tooltip-black");
+                tooltip.innerText = content;
+                tooltip.style.pointerEvents = "none";
+                if(color) tooltip.style.backgroundColor = color;
+                document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
+                element.tooltip.tooltip = tooltip;
+                let elementRect = element.getBoundingClientRect(), tooltipRect = tooltip.getBoundingClientRect();
+                switch(side) {
+                    case "top" : {
+                        tooltip.style.top = (elementRect.top - tooltipRect.height) + "px";
+                        tooltip.style.top = ((elementRect.top - (elementRect.height / 2)) - (tooltipRect.height / 2)) + "px";
+                    }
+                    case "bottom" : {
+                        tooltip.style.top = (elementRect.top + tooltipRect.height) + "px";
+                        tooltip.style.top = ((elementRect.top - (elementRect.height / 2)) - (tooltipRect.height / 2)) + "px";
+                    }
+                    case "right" : {
+                        tooltip.style.left = (elementRect.left + tooltipRect.width) + "px";
+                        tooltip.style.left = ((elementRect.left + (elementRect.width / 2)) - (tooltipRect.width / 2)) + "px";
+                    }
+                    case "left" : {
+                        tooltip.style.left = (elementRect.left - tooltipRect.width) + "px";
+                        tooltip.style.left = ((elementRect.left + (elementRect.width / 2)) - (tooltipRect.width / 2)) + "px";
+                    }
+                }
+                if(typeof onShow == "function") onShow(element.tooltip);
+            },
+            mouseleave : () => {
+                if(element.tooltip.tooltip) {
+                    element.tooltip.tooltip.remove();
+                    if(typeof onHide == "function") onHide(element.tooltip);
+                }
+            }
+        },
+        unbind : () => {
+            element.tooltip.event.mouseleave();
+            element.removeEventListener("mouseenter", element.tooltip.event.mouseenter);
+            element.removeEventListener("mouseleave", element.tooltip.event.mouseleave);
+            delete element.tooltip;
+        }
+    };
+
+    element.addEventListener("mouseenter", element.tooltip.event.mouseenter);
+    element.addEventListener("mouseleave", element.tooltip.event.mouseleave);
+
+    return element.tooltip;
+
+};
+
 NeatoLib.downloadFile = function(url, path, fileName, onCompleted) {
 
     let fileSys = require("fs"), http = require("https");

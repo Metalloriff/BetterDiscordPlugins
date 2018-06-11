@@ -1263,6 +1263,8 @@ NeatoLib.ContextMenu = {};
 NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
 
 NeatoLib.ContextMenu.create = function(items, event, options = {}) {
+
+    this.close();
     
     let menu = document.createElement("div");
 
@@ -1270,19 +1272,20 @@ NeatoLib.ContextMenu.create = function(items, event, options = {}) {
 
     for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
 
-    menu.style.left = event.clientX;
-    menu.style.top = event.clientY;
-
     if(options.style) menu.style = options.style;
 
+    menu.style.zIndex = 10000;
+    menu.style.top = event.clientY + "px";
+    menu.style.left = event.clientX + "px";
+
     let close = () => {
+        menu.remove();
         document.removeEventListener("click", onClick);
         document.removeEventListener("keyup", onKeyUp);
-        menu.remove();
     };
 
     let onClick = e => {
-        if(!$(menu).has(e.target)) close();
+        if(!$(menu).has(e.target).length) close();
     };
 
     let onKeyUp = e => {
@@ -1326,8 +1329,13 @@ NeatoLib.ContextMenu.createItem = function(label, callback = undefined, options 
 
 };
 
+NeatoLib.ContextMenu.get = function() {
+    return document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu)[0];
+};
+
 NeatoLib.ContextMenu.close = function() {
-    document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu)[0].style.display = "none";
+    let cm = NeatoLib.ContextMenu.get();
+    if(cm) cm.style.display = "none";
 };
 
 NeatoLib.Debug = {};

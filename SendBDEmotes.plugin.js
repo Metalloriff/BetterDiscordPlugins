@@ -4,61 +4,17 @@ class SendBDEmotes {
 	
     getName() { return "Send BD Emotes"; }
     getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-    getVersion() { return "0.5.10"; }
+    getVersion() { return "1.5.10"; }
     getAuthor() { return "Metalloriff"; }
 	
     load() {}
 
     start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
-		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
-	}
 
-	getSettingsPanel() {
-
-		setTimeout(() => {
-			
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createRadioGroup("sbde-size", "Emote size:", [
-				{ title : "Small", description : "BD default", value : 1 },
-				{ title : "Medium", value : 2 },
-				{ title : "Large", value : 4 }
-			], this.settings.emoteSize, (e, choice) => {
-				this.settings.emoteSize = choice.value;
-				this.saveSettings();
-			}), this.getName());
-
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("sbde-toggle-group", "Settings", [
-				{ title : "Send emotes as links (faster)", value : "sendAsLink", setValue : this.settings.sendAsLink },
-				{ title : "Display emote auto-complete preview", value : "displayPreview", setValue : this.settings.displayPreview }
-			], choice => {
-				this.settings[choice.value] = !this.settings[choice.value];
-				this.saveSettings();
-			}), this.getName());
-
-			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Maximum amount of emotes to preview", "number", this.settings.previewLimit, e => {
-				this.settings.previewLimit = e.target.value;
-				this.saveSettings();
-			}), this.getName());
-
-		}, 0);
-
-		return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
-
-	}
-
-	saveSettings() { PluginUtilities.saveSettings("SendBDEmotes", this.settings); }
-	
-	initialize(){
-
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SendBDEmotes.plugin.js");
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
@@ -68,14 +24,54 @@ class SendBDEmotes {
 			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
 		
-		this.hasPermission = InternalUtilities.WebpackModules.findByUniqueProperties(["can"]).can;
-		this.uploadFile = InternalUtilities.WebpackModules.findByUniqueProperties(["upload"]).upload;
-		this.messageModule = InternalUtilities.WebpackModules.findByUniqueProperties(["sendMessage"]);
+	}
 
-		this.settings = PluginUtilities.loadSettings("SendBDEmotes", {
+	getSettingsPanel() {
+
+		setTimeout(() => {
+			
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createRadioGroup("sbde-size", "Emote size:", [
+				{ title : "Small", description : "BD default", value : 1 },
+				{ title : "Medium", value : 2 },
+				{ title : "Large", value : 4 }
+			], this.settings.emoteSize, (e, choice) => {
+				this.settings.emoteSize = choice.value;
+				this.saveSettings();
+			}), this.getName());
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("sbde-toggle-group", "Settings", [
+				{ title : "Send emotes as links (faster)", value : "sendAsLink", setValue : this.settings.sendAsLink },
+				{ title : "Display emote auto-complete preview", value : "displayPreview", setValue : this.settings.displayPreview }
+			], choice => {
+				this.settings[choice.value] = !this.settings[choice.value];
+				this.saveSettings();
+			}), this.getName());
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Maximum amount of emotes to preview", "number", this.settings.previewLimit, e => {
+				this.settings.previewLimit = e.target.value;
+				this.saveSettings();
+			}), this.getName());
+
+		}, 0);
+
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
+
+	}
+
+	saveSettings() { NeatoLib.Settings.save(this); }
+
+	onLibLoaded() {
+
+		NeatoLib.Updates.check(this);
+		
+		this.hasPermission = NeatoLib.Modules.get(["can"]).can;
+		this.uploadFile = NeatoLib.Modules.get(["upload"]).upload;
+		this.messageModule = NeatoLib.Modules.get(["sendMessage"]);
+
+		this.settings = NeatoLib.Settings.load(this, {
 			emoteSize : 4,
 			sendAsLink : false,
 			displayPreview : true,
@@ -225,12 +221,12 @@ class SendBDEmotes {
 
 		};
 
-		this.onSwitch();
+		NeatoLib.Events.onPluginLoaded(this);
 
-	}
+		this.switchEvent();
 
-	onLibLoaded() {
-		this.initialized = true;
+		NeatoLib.Events.attach("switch", this.switchEvent);
+
 	}
 
 	getEmotes() {
@@ -246,33 +242,35 @@ class SendBDEmotes {
 			}
 		}
 
+        this.emotes.sort((a, b) => a.name.length - b.name.length);
+
 	}
 
 	trySend(message, emoteName, emoteURL, size = 4, animated = false) {
 
 		let i = emoteURL.lastIndexOf("1"), url = emoteURL.substring(0, i) + size + emoteURL.substring(i + 1);
 
-		if(this.settings.sendAsLink) this.messageModule.sendMessage(Metalloriff.getSelectedChannel().id, { content : message + " " + url });
-		else Metalloriff.requestFile(url, emoteName + (animated ? ".gif" : ".png"), file => {
+		if(this.settings.sendAsLink) this.messageModule.sendMessage(NeatoLib.getSelectedTextChannel().id, { content : message + " " + url });
+		else NeatoLib.requestFile(url, emoteName + (animated ? ".gif" : ".png"), file => {
 
 			if(file.size < 100) {
 				if(size > 1) this.trySend(message, emoteName, emoteURL, size - 1, animated);
 				return;
 			}
 
-			this.uploadFile(Metalloriff.getSelectedChannel().id, file, { content : message, tts : false });
+			this.uploadFile(NeatoLib.getSelectedTextChannel().id, file, { content : message, tts : false });
 
 		});
 
 	}
 
-    onSwitch(){
+    switchEvent(){
 
-		if(!this.initialized) return;
+		if(!this.ready) return;
 
 		if(this.emotes == undefined || this.emotes[0] == undefined) this.getEmotes();
 
-		let chatbox = Metalloriff.Chatbox.get();
+		let chatbox = NeatoLib.Chatbox.get();
 
 		if(chatbox) {
 			chatbox.addEventListener("keydown", this.onKeyDown);
@@ -283,12 +281,14 @@ class SendBDEmotes {
 	
     stop() {
 
-		let chatbox = Metalloriff.Chatbox.get();
+		let chatbox = NeatoLib.Chatbox.get();
 		
 		if(chatbox) {
 			chatbox.removeEventListener("keydown", this.onKeyDown);
 			chatbox.removeEventListener("keyup", this.onKeyUp);
 		}
+
+		NeatoLib.Events.detach("switch", this.switchEvent);
 
     }
 	

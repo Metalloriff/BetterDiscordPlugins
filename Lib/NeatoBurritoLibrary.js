@@ -305,7 +305,7 @@ NeatoLib.Settings.Elements.createTextField = function(label, type, value, callba
         <input value="${value}" type="${type}" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
     `);
 
-    if(options.tooltip) new PluginTooltip.Tooltip($(element), options.tooltip, { side : "left" }); //remove
+    if(options.tooltip) NeatoLib.Tooltip.bind(options.tooltip, element, { side : "left" });
 
     element.querySelector("input").addEventListener(options.callbackType || "focusout", e => callback(e));
 
@@ -1360,9 +1360,9 @@ NeatoLib.Debug.reloadLib = function() {
 
 NeatoLib.Tooltip = {};
 
-NeatoLib.Tooltip.bind = function(content, element, options = {}) {
+NeatoLib.Tooltip.attach = function(content, element, options = {}) {
 
-    if(element.tooltip != undefined) element.tooltip.unbind();
+    if(element.tooltip != undefined) element.tooltip.detach();
 
     const { side = "top", color = undefined, onShow = undefined, onHide = undefined } = options;
 
@@ -1378,23 +1378,27 @@ NeatoLib.Tooltip.bind = function(content, element, options = {}) {
                 if(color) tooltip.style.backgroundColor = color;
                 document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
                 element.tooltip.tooltip = tooltip;
-                let elementRect = element.getBoundingClientRect(), tooltipRect = tooltip.getBoundingClientRect();
+                let elementRect = element.getBoundingClientRect();
                 switch(side) {
                     case "top" : {
-                        tooltip.style.top = (elementRect.top - tooltipRect.height) + "px";
-                        tooltip.style.top = ((elementRect.top - (elementRect.height / 2)) - (tooltipRect.height / 2)) + "px";
+                        tooltip.style.top = (elementRect.top - tooltip.offsetHeight) + "px";
+                        tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
+                        break;
                     }
                     case "bottom" : {
-                        tooltip.style.top = (elementRect.top + tooltipRect.height) + "px";
-                        tooltip.style.top = ((elementRect.top - (elementRect.height / 2)) - (tooltipRect.height / 2)) + "px";
+                        tooltip.style.top = (elementRect.top + element.offsetHeight) + "px";
+                        tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
+                        break;
                     }
                     case "right" : {
-                        tooltip.style.left = (elementRect.left + tooltipRect.width) + "px";
-                        tooltip.style.left = ((elementRect.left + (elementRect.width / 2)) - (tooltipRect.width / 2)) + "px";
+                        tooltip.style.left = (elementRect.left + element.offsetWidth) + "px";
+                        tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
+                        break;
                     }
                     case "left" : {
-                        tooltip.style.left = (elementRect.left - tooltipRect.width) + "px";
-                        tooltip.style.left = ((elementRect.left + (elementRect.width / 2)) - (tooltipRect.width / 2)) + "px";
+                        tooltip.style.left = (elementRect.left - tooltip.offsetWidth) + "px";
+                        tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
+                        break;
                     }
                 }
                 if(typeof onShow == "function") onShow(element.tooltip);
@@ -1406,7 +1410,7 @@ NeatoLib.Tooltip.bind = function(content, element, options = {}) {
                 }
             }
         },
-        unbind : () => {
+        detach : () => {
             element.tooltip.event.mouseleave();
             element.removeEventListener("mouseenter", element.tooltip.event.mouseenter);
             element.removeEventListener("mouseleave", element.tooltip.event.mouseleave);
@@ -1703,7 +1707,7 @@ NeatoLib.showToast = function(text, type, options = {}) {
     let toast = document.createElement("div");
 
     toast.classList.add("toast");
-    if(type) toast.classList.add("toast-" + type);
+    if(typeof type == "string") toast.classList.add("toast-" + type);
     if(options.icon) toast.classList.add("icon");
     if(options.color) toast.style.backgroundColor = options.color;
 

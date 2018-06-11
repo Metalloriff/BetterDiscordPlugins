@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "1.5.6"; }
+    getVersion() { return "1.6.6"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -44,6 +44,12 @@ class MessageLogger {
 			"0.5.2" :
 			`
 				Added sent message cap and saved message cap settings.
+			`,
+			"1.6.6" :
+			`
+				Updated everything to only depend on my lib.
+				Added settings to reconfigure the keybinds.
+				Re-added the message context menu.
 			`
 		};
 	}
@@ -78,11 +84,15 @@ class MessageLogger {
 				{ title : "Ignore muted channels and server", value : "ignoreMuted", setValue : this.settings.ignoreMuted },
 				{ title : "Ignore bots", value : "ignoreBots", setValue : this.settings.ignoreBots },
 				{ title : "Ignore message posted by you", value : "ignoreSelf", setValue : this.settings.ignoreSelf },
-				{ title : "Disable log window keybind (Ctrl + M)", value : "disableKeybind", setValue : this.settings.disableKeybind },
+				{ title : "Disable keybinds", value : "disableKeybind", setValue : this.settings.disableKeybind },
 				{ title : "Display clear log button at the top of the log", value : "clearButtonOnTop", setValue : this.settings.clearButtonOnTop },
 				{ title : "Cache all received images. (Attempted fix to show deleted images, disable this if you notice a decline in your internet speed)", value : "cacheAllImages", setValue : this.settings.cacheAllImages }
 			], choice => {
 				this.settings[choice.value] = !this.settings[choice.value];
+				if(choice.value == "disableKeybind") {
+					this.unregisterKeybinds();
+					this.registerKeybinds();
+				}
 				this.saveSettings();
 			}), this.getName());
 
@@ -120,6 +130,24 @@ class MessageLogger {
 			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createTextField("Saved message cap", "number", this.settings.savedCap, e => {
 				this.settings.savedCap = e.target.value;
 				this.saveSettings();
+			}), this.getName());
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createKeybindInput("Open log", this.settings.openLogKeybind, newBind => {
+				if(newBind) {
+					this.unregisterKeybinds();
+					this.settings.openLogKeybind = newBind;
+					this.registerKeybinds();
+					this.saveSettings();
+				} else NeatoLib.showToast("Keybind empty!", "error");
+			}), this.getName());
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createKeybindInput("Open log filtered by selected channel", this.settings.openLogFilteredKeybind, newBind => {
+				if(newBind) {
+					this.unregisterKeybinds();
+					this.settings.openLogFilteredKeybind = newBind;
+					this.registerKeybinds();
+					this.saveSettings();
+				} else NeatoLib.showToast("Keybind empty!", "error");
 			}), this.getName());
 
 			/* NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ml-count-toggles", "Display amount of new messages since the last time the channel was visited", [
@@ -182,8 +210,18 @@ class MessageLogger {
 			disableKeybind : false,
 			displayUpdateNotes : true,
 			clearButtonOnTop : false,
-			cacheAllImages : true
+			cacheAllImages : true,
+			openLogKeybind : {
+				primaryKey : "KeyM",
+				modifiers : ["ControlLeft"]
+			},
+			openLogFilteredKeybind : {
+				primaryKey : "KeyM",
+				modifiers : ["ControlLeft", "AltLeft"]
+			}
 		});
+
+		this.registerKeybinds();
 
 		let data = NeatoLib.Data.load(this.getName() + "Data", "data", {
 			deletedMessageRecord : [],
@@ -208,17 +246,6 @@ class MessageLogger {
 		this.$document.on("contextmenu.MessageLogger", e => {
 			if(e.target.parentElement.classList.contains("guild-inner")) this.onGuildContext(e);
 			if(e.target.parentElement.classList.contains("message-text")) this.onMessageContext();
-		});
-
-		this.$document.on("keydown.MessageLogger", e => {
-
-			if(e.key == "Escape") $(".ml-backdrop").click();
-
-			let channel = NeatoLib.getSelectedTextChannel();
-			if(channel && !this.settings.disableKeybind && e.ctrlKey && e.altKey && e.key == "m") this.filter = "channel: " + channel.id;
-
-			if(!this.settings.disableKeybind && e.ctrlKey && e.key == "m") this.openWindow("deleted");
-
 		});
 
 		this.helpMessage = 
@@ -369,6 +396,23 @@ class MessageLogger {
 
 		NeatoLib.Events.onPluginLoaded(this);
 
+	}
+
+	unregisterKeybinds() {
+		NeatoLib.Keybinds.detachListener("ml-open-log-filtered");
+		NeatoLib.Keybinds.detachListener("ml-open-log");
+	}
+
+	registerKeybinds() {
+
+		if(this.settings.disableKeybind) return;
+
+		NeatoLib.Keybinds.attachListener("ml-open-log-filtered", this.settings.openLogFilteredKeybind, () => {
+			let channel = NeatoLib.getSelectedTextChannel();
+			if(channel) this.filter = "channel: " + channel.id;
+			this.openWindow("deleted");
+		});
+		NeatoLib.Keybinds.attachListener("ml-open-log", this.settings.openLogKeybind, () => this.openWindow("deleted"));
 	}
 
 	switch() {
@@ -849,12 +893,12 @@ class MessageLogger {
 		return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
 	}
 
-	onGuildContext(e) { //change this back to have a "message logger" submenu, when I'm not lazy.
+	onGuildContext(e) {
 
 		if(this.settings.type == "all") return;
 
 		let id = e.target.href.match(/\d+/)[0], updateButtonContent = () => {
-			button.firstChild.innerText = (this.settings.list.includes(id) ? "Remove From Log " : "Add To Log ") + (this.settings.type == "blacklist" ? "Blacklist" : "Whitelist");
+			button.firstChild.innerText = (this.settings.list.includes(id) ? "Remove From " : "Add To ") + (this.settings.type == "blacklist" ? "Blacklist" : "Whitelist");
 		};
 
 		let button = NeatoLib.ContextMenu.createItem("...", () => {
@@ -870,27 +914,21 @@ class MessageLogger {
 
 		updateButtonContent();
 
-		document.getElementsByClassName(this.classes.itemGroup)[1].appendChild(button);
+		document.getElementsByClassName(this.classes.itemGroup)[1].appendChild(NeatoLib.ContextMenu.createSubMenu("Message Logger", [button], { callback : () => { this.openWindow("deleted"); NeatoLib.ContextMenu.close(); }}));
 
 	}
 
-	onMessageContext() { //and re-add this.
-
-		return;
-
-		let menu = new PluginContextMenu.Menu();
-
-		menu.addItems(
-			new PluginContextMenu.TextItem("View Sent Messages", { callback : () => { this.openWindow("sent"); this.getContextMenu().style.display = "none"; }}),
-			new PluginContextMenu.TextItem("View Deleted Messages", { callback : () => { this.openWindow("deleted"); this.getContextMenu().style.display = "none"; }}),
-			new PluginContextMenu.TextItem("View Edited Messages", { callback : () => { this.openWindow("edited"); this.getContextMenu().style.display = "none"; }}),
-			new PluginContextMenu.TextItem("View Ghost Pings", { callback : () => { this.openWindow("ghostpings"); this.getContextMenu().style.display = "none"; }}),
-			new PluginContextMenu.TextItem("Settings", { callback : () => NeatoLib.Settings.showPluginSettings(this.getName()) })
-		);
+	onMessageContext() {
 
 		let itemGroups = document.getElementsByClassName(this.classes.itemGroup);
 
-		itemGroups[itemGroups.length - 1].insertAdjacentElement("beforeend", new PluginContextMenu.SubMenuItem("Message Logger", menu).element[0]);
+		itemGroups[itemGroups.length - 1].insertAdjacentElement("beforeend", NeatoLib.ContextMenu.createSubMenu("Open Message Log", [
+			NeatoLib.ContextMenu.createItem("Sent Messages", () => { this.openWindow("sent"); NeatoLib.ContextMenu.close(); }),
+			NeatoLib.ContextMenu.createItem("Deleted Messages", () => { this.openWindow("deleted"); NeatoLib.ContextMenu.close(); }),
+			NeatoLib.ContextMenu.createItem("Edited Messages", () => { this.openWindow("edited"); NeatoLib.ContextMenu.close(); }),
+			NeatoLib.ContextMenu.createItem("Ghost Pings", () => { this.openWindow("ghostpings"); NeatoLib.ContextMenu.close(); }),
+			NeatoLib.ContextMenu.createItem("Plugin Settings", () => { NeatoLib.Settings.showPluginSettings(this.getName()); NeatoLib.ContextMenu.close(); })
+		]));
 
 	}
 
@@ -917,6 +955,8 @@ class MessageLogger {
 		if(this.messageObserver) this.messageObserver.disconnect();
 
 		NeatoLib.Events.detach("switch", this.switchEvent);
+
+		this.unregisterKeybinds();
 
 	}
 	

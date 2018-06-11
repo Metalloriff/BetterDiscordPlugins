@@ -305,7 +305,7 @@ NeatoLib.Settings.Elements.createTextField = function(label, type, value, callba
         <input value="${value}" type="${type}" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
     `);
 
-    if(options.tooltip) new PluginTooltip.Tooltip($(element), options.tooltip, { side : "left" });
+    if(options.tooltip) new PluginTooltip.Tooltip($(element), options.tooltip, { side : "left" }); //remove
 
     element.querySelector("input").addEventListener(options.callbackType || "focusout", e => callback(e));
 
@@ -970,9 +970,7 @@ NeatoLib.Updates.requestUpdateCheck = function(pluginName, url) {
         if(!latestVersion) return;
         latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
 
-        console.log(window.PluginUpdates[url].version, latestVersion);
-
-        if(window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
+        if(window.PluginUpdates.plugins[url] && window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
         else NeatoLib.Updates.hideNotice(pluginName);
 
     });
@@ -1409,7 +1407,7 @@ NeatoLib.downloadFile = function(url, path, fileName, onCompleted) {
 
 NeatoLib.requestFile = function(url, name = "unknown.png", onCompleted) {
 
-    var http = require(url.split("://")[0]);
+    var http = require("https");
 
     var request = http.request(url, x => {
 

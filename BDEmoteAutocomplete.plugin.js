@@ -4,7 +4,7 @@ class BDEmoteAutocomplete {
 	
     getName() { return "BDEmoteAutocomplete"; }
     getDescription() { return "Adds an auto-complete menu for BetterDiscord emotes."; }
-    getVersion() { return "1.0.2"; }
+    getVersion() { return "1.0.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -242,13 +242,15 @@ class BDEmoteAutocomplete {
         
         NeatoLib.Events.onPluginLoaded(this);
 
-        this.switchEvent();
+		this.switch();
+
+		this.switchEvent = () => this.switch();
 
         NeatoLib.Events.attach("switch", this.switchEvent);
 
 	}
 
-    switchEvent() {
+    switch() {
 
         if(this.initialized != true) return;
 

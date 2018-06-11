@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "1.5.5"; }
+    getVersion() { return "1.5.6"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -361,7 +361,9 @@ class MessageLogger {
 		
 		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
-		this.switchEvent();
+		this.switch();
+
+		this.switchEvent = () => this.switch();
 
 		NeatoLib.Events.attach("switch", this.switchEvent);
 
@@ -369,7 +371,7 @@ class MessageLogger {
 
 	}
 
-	switchEvent() {
+	switch() {
 
 		if(this.ready != true || document.getElementsByClassName("messages scroller")[0] == undefined) return;
 

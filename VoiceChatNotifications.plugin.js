@@ -17,9 +17,9 @@ class VoiceChatNotifications {
 
 	}
 	
-    getName() { return "Voice Chat Notifications"; }
+    getName() { return "VoiceChatNotifications"; }
     getDescription() { return "Displays notifications when users connect to/disconnect from, mute/unmute themselves, and deafen/undeafen themselves in the voice channel you're in. Press Alt + V to open the voice log."; }
-    getVersion() { return "1.1.3"; }
+    getVersion() { return "2.2.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -37,6 +37,11 @@ class VoiceChatNotifications {
             `
                 Changes are now logged while in DnD, without notifications, if suppressed.
                 Added a server mute and deafen setting.
+            `,
+            "1.2.3" :
+            `
+                Updated the plugin from Zere's lib to only depend on my lib.
+                The plugin name was changed. This will require you to re-enable the plugin.
             `
 		};
 	}
@@ -45,16 +50,21 @@ class VoiceChatNotifications {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.Metalloriff !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
     }
     
@@ -62,7 +72,7 @@ class VoiceChatNotifications {
 
         setTimeout(() => {
 
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("vcn-toggles", "Settings", [
+            NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("vcn-toggles", "Settings", [
                 { title : "Display notifications on user connect/disconnect", value : "logConnections", setValue : this.settings.logConnections },
                 { title : "Display notificaitons on user mute/unmute", value : "logMutes", setValue : this.settings.logMutes },
                 { title : "Display notifications on user deafen/undeafen", value : "logDeafens", setValue : this.settings.logDeafens },
@@ -75,56 +85,39 @@ class VoiceChatNotifications {
                 this.saveSettings();
             }), this.getName());
 
-            Metalloriff.Settings.pushChangelogElements(this);
+            NeatoLib.Settings.pushChangelogElements(this);
 
         }, 0);
 
-        return `${Metalloriff.Settings.Elements.pluginNameLabel(this.getName())}`;
+        return `${NeatoLib.Settings.Elements.pluginNameLabel(this.getName())}`;
 
     }
 
-    saveSettings() { PluginUtilities.saveSettings("VoiceChatNotifications", this.settings); }
-	
-	initialize() {
-        
-        this.settings = PluginUtilities.loadSettings("VoiceChatNotifications", this.defaultSettings);
-
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/VoiceChatNotifications.plugin.js");
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
-		
-	}
+    saveSettings() { NeatoLib.Settings.save(this); }
 
 	onLibLoaded() {
+        
+        this.settings = NeatoLib.Settings.load(this, this.defaultSettings);
 
-        if(this.settings.displayUpdateNotes) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
+        NeatoLib.Updates.check(this);
+
+        if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
         this.log = [];
 
-        let getVoiceStates = InternalUtilities.WebpackModules.findByUniqueProperties(["getVoiceState"]).getVoiceStates,
-            getUser = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]).getUser,
-            getChannel = InternalUtilities.WebpackModules.findByUniqueProperties(["getChannel"]).getChannel;
+        let getVoiceStates = NeatoLib.Modules.get(["getVoiceState"]).getVoiceStates,
+            getUser = NeatoLib.Modules.get(["getUser"]).getUser,
+            getChannel = NeatoLib.Modules.get(["getChannel"]).getChannel;
         
         let lastStates = {};
 
-        let localUser = PluginUtilities.getCurrentUser();
-
-        console.log(getVoiceStates(Metalloriff.getSelectedVoiceChannel().guild_id)); //
+        let localUser = NeatoLib.getLocalUser();
 
         this.update = setInterval(() => {
 
             if(!this.settings.displayWhileFocused && this.focused) return;
         
-            let currentCall = Metalloriff.getSelectedVoiceChannel();
+            let currentCall = NeatoLib.getSelectedVoiceChannel();
 
             if(currentCall == undefined) return;
             
@@ -138,7 +131,7 @@ class VoiceChatNotifications {
                     if(!this.settings.logConnections) continue;
                     let user = getUser(id), channel = getChannel(newStates[id].channelId);
                     if(user && channel) {
-                        if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} joined ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                        if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} joined ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                         this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Joined ${channel.name}` });
                     }
                 } else {
@@ -148,7 +141,7 @@ class VoiceChatNotifications {
                         let user = getUser(id), channel = getChannel(newStates[id].channelId);
 
                         if(user && channel) {
-                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} moved to ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} moved to ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Moved to ${channel.name}` });
                         }
 
@@ -161,7 +154,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].deaf ? "server deafened" : "server undeafened"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].deaf ? "server deafened" : "server undeafened"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].deaf ? "Server deafened" : "Server undeafened" });
                         }
 
@@ -174,7 +167,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].mute ? "server muted" : "server unmuted"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].mute ? "server muted" : "server unmuted"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].mute ? "Server muted" : "Server unmuted" });
                         }
 
@@ -187,7 +180,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfDeaf ? "deafened" : "undeafened"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfDeaf ? "deafened" : "undeafened"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].selfDeaf ? "Deafened" : "Undeafened" });
                         }
 
@@ -200,7 +193,7 @@ class VoiceChatNotifications {
                         let user = getUser(id);
 
                         if(user) {
-                            if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfMute ? "muted" : "unmuted"}`, { silent : true, icon : user.getAvatarURL() });
+                            if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} ${newStates[id].selfMute ? "muted" : "unmuted"}`, { silent : true, icon : user.getAvatarURL() });
                             this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : newStates[id].selfMute ? "Muted" : "Unmuted" });
                         }
 
@@ -217,7 +210,7 @@ class VoiceChatNotifications {
                 if(newStates[id] == undefined && id != localUser.id) {
                     let user = getUser(id), channel = getChannel(lastStates[id].channelId);
                     if(user && channel) {
-                        if(!this.settings.suppressInDnd || Metalloriff.getLocalStatus() != "dnd") new Notification(`${user.username} left ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
+                        if(!this.settings.suppressInDnd || NeatoLib.getLocalStatus() != "dnd") new Notification(`${user.username} left ${channel.name}`, { silent : true, icon : user.getAvatarURL() });
                         this.log.push({ avatar : user.getAvatarURL(), username : user.username, timestamp : new Date().toLocaleTimeString(), text : `Left ${channel.name}` });
                     }
                 }
@@ -242,7 +235,7 @@ class VoiceChatNotifications {
 
                 if(document.getElementById("vcn-log")) return;
 
-                let list = Metalloriff.UI.createBasicScrollList("vcn-log", "Voice Notification Log", { width : 400, height : 500 });
+                let list = NeatoLib.UI.createBasicScrollList("vcn-log", "Voice Notification Log", { width : 400, height : 500 });
 
                 if(this.log.length > 50) this.log.splice(50, this.log.length);
 
@@ -271,6 +264,8 @@ class VoiceChatNotifications {
         };
 
         document.addEventListener("keydown", this.onKeyDown);
+        
+        NeatoLib.Events.onPluginLoaded(this);
 
     }
 	
@@ -284,6 +279,8 @@ class VoiceChatNotifications {
         }
 
         if(this.onKeyDown) document.removeEventListener("keydown", this.onKeyDown);
+
+        this.ready = false;
 
 	}
 	

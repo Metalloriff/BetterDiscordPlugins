@@ -423,7 +423,7 @@ NeatoLib.Settings.Elements.createKeybindInput = function(title, value, callback,
 
     let element = document.createElement("div"), v = value.primaryKey || "", oldValue = value;
 
-    if(value.modifiers && value.modifiers[0]) v = value.modifiers.join(" + ") || "" + " + " + (value.primaryKey || "");
+    if(value.modifiers && value.modifiers[0]) v = (value.modifiers.join(" + ") || "") + " + " + (value.primaryKey || "");
 
     if(options.global) v = value;
 
@@ -459,7 +459,7 @@ NeatoLib.Settings.Elements.createKeybindInput = function(title, value, callback,
         </div>
     `);
 
-    let isRecording = false, primaryKey = value.primaryKey, modifiers = value.modifiers || [], globalKeys = [];
+    let isRecording = false, primaryKey = "", modifiers = [], globalKeys = [];
 
     let keyEvent = e => {
 
@@ -859,50 +859,54 @@ NeatoLib.Keybinds = {};
 
 NeatoLib.Keybinds.globalShortcut = require("electron").remote.globalShortcut;
 
-NeatoLib.Keybinds.activeListeners = {};
-
 NeatoLib.Keybinds.attachListener = function(id, key, event, options = {}) {
+
+    if(key == undefined) return console.warn(id, "The passed key object is null!", key);
+
+    if(window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
 
     let node = options.node || document;
 
-    if(this.activeListeners[id]) {
+    if(window.activeNeatoKeyListeners[id]) {
         console.warn("There is already a keybind listener with the id '" + id + "'!");
         return;
     }
 
-    this.activeListeners[id] = {
+    window.activeNeatoKeyListeners[id] = {
         heldKeys : [],
         keydown : e => {
-            if(this.activeListeners[id].heldKeys.indexOf(e.code) == -1) this.activeListeners[id].heldKeys.push(e.code);
-            if(this.activeListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
+            if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) == -1) window.activeNeatoKeyListeners[id].heldKeys.push(e.code);
+            if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
                 let heldModifiers = 0;
-                for(let i = 0; i < key.modifiers.length; i++) if(this.activeListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
+                for(let i = 0; i < key.modifiers.length; i++) if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
                 if(key.modifiers.length == heldModifiers) event(e);
             }
         },
         keyup : e => {
-            if(this.activeListeners[id].heldKeys.indexOf(e.code) != -1) this.activeListeners[id].heldKeys.splice(this.activeListeners[id].heldKeys.indexOf(e.code), 1);
+            if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) != -1) window.activeNeatoKeyListeners[id].heldKeys.splice(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code), 1);
         }
     };
 
-    node.addEventListener("keydown", this.activeListeners[id].keydown);
-    node.addEventListener("keyup", this.activeListeners[id].keyup);
+    node.addEventListener("keydown", window.activeNeatoKeyListeners[id].keydown);
+    node.addEventListener("keyup", window.activeNeatoKeyListeners[id].keyup);
 
-    return this.activeListeners[id];
+    return window.activeNeatoKeyListeners[id];
 
 };
 
 NeatoLib.Keybinds.detachListener = function(id, node = document) {
+
+    if(window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
     
-    if(!NeatoLib.Keybinds.activeListeners[id]) {
+    if(!window.activeNeatoKeyListeners[id]) {
         console.warn("There is no keybind listener with the id '" + id + "'!");
         return;
     }
 
-    node.removeEventListener("keydown", NeatoLib.Keybinds.activeListeners[id].keydown);
-    node.removeEventListener("keyup", NeatoLib.Keybinds.activeListeners[id].keyup);
+    node.removeEventListener("keydown", window.activeNeatoKeyListeners[id].keydown);
+    node.removeEventListener("keyup", window.activeNeatoKeyListeners[id].keyup);
 
-    delete NeatoLib.Keybinds.activeListeners[id];
+    delete window.activeNeatoKeyListeners[id];
 
 };
 
@@ -1321,9 +1325,43 @@ NeatoLib.ContextMenu.createItem = function(label, callback = undefined, options 
 
     element.innerHTML = "<span>" + label + "</span>";
 
+    if(options.color) element.firstChild.style.color = options.color;
+
     if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
 
     if(callback) element.addEventListener("click", callback);
+
+    return element;
+
+};
+
+NeatoLib.ContextMenu.createSubMenu = function(label, items, options = {}) {
+    
+    let element = document.createElement("div");
+
+    element.classList.add(this.classes.item, this.classes.itemSubMenu);
+
+    element.innerText = label;
+
+    if(options.color) element.style.color = options.color;
+
+    if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
+
+    if(options.callback) element.addEventListener("click", options.callback);
+
+    element.addEventListener("mouseenter", () => {
+        if(element.getElementsByTagName("div")[0]) return element.getElementsByTagName("div")[0].style.display = "inline-block";
+        let menu = document.createElement("div");
+        menu.style.left = this.get().style.left;
+        menu.style.top = element.getBoundingClientRect().top + "px";
+        menu.classList.add(this.classes.contextMenu, document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
+        for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
+        element.appendChild(menu);
+    });
+
+    element.addEventListener("mouseleave", () => {
+        if(element.getElementsByTagName("div")[0]) element.getElementsByTagName("div")[0].style.display = "none";
+    });
 
     return element;
 

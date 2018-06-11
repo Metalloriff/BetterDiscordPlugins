@@ -1,11 +1,13 @@
-var Metalloriff = {};
+var NeatoLib = {};
 
-Metalloriff.Changelog = {};
+var Metalloriff = NeatoLib;
 
-Metalloriff.Changelog.compareVersions = function(name, changes) {
+NeatoLib.Changelog = {};
+
+NeatoLib.Changelog.compareVersions = function(name, changes) {
 
     var spacelessName = name.split(" ").join(""),
-    updateData = Metalloriff.Data.load("MetalloriffUpdateData", spacelessName, {}),
+    updateData = NeatoLib.Data.load("MetalloriffUpdateData", spacelessName, {}),
     unreadChanges = [],
     thisUpdateData = updateData[spacelessName],
     first = false;
@@ -32,16 +34,16 @@ Metalloriff.Changelog.compareVersions = function(name, changes) {
 
     }
 
-    if(unreadChanges.length > 0 || first){ Metalloriff.Changelog.createChangeWindow(name, unreadChanges, changes, updateData); }
+    if(unreadChanges.length > 0 || first){ NeatoLib.Changelog.createChangeWindow(name, unreadChanges, changes, updateData); }
 
 };
 
-Metalloriff.Changelog.createChangeWindow = function(name, changes, allChanges, newUpdateData) {
+NeatoLib.Changelog.createChangeWindow = function(name, changes, allChanges, newUpdateData) {
 
     let changeKeys = Object.keys(allChanges);
 
     if(changeKeys.length == 0) {
-        Metalloriff.showToast("There are no updates notes for this plugin yet!", "error");
+        NeatoLib.showToast("There are no updates notes for this plugin yet!", "error");
         return;
     }
 
@@ -147,7 +149,7 @@ Metalloriff.Changelog.createChangeWindow = function(name, changes, allChanges, n
     `);
 
     document.getElementsByClassName("metalloriff-changelog-backdrop")[0].addEventListener("click", () => {
-        if(newUpdateData != undefined) Metalloriff.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
+        if(newUpdateData != undefined) NeatoLib.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
         document.getElementById(spacelessName + "-changelog").remove();
     });
 
@@ -167,15 +169,15 @@ Metalloriff.Changelog.createChangeWindow = function(name, changes, allChanges, n
 
 };
 
-Metalloriff.Settings = {};
+NeatoLib.Settings = {};
 
-Metalloriff.Settings.Styles = {};
+NeatoLib.Settings.Styles = {};
 
-Metalloriff.Settings.Styles.textField = `color: white; background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 5px; height: 40px; padding: 10px; width: 100%;`;
+NeatoLib.Settings.Styles.textField = `color: white; background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 5px; height: 40px; padding: 10px; width: 100%;`;
 
-Metalloriff.Settings.Elements = {};
+NeatoLib.Settings.Elements = {};
 
-Metalloriff.Settings.Elements.pluginNameLabel = function(name) {
+NeatoLib.Settings.Elements.pluginNameLabel = function(name) {
     return `
         <style>
             #bd-settingspane-container *::-webkit-scrollbar {
@@ -206,7 +208,7 @@ Metalloriff.Settings.Elements.pluginNameLabel = function(name) {
         <h style="color: white;font-size: 30px;font-weight: bold;">${name} by Metalloriff</h>`;
 }
 
-Metalloriff.Settings.Elements.createRadioGroup = function(id, label, choices, selectedChoice, callback, description = "") {
+NeatoLib.Settings.Elements.createRadioGroup = function(id, label, choices, selectedChoice, callback, description = "") {
 
     var element = document.createElement("div");
 
@@ -262,7 +264,7 @@ Metalloriff.Settings.Elements.createRadioGroup = function(id, label, choices, se
 
 };
 
-Metalloriff.Settings.Elements.createToggleGroup = function(id, label, choices, callback, description = "") {
+NeatoLib.Settings.Elements.createToggleGroup = function(id, label, choices, callback, description = "") {
 
     let element = document.createElement("div");
 
@@ -276,7 +278,7 @@ Metalloriff.Settings.Elements.createToggleGroup = function(id, label, choices, c
 
     for(let i = 0; i < choices.length; i++) {
 
-        let choiceButton = Metalloriff.Settings.Elements.createToggleSwitch(choices[i].title, choices[i].setValue, e => {
+        let choiceButton = NeatoLib.Settings.Elements.createToggleSwitch(choices[i].title, choices[i].setValue, e => {
             callback(choices[i], e);
         });
 
@@ -292,7 +294,7 @@ Metalloriff.Settings.Elements.createToggleGroup = function(id, label, choices, c
 
 };
 
-Metalloriff.Settings.Elements.createTextField = function(label, type, value, callback, options = {}) {
+NeatoLib.Settings.Elements.createTextField = function(label, type, value, callback, options = {}) {
 
     let element = document.createElement("div");
 
@@ -311,7 +313,7 @@ Metalloriff.Settings.Elements.createTextField = function(label, type, value, cal
 
 };
 
-Metalloriff.Settings.Elements.createNewTextField = function(label, value, callback, options = {}) {
+NeatoLib.Settings.Elements.createNewTextField = function(label, value, callback, options = {}) {
 
     let element = document.createElement("div");
 
@@ -326,7 +328,7 @@ Metalloriff.Settings.Elements.createNewTextField = function(label, value, callba
         </style>
         <p class="neato-text-field-p">${label}</p>
         <p class="neato-text-field-p" style="opacity:0.5;font-size:17px;">${options.description || ""}</p>
-        <input value="${value}" type="${options.type || "text"}" style="${Metalloriff.Settings.Styles.textField}">
+        <input value="${value}" type="${options.type || "text"}" style="${NeatoLib.Settings.Styles.textField}">
     `);
 
     element.querySelector("input").addEventListener(options.callbackType || "focusout", e => callback(e));
@@ -335,7 +337,7 @@ Metalloriff.Settings.Elements.createNewTextField = function(label, value, callba
 
 };
 
-Metalloriff.Settings.Elements.createHint = function(text, options = {}) {
+NeatoLib.Settings.Elements.createHint = function(text, options = {}) {
 
     let element = document.createElement("p");
 
@@ -348,7 +350,7 @@ Metalloriff.Settings.Elements.createHint = function(text, options = {}) {
 
 };
 
-Metalloriff.Settings.Elements.createButton = function(label, callback, style = "", attributes = {}) {
+NeatoLib.Settings.Elements.createButton = function(label, callback, style = "", attributes = {}) {
     
     let element = document.createElement("button");
 
@@ -365,7 +367,7 @@ Metalloriff.Settings.Elements.createButton = function(label, callback, style = "
 
 };
 
-Metalloriff.Settings.Elements.createToggleSwitch = function(label, value, callback, spacing = "20px") {
+NeatoLib.Settings.Elements.createToggleSwitch = function(label, value, callback, spacing = "20px") {
 
     var element = document.createElement("div");
 
@@ -399,13 +401,13 @@ Metalloriff.Settings.Elements.createToggleSwitch = function(label, value, callba
 
 };
 
-Metalloriff.Settings.Elements.createLabel = function(title, spacing = "20px", style = "") {
+NeatoLib.Settings.Elements.createLabel = function(title, spacing = "20px", style = "") {
 
     return `<div style="color:white;margin: ${spacing} 0px;${style}">${title}</div>`;
 
 };
 
-Metalloriff.Settings.Elements.createGroup = function(title, options = {}) {
+NeatoLib.Settings.Elements.createGroup = function(title, options = {}) {
 
     let element = document.createElement("div");
 
@@ -417,7 +419,7 @@ Metalloriff.Settings.Elements.createGroup = function(title, options = {}) {
 
 };
 
-Metalloriff.Settings.Elements.createKeybindInput = function(title, value, callback, options = {}) {
+NeatoLib.Settings.Elements.createKeybindInput = function(title, value, callback, options = {}) {
 
     let element = document.createElement("div"), v = value.primaryKey || "", oldValue = value;
 
@@ -529,7 +531,7 @@ Metalloriff.Settings.Elements.createKeybindInput = function(title, value, callba
         isRecording = !isRecording;
 
         if(isRecording) {
-            if(options.global) Metalloriff.Keybinds.unregisterGlobal(oldValue);
+            if(options.global) NeatoLib.Keybinds.unregisterGlobal(oldValue);
             document.addEventListener("keydown", keyEvent);
             document.addEventListener("keyup", keyUpEvent);
             document.addEventListener("click", documentClick);
@@ -566,7 +568,7 @@ Metalloriff.Settings.Elements.createKeybindInput = function(title, value, callba
 
 };
 
-Metalloriff.Settings.pushChangelogElements = function(plugin) {
+NeatoLib.Settings.pushChangelogElements = function(plugin) {
 
     var element = document.createElement("div");
 
@@ -577,7 +579,7 @@ Metalloriff.Settings.pushChangelogElements = function(plugin) {
 
     element.insertAdjacentHTML("beforeend", `<div style="text-align:center;color:white;">Changelog</div>`);
 
-    element.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createToggleSwitch("Display changes for every update", plugin.settings.displayUpdateNotes, () => {
+    element.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createToggleSwitch("Display changes for every update", plugin.settings.displayUpdateNotes, () => {
         plugin.settings.displayUpdateNotes = !plugin.settings.displayUpdateNotes;
         plugin.saveSettings();
     }));
@@ -588,20 +590,20 @@ Metalloriff.Settings.pushChangelogElements = function(plugin) {
 
     right.style.paddingTop = "20px";
 
-    right.insertAdjacentElement("beforeend", Metalloriff.Settings.Elements.createButton("View Changelog", () => {
-        Metalloriff.Changelog.createChangeWindow(plugin.getName(), [], plugin.getChanges());
+    right.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createButton("View Changelog", () => {
+        NeatoLib.Changelog.createChangeWindow(plugin.getName(), [], plugin.getChanges());
     }));
 
     element.insertAdjacentElement("beforeend", right);
 
-    Metalloriff.Settings.pushElement(element, plugin.getName());
+    NeatoLib.Settings.pushElement(element, plugin.getName());
 
 };
 
-Metalloriff.Settings.pushElement = function(element, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentElement("beforeend", element); };
-Metalloriff.Settings.pushHTML = function(html, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html); }
+NeatoLib.Settings.pushElement = function(element, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentElement("beforeend", element); };
+NeatoLib.Settings.pushHTML = function(html, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html); }
 
-Metalloriff.Settings.showPluginSettings = function(name) {
+NeatoLib.Settings.showPluginSettings = function(name) {
 
     document.querySelector(".button-2b6hmh:nth-child(3)").click();
 
@@ -625,17 +627,17 @@ Metalloriff.Settings.showPluginSettings = function(name) {
 
 };
 
-Metalloriff.Settings.save = function(plugin) {
-    Metalloriff.Data.save(plugin.getName().split(" ").join(""), "settings", plugin.settings);
+NeatoLib.Settings.save = function(plugin) {
+    NeatoLib.Data.save(plugin.getName().split(" ").join(""), "settings", plugin.settings);
 };
 
-Metalloriff.Settings.load = function(plugin, defaultSettings) {
-    return Metalloriff.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings);
+NeatoLib.Settings.load = function(plugin, defaultSettings) {
+    return NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings);
 };
 
-Metalloriff.UI = {};
+NeatoLib.UI = {};
 
-Metalloriff.UI.createPrompt = function(id, title, description, yesCallback, noCallback = "close", options = {}) {
+NeatoLib.UI.createPrompt = function(id, title, description, yesCallback, noCallback = "close", options = {}) {
 
     document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
     
@@ -683,7 +685,7 @@ Metalloriff.UI.createPrompt = function(id, title, description, yesCallback, noCa
 
 };
 
-Metalloriff.UI.createTextPrompt = function(id, title, callback, value = "", options = {}) {
+NeatoLib.UI.createTextPrompt = function(id, title, callback, value = "", options = {}) {
 
     document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
 			
@@ -740,7 +742,7 @@ Metalloriff.UI.createTextPrompt = function(id, title, callback, value = "", opti
 
 };
 
-Metalloriff.UI.createBasicScrollList = function(id, title, options = {}) {
+NeatoLib.UI.createBasicScrollList = function(id, title, options = {}) {
 
     document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
     
@@ -853,13 +855,13 @@ Metalloriff.UI.createBasicScrollList = function(id, title, options = {}) {
 
 };
 
-Metalloriff.Keybinds = {};
+NeatoLib.Keybinds = {};
 
-Metalloriff.Keybinds.globalShortcut = require("electron").remote.globalShortcut;
+NeatoLib.Keybinds.globalShortcut = require("electron").remote.globalShortcut;
 
-Metalloriff.Keybinds.activeListeners = {};
+NeatoLib.Keybinds.activeListeners = {};
 
-Metalloriff.Keybinds.attachListener = function(id, key, event, options = {}) {
+NeatoLib.Keybinds.attachListener = function(id, key, event, options = {}) {
 
     let node = options.node || document;
 
@@ -890,53 +892,47 @@ Metalloriff.Keybinds.attachListener = function(id, key, event, options = {}) {
 
 };
 
-Metalloriff.Keybinds.detachListener = function(id, node = document) {
+NeatoLib.Keybinds.detachListener = function(id, node = document) {
     
-    if(!Metalloriff.Keybinds.activeListeners[id]) {
+    if(!NeatoLib.Keybinds.activeListeners[id]) {
         console.warn("There is no keybind listener with the id '" + id + "'!");
         return;
     }
 
-    node.removeEventListener("keydown", Metalloriff.Keybinds.activeListeners[id].keydown);
-    node.removeEventListener("keyup", Metalloriff.Keybinds.activeListeners[id].keyup);
+    node.removeEventListener("keydown", NeatoLib.Keybinds.activeListeners[id].keydown);
+    node.removeEventListener("keyup", NeatoLib.Keybinds.activeListeners[id].keyup);
 
-    delete Metalloriff.Keybinds.activeListeners[id];
+    delete NeatoLib.Keybinds.activeListeners[id];
 
 };
 
-Metalloriff.Keybinds.registerGlobal = function(key, event, debug = false) {
+NeatoLib.Keybinds.registerGlobal = function(key, event, debug = false) {
     try { this.globalShortcut.register(key, event); }
     catch(e) { if(debug) console.error(e); }
 };
 
-Metalloriff.Keybinds.unregisterGlobal = function(key, debug = false) {
+NeatoLib.Keybinds.unregisterGlobal = function(key, debug = false) {
     try { this.globalShortcut.unregister(key); }
     catch(e) { if(debug) console.error(e); }
 };
 
-Metalloriff.ContextMenu = {};
+NeatoLib.Chatbox = {};
 
-Metalloriff.ContextMenu.close = function() {
-    document.getElementsByClassName(Metalloriff.Modules.get("contextMenu").contextMenu)[0].style.display = "none";
-};
-
-Metalloriff.Chatbox = {};
-
-Metalloriff.Chatbox.get = function() {
+NeatoLib.Chatbox.get = function() {
     let chat = document.getElementsByClassName("chat")[0];
     return chat ? chat.getElementsByTagName("textarea")[0] : null;
 };
 
-Metalloriff.Chatbox.setText = function(newText) {
-    Metalloriff.Chatbox.get().select();
+NeatoLib.Chatbox.setText = function(newText) {
+    NeatoLib.Chatbox.get().select();
     document.execCommand("insertText", false, newText);
 };
 
-Metalloriff.Modules = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+NeatoLib.Modules = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
-Metalloriff.Modules.req = webpackJsonp.push([[], { "__extra_id__" : (m, e, r) => m.exports = r }, [["__extra_id__"]]]);
+NeatoLib.Modules.req = webpackJsonp.push([[], { "__extra_id__" : (m, e, r) => m.exports = r }, [["__extra_id__"]]]);
 
-Metalloriff.Modules.find = function(filter) {
+NeatoLib.Modules.find = function(filter) {
     
     for(let i in this.req.c) {
 
@@ -954,17 +950,17 @@ Metalloriff.Modules.find = function(filter) {
 
 };
 
-Metalloriff.Modules.get = function(props) {
+NeatoLib.Modules.get = function(props) {
     return typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
 };
 
-Metalloriff.Modules.getById = function(id) {
+NeatoLib.Modules.getById = function(id) {
     return this.find(x => x._dispatchToken == "ID_" + id);
 };
 
-Metalloriff.Updates = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+NeatoLib.Updates = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
-Metalloriff.Updates.requestUpdateCheck = function(pluginName, url) {
+NeatoLib.Updates.requestUpdateCheck = function(pluginName, url) {
 
     require("request")(url, (err, response, res) => {
 
@@ -974,18 +970,18 @@ Metalloriff.Updates.requestUpdateCheck = function(pluginName, url) {
         if(!latestVersion) return;
         latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
 
-        if(window.PluginUpdates.plugins[url].version != latestVersion) Metalloriff.Updates.displayNotice(pluginName, url);
-        else Metalloriff.Updates.hideNotice(pluginName);
+        if(window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
+        else NeatoLib.Updates.hideNotice(pluginName);
 
     });
 
 };
 
-Metalloriff.Updates.displayNotice = function(pluginName, url) {
+NeatoLib.Updates.displayNotice = function(pluginName, url) {
 
     if(document.getElementById("pluginNotice") == undefined) {
 
-        let classes = Metalloriff.Modules.get("noticeInfo");
+        let classes = NeatoLib.Modules.get("noticeInfo");
 
         document.getElementsByClassName("app")[0].insertAdjacentHTML("afterbegin", `<div class="${classes.notice} ${classes.noticeInfo}" id="pluginNotice"><div class="${classes.dismiss}" id="pluginNoticeDismiss"></div><span class="notice-message">The following plugins have updates:</span>&nbsp;&nbsp;<strong id="outdatedPlugins"></strong></div>`);
 
@@ -1000,7 +996,7 @@ Metalloriff.Updates.displayNotice = function(pluginName, url) {
         element.setAttribute("id", pluginName + "-notice");
         element.innerText = pluginName;
 
-        element.addEventListener("click", () => Metalloriff.Updates.download(pluginName, url));
+        element.addEventListener("click", () => NeatoLib.Updates.download(pluginName, url));
 
         if(outdated.getElementsByTagName("span")[0] != undefined) outdated.insertAdjacentHTML("beforeend", "<span class='separator'>, </span>");
         outdated.appendChild(element);
@@ -1009,7 +1005,7 @@ Metalloriff.Updates.displayNotice = function(pluginName, url) {
 
 };
 
-Metalloriff.Updates.hideNotice = function(pluginName) {
+NeatoLib.Updates.hideNotice = function(pluginName) {
 
     let notice = $("#" + pluginName + "-notice");
 
@@ -1021,7 +1017,7 @@ Metalloriff.Updates.hideNotice = function(pluginName) {
 
 };
 
-Metalloriff.Updates.download = function(pluginName, url) {
+NeatoLib.Updates.download = function(pluginName, url) {
     
     let req = require("request"), fs = require("fs"), path = require("path");
 
@@ -1032,11 +1028,11 @@ Metalloriff.Updates.download = function(pluginName, url) {
         let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i).toString().replace(/['"]/g, "").trim(), fileName = url.split("/");
         fileName = fileName[fileName.length - 1];
 
-        let file = path.join(Metalloriff.getPluginsFolderPath(), fileName);
+        let file = path.join(NeatoLib.getPluginsFolderPath(), fileName);
 
         fs.writeFileSync(file, res);
 
-        Metalloriff.showToast(`${pluginName} was updated to v${latestVersion}.`, "success");
+        NeatoLib.showToast(`${pluginName} was updated to v${latestVersion}.`, "success");
 
         let rnm = (window.bdplugins["Restart-No-More"] && window.pluginCookie["Restart-No-More"]) || (window.bdplugins["Restart No More"] && window.pluginCookie["Restart No More"]);
 
@@ -1073,7 +1069,7 @@ Metalloriff.Updates.download = function(pluginName, url) {
 
             window.PluginUpdates.plugins[url].version = latestVersion;
             window.PluginUpdates.downloaded.push(pluginName);
-            Metalloriff.Updates.hideNotice(pluginName);
+            NeatoLib.Updates.hideNotice(pluginName);
 
         }
 
@@ -1081,14 +1077,14 @@ Metalloriff.Updates.download = function(pluginName, url) {
 
 };
 
-Metalloriff.Updates.check = function(plugin) {
+NeatoLib.Updates.check = function(plugin) {
 
     let url = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
 
     if(typeof window.PluginUpdates == "undefined") window.PluginUpdates = { plugins : {} };
     window.PluginUpdates.plugins[url] = { name : plugin.getName(), raw : url, version : plugin.getVersion() };
 
-    Metalloriff.Updates.requestUpdateCheck(plugin.getName(), url);
+    NeatoLib.Updates.requestUpdateCheck(plugin.getName(), url);
 
     if(typeof window.PluginUpdates.interval == "undefined") {
         window.PluginUpdates.interval = setInterval(() => {
@@ -1099,38 +1095,38 @@ Metalloriff.Updates.check = function(plugin) {
     if(typeof window.PluginUpdates.checkAll == "undefined") {
         window.PluginUpdates.checkAll = function() {
             for(let key in this.plugins) {
-                Metalloriff.Updates.requestUpdateCheck(this.plugins[key].name, this.plugins[key].raw);
+                NeatoLib.Updates.requestUpdateCheck(this.plugins[key].name, this.plugins[key].raw);
             }
         };
     }
 
 };
 
-Metalloriff.Data = {};
+NeatoLib.Data = {};
 
-Metalloriff.Data.save = function(name, key, data) {
+NeatoLib.Data.save = function(name, key, data) {
     try { bdPluginStorage.set(name, key, data); }
     catch(err) { console.warn(name, "failed to save data.", err); }
 };
 
-Metalloriff.Data.load = function(name, key, fallback) {
+NeatoLib.Data.load = function(name, key, fallback) {
     try { return $.extend(true, fallback ? fallback : {}, bdPluginStorage.get(name, key)); }
     catch(err) { console.warn(name, "failed to load data.", err); }
     return {};
 };
 
-Metalloriff.Events = {};
+NeatoLib.Events = {};
 
-Metalloriff.Events.onPluginLoaded = function(plugin) {
+NeatoLib.Events.onPluginLoaded = function(plugin) {
 
-    Metalloriff.showToast(`[${plugin.getName()}]: Plugin loaded.`, "success");
+    NeatoLib.showToast(`[${plugin.getName()}]: Plugin loaded.`, "success");
     console.log(plugin.getName(), "loaded.");
 
     plugin.ready = true;
 
     try {
 
-        if(true || !Metalloriff.lastCheckedForUpdate && performance.now() - Metalloriff.lastCheckedForUpdate > 60000) {
+        if(true || !NeatoLib.lastCheckedForUpdate && performance.now() - NeatoLib.lastCheckedForUpdate > 60000) {
 
             require("request")("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, response, res) => {
 
@@ -1153,7 +1149,7 @@ Metalloriff.Events.onPluginLoaded = function(plugin) {
 
             });
 
-            Metalloriff.lastCheckedForUpdate = performance.now();
+            NeatoLib.lastCheckedForUpdate = performance.now();
 
         }
 
@@ -1161,10 +1157,10 @@ Metalloriff.Events.onPluginLoaded = function(plugin) {
 
 };
 
-Metalloriff.Events.classes = {
-    activityFeed : Metalloriff.Modules.get("activityFeed").activityFeed,
-    layer : Metalloriff.Modules.get("layer").layer,
-    socialLinks : Metalloriff.Modules.get("socialLinks").socialLinks
+NeatoLib.Events.classes = {
+    activityFeed : NeatoLib.Modules.get("activityFeed").activityFeed,
+    layer : NeatoLib.Modules.get("layer").layer,
+    socialLinks : NeatoLib.Modules.get("socialLinks").socialLinks
 };
 
 if(window.activeNeatoEvents == undefined) window.activeNeatoEvents = [];
@@ -1186,7 +1182,7 @@ window.neatoObserver = new MutationObserver(mutations => {
     for(let i = 0; i < mutations.length; i++) {
 
         if(mutations[i].removedNodes[0] != undefined && mutations[i].removedNodes[0] instanceof Element) {
-            if(mutations[i].removedNodes[0].classList.contains(Metalloriff.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
+            if(mutations[i].removedNodes[0].classList.contains(NeatoLib.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
                 call("switch");
             }
         }
@@ -1195,9 +1191,9 @@ window.neatoObserver = new MutationObserver(mutations => {
 
         if(added == undefined || !(added instanceof Element)) continue;
 
-        if(added.classList.contains(Metalloriff.Events.classes.layer) && added.getElementsByClassName(Metalloriff.Events.classes.socialLinks[0] != undefined)) call("settings");
+        if(added.classList.contains(NeatoLib.Events.classes.layer) && added.getElementsByClassName(NeatoLib.Events.classes.socialLinks[0] != undefined)) call("settings");
 
-        if(added.classList.contains(Metalloriff.Events.classes.activityFeed) || added.id == "friends") call("switch");
+        if(added.classList.contains(NeatoLib.Events.classes.activityFeed) || added.id == "friends") call("switch");
 
         if(added.classList.contains("messages-wrapper") || added.getElementsByClassName("messages-wrapper")[0] != undefined) call("switch");
 
@@ -1208,19 +1204,19 @@ window.neatoObserver = new MutationObserver(mutations => {
 });
 window.neatoObserver.observe(document, { childList : true, subtree : true });
 
-Metalloriff.Events.attach = function(eventType, event, options = {}) {
+NeatoLib.Events.attach = function(eventType, event, options = {}) {
     window.activeNeatoEvents.push({ callback : event, type : eventType, options : options });
 };
 
-Metalloriff.Events.detach = function(eventType, event) {
+NeatoLib.Events.detach = function(eventType, event) {
     let idx = window.activeNeatoEvents.findIndex(e => e.callback == event && e.type == eventType);
     if(idx != -1) window.activeNeatoEvents.splice(idx, 1);
     else console.warn("Event could not be found.", event);
 };
 
-Metalloriff.ReactData = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+NeatoLib.ReactData = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
-Metalloriff.ReactData.get = function(element) {
+NeatoLib.ReactData.get = function(element) {
 
     if(!(element instanceof Element)) return console.error(element, "is not an element.");
 
@@ -1228,7 +1224,7 @@ Metalloriff.ReactData.get = function(element) {
 
 };
 
-Metalloriff.ReactData.getEvents = function(element) {
+NeatoLib.ReactData.getEvents = function(element) {
 
     if(!(element instanceof Element)) return console.error(element, "is not an element.");
 
@@ -1236,7 +1232,7 @@ Metalloriff.ReactData.getEvents = function(element) {
 
 };
 
-Metalloriff.ReactData.getOwner = function(element) {
+NeatoLib.ReactData.getOwner = function(element) {
 
     if(!(element instanceof Element)) return console.error(element, "is not an element.");
     
@@ -1252,7 +1248,7 @@ Metalloriff.ReactData.getOwner = function(element) {
 
 };
 
-Metalloriff.ReactData.getProps = function(element) {
+NeatoLib.ReactData.getProps = function(element) {
 
     if(!(element instanceof Element)) return console.error(element, "is not an element.");
 
@@ -1262,9 +1258,81 @@ Metalloriff.ReactData.getProps = function(element) {
 
 };
 
-Metalloriff.Debug = {};
+NeatoLib.ContextMenu = {};
 
-Metalloriff.Debug.reloadLib = function() {
+NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
+
+NeatoLib.ContextMenu.create = function(items, event, options = {}) {
+    
+    let menu = document.createElement("div");
+
+    menu.classList.add(this.classes.contextMenu, document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
+
+    for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
+
+    menu.style.left = event.clientX;
+    menu.style.top = event.clientY;
+
+    if(options.style) menu.style = options.style;
+
+    let close = () => {
+        document.removeEventListener("click", onClick);
+        document.removeEventListener("keyup", onKeyUp);
+        menu.remove();
+    };
+
+    let onClick = e => {
+        if(!$(menu).has(e.target)) close();
+    };
+
+    let onKeyUp = e => {
+        if(e.key == "Escape") close();
+    };
+
+    document.addEventListener("click", onClick);
+    document.addEventListener("keyup", onKeyUp);
+
+    document.getElementById("app-mount").appendChild(menu);
+
+    return menu;
+
+};
+
+NeatoLib.ContextMenu.createGroup = function(items, options = {}) {
+
+    let element = document.createElement("div");
+
+    element.classList.add(this.classes.itemGroup);
+
+    for(let i = 0; i < items.length; i++) element.appendChild(items[i]);
+
+    return element;
+
+};
+
+NeatoLib.ContextMenu.createItem = function(label, callback = undefined, options = {}) {
+
+    let element = document.createElement("div");
+
+    element.classList.add(this.classes.item);
+
+    element.innerHTML = "<span>" + label + "</span>";
+
+    if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
+
+    if(callback) element.addEventListener("click", callback);
+
+    return element;
+
+};
+
+NeatoLib.ContextMenu.close = function() {
+    document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu)[0].style.display = "none";
+};
+
+NeatoLib.Debug = {};
+
+NeatoLib.Debug.reloadLib = function() {
 
     setTimeout(() => {
 
@@ -1282,7 +1350,7 @@ Metalloriff.Debug.reloadLib = function() {
 
 };
 
-Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
+NeatoLib.downloadFile = function(url, path, fileName, onCompleted) {
 
     let fileSys = require("fs"), http = require("https");
 
@@ -1292,11 +1360,11 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
 
     if(path.lastIndexOf("?") != -1) path = path.substring(0, path.lastIndexOf("?"));
 
-    Metalloriff.showToast("Download started...");
+    NeatoLib.showToast("Download started...");
 
     if(fileSys.existsSync(path)) {
 
-        Metalloriff.showToast("File already exists, random characters will be appended to the file name!", "error");
+        NeatoLib.showToast("File already exists, random characters will be appended to the file name!", "error");
 
         let fileExtension = path.substring(path.lastIndexOf("."), path.length);
 
@@ -1313,8 +1381,8 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
         x.on("end", () => {
 
             fileSys.writeFile(path, Buffer.concat(data), error => {
-                if(error) Metalloriff.showToast("Failed to save file! Error: " + error.message, "error");
-                else Metalloriff.showToast("File saved successfully!", "success");
+                if(error) NeatoLib.showToast("Failed to save file! Error: " + error.message, "error");
+                else NeatoLib.showToast("File saved successfully!", "success");
             });
 
             if(onCompleted != undefined) onCompleted(path);
@@ -1323,13 +1391,13 @@ Metalloriff.downloadFile = function(url, path, fileName, onCompleted) {
 
     });
 
-    request.on("error", error => { Metalloriff.showToast("Failed to save file! Error: " + error.message, "error"); });
+    request.on("error", error => { NeatoLib.showToast("Failed to save file! Error: " + error.message, "error"); });
 
     request.end();
 
 };
 
-Metalloriff.requestFile = function(url, name = "unknown.png", onCompleted) {
+NeatoLib.requestFile = function(url, name = "unknown.png", onCompleted) {
 
     var http = require(url.split("://")[0]);
 
@@ -1347,19 +1415,19 @@ Metalloriff.requestFile = function(url, name = "unknown.png", onCompleted) {
 
     });
 
-    request.on("error", error => { Metalloriff.showToast("Failed to request file! Error: " + error.message, "error"); });
+    request.on("error", error => { NeatoLib.showToast("Failed to request file! Error: " + error.message, "error"); });
 
     request.end();
 
 };
 
-Metalloriff.getClasses = function(classes, returnAll = true) {
+NeatoLib.getClasses = function(classes, returnAll = true) {
 
     var found = {};
 
     for(var i = 0; i < classes.length; i++) {
 
-        var module = Metalloriff.Modules.get(classes[i]);
+        var module = NeatoLib.Modules.get(classes[i]);
 
         if(module != undefined) {
 
@@ -1379,21 +1447,21 @@ Metalloriff.getClasses = function(classes, returnAll = true) {
 
 };
 
-Metalloriff.getSelectedServer = function() {
-    return Metalloriff.Modules.get("getGuild").getGuild(Metalloriff.Modules.get("getGuildId").getGuildId());
+NeatoLib.getSelectedServer = function() {
+    return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getGuildId").getGuildId());
 };
 
-Metalloriff.getSelectedTextChannel = function() {
-    return Metalloriff.Modules.get("getChannel").getChannel(Metalloriff.Modules.get("getChannelId").getChannelId());
+NeatoLib.getSelectedTextChannel = function() {
+    return NeatoLib.Modules.get("getChannel").getChannel(NeatoLib.Modules.get("getChannelId").getChannelId());
 };
 
-Metalloriff.getSelectedVoiceChannel = function() {
-    return Metalloriff.Modules.get("getChannel").getChannel(Metalloriff.Modules.get("getVoiceChannelId").getVoiceChannelId());
+NeatoLib.getSelectedVoiceChannel = function() {
+    return NeatoLib.Modules.get("getChannel").getChannel(NeatoLib.Modules.get("getVoiceChannelId").getVoiceChannelId());
 };
 
-Metalloriff.patchInternalFunction = function(functionName, newFunction, pluginName, replace = false) {
+NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName, replace = false) {
 
-    let module = Metalloriff.Modules.get(functionName);
+    let module = NeatoLib.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1412,9 +1480,9 @@ Metalloriff.patchInternalFunction = function(functionName, newFunction, pluginNa
 
 };
 
-Metalloriff.unpatchInternalFunction = function(functionName, pluginName) {
+NeatoLib.unpatchInternalFunction = function(functionName, pluginName) {
 
-    let module = Metalloriff.Modules.get(functionName);
+    let module = NeatoLib.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1437,9 +1505,9 @@ Metalloriff.unpatchInternalFunction = function(functionName, pluginName) {
 
 };
 
-Metalloriff.internalFunctionIsPatched = function(functionName, pluginName) {
+NeatoLib.internalFunctionIsPatched = function(functionName, pluginName) {
 
-    let module = Metalloriff.Modules.get(functionName);
+    let module = NeatoLib.Modules.get(functionName);
 
     if(module == undefined) {
 
@@ -1453,24 +1521,24 @@ Metalloriff.internalFunctionIsPatched = function(functionName, pluginName) {
 
 };
 
-Metalloriff.patchInternalFunctions = function(functionNames, newFunction, pluginName, replace = false) {
-    for(let i = 0; i < functionNames.length; i++) Metalloriff.patchInternalFunction(functionNames[i], newFunction, pluginName, replace);
+NeatoLib.patchInternalFunctions = function(functionNames, newFunction, pluginName, replace = false) {
+    for(let i = 0; i < functionNames.length; i++) NeatoLib.patchInternalFunction(functionNames[i], newFunction, pluginName, replace);
 };
 
-Metalloriff.unpatchInternalFunctions = function(functionNames, pluginName) {
-    for(let i = 0; i < functionNames.length; i++) Metalloriff.unpatchInternalFunction(functionNames[i], pluginName);
+NeatoLib.unpatchInternalFunctions = function(functionNames, pluginName) {
+    for(let i = 0; i < functionNames.length; i++) NeatoLib.unpatchInternalFunction(functionNames[i], pluginName);
 };
 
-Metalloriff.getLocalUser = function() {
-    return Metalloriff.Modules.get("getCurrentUser").getCurrentUser();
+NeatoLib.getLocalUser = function() {
+    return NeatoLib.Modules.get("getCurrentUser").getCurrentUser();
 };
 
-Metalloriff.getLocalStatus = function() {
+NeatoLib.getLocalStatus = function() {
     let className = document.getElementsByClassName("container-2Thooq")[0].getElementsByClassName("status")[0].className;
     return className.substring(className.indexOf("-") + 1, className.length);
 };
 
-Metalloriff.browseForFile = function(callback, options = {}) {
+NeatoLib.browseForFile = function(callback, options = {}) {
 
     let fileBrowser = document.createElement("input");
 
@@ -1498,7 +1566,7 @@ Metalloriff.browseForFile = function(callback, options = {}) {
 
 };
 
-Metalloriff.shuffleArray = function(array) {
+NeatoLib.shuffleArray = function(array) {
 
     let idx = array.length, temp, random;
 
@@ -1514,7 +1582,7 @@ Metalloriff.shuffleArray = function(array) {
 
 };
 
-Metalloriff.getPluginsFolderPath = function() {
+NeatoLib.getPluginsFolderPath = function() {
 
     let proc = require("process"), path = require("path");
 
@@ -1526,7 +1594,7 @@ Metalloriff.getPluginsFolderPath = function() {
 
 };
 
-Metalloriff.getThemesFolderPath = function() {
+NeatoLib.getThemesFolderPath = function() {
 
     let proc = require("process"), path = require("path");
 
@@ -1538,7 +1606,7 @@ Metalloriff.getThemesFolderPath = function() {
 
 };
 
-Metalloriff.showToast = function(text, type, options = {}) {
+NeatoLib.showToast = function(text, type, options = {}) {
 
     if(document.getElementsByClassName("toasts")[0] == undefined) {
         

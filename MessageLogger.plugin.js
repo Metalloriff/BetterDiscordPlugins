@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "0.5.5"; }
+    getVersion() { return "1.5.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -65,7 +65,7 @@ class MessageLogger {
 			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
-        if(typeof window.Metalloriff !== "undefined") libLoadedEvent();
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
         else lib.addEventListener("load", libLoadedEvent);
 
 	}

@@ -1576,19 +1576,36 @@ NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName,
 
     let module = NeatoLib.Modules.get(functionName);
 
-    if(module == undefined) {
+    if(module == undefined) return console.warn("No module with function '" + functionName + "' found!");
 
-        console.log("There are no modules that contain this function!");
-
-        return;
-
-    }
+    if(module[functionName + "_unpatched_" + pluginName] != undefined) return console.warn("This function is already patched by this plugin!");
 
     module[functionName + "_unpatched_" + pluginName] = module[functionName];
     
     module[functionName] = replace ? newFunction : function() {
-        newFunction.apply(module, arguments);
-        return module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
+        let returnValue;
+        try{
+            newFunction.apply(module, arguments);
+            returnValue = module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
+        } catch(err) { console.error(pluginName, "could not run patched function '" + functionName + "'.", err); }
+        return returnValue;
+    };
+
+};
+
+NeatoLib.patchReturnedVariableOfInternal = function(functionName, replacers, pluginName) {
+    
+    let module = NeatoLib.Modules.get(functionName);
+
+    if(module == undefined) return console.warn("No module with function '" + functionName + "' found!");
+
+    module[functionName + "_unpatched_" + pluginName] = module[functionName];
+
+    module[functionName] = function() {
+        let newReturn = module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
+        if(!newReturn) return null;
+        for(let key in replacers) newReturn[key] = replacers[key];
+        return newReturn;
     };
 
 };

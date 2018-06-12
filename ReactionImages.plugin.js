@@ -4,7 +4,7 @@ class ReactionImages {
 	
     getName() { return "ReactionImages"; }
     getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
-    getVersion() { return "1.0.2"; }
+    getVersion() { return "1.0.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -201,7 +201,7 @@ class ReactionImages {
 
 						images[images.length - 1].addEventListener("click", e => {
 
-							let channel = NeatoLib.getSelectedChannel();
+							let channel = NeatoLib.getSelectedTextChannel();
 
 							if(e.shiftKey) sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
 							else {

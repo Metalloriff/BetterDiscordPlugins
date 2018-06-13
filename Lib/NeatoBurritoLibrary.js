@@ -620,7 +620,7 @@ NeatoLib.Settings.pushChangelogElements = function(plugin) {
     element.style.backgroundColor = "rgba(0,0,0,0.2)";
     element.style.borderRadius = "5px";
 
-    element.insertAdjacentHTML("beforeend", `<div style="text-align:center;color:white;">Changelog</div>`);
+    element.insertAdjacentHTML("beforeend", `<div style="text-align:center;color:white;">Other</div>`);
 
     element.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createToggleSwitch("Display changes for every update", plugin.settings.displayUpdateNotes, () => {
         plugin.settings.displayUpdateNotes = !plugin.settings.displayUpdateNotes;

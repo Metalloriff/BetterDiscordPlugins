@@ -615,8 +615,8 @@ NeatoLib.Settings.pushChangelogElements = function(plugin) {
 
     var element = document.createElement("div");
 
-    element.style.padding = "15px";
-    element.style.margin = "15px";
+    element.style.padding = "10px";
+    element.style.marginTop = "10px";
     element.style.backgroundColor = "rgba(0,0,0,0.2)";
     element.style.borderRadius = "5px";
 
@@ -636,6 +636,10 @@ NeatoLib.Settings.pushChangelogElements = function(plugin) {
     right.insertAdjacentElement("beforeend", NeatoLib.Settings.Elements.createButton("View Changelog", () => {
         NeatoLib.Changelog.createChangeWindow(plugin.getName(), [], plugin.getChanges());
     }));
+
+    right.insertAdjacentElement("afterbegin", NeatoLib.Settings.Elements.createButton("Join Support Server", () => {
+        window.open("https://discord.gg/yNqzuJa");
+    }, "float:left"));
 
     element.insertAdjacentElement("beforeend", right);
 

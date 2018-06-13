@@ -2,6 +2,49 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
+NeatoLib.version = "0.0.1";
+
+NeatoLib.parseVersion = function(version) {
+
+    let numbers = Array.from(version.split("."), n => parseInt(n)), major = numbers[0], minor = numbers[1], patch = numbers[2];
+
+    return {
+        major : major,
+        minor : minor,
+        patch : patch,
+        compareTo : otherVersion => {
+            if(patch > otherVersion.patch || minor > otherVersion.minor || major > otherVersion.major) return "newer";
+            if(patch < otherVersion.patch || minor < otherVersion.minor || major < otherVersion.major) return "older";
+            return "equal";
+        }
+    };
+
+};
+
+NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
+
+    if(NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
+
+        let updateLibrary = () => {
+            setTimeout(() => {
+                plugin.start();
+            }, 100);
+            document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+        };
+
+        NeatoLib.showToast(`[${plugin.getName()}]: Library update required!`, "error", { timeout : 15000, onClick : updateLibrary, destroyOnClick : true });
+
+        try { plugin.stop(); }
+        catch(e) { console.error(plugin.getName() + ".stop()", e); }
+
+        return true;
+
+    }
+
+    return false;
+
+};
+
 NeatoLib.Changelog = {};
 
 NeatoLib.Changelog.compareVersions = function(name, changes) {
@@ -1128,37 +1171,6 @@ NeatoLib.Events.onPluginLoaded = function(plugin) {
 
     plugin.ready = true;
 
-    try {
-
-        if(true || !NeatoLib.lastCheckedForUpdate && performance.now() - NeatoLib.lastCheckedForUpdate > 60000) {
-
-            require("request")("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, response, res) => {
-
-                if(err) return console.warn(plugin.getName(), "failed to check for lib update.", err);
-
-                if(window.neatoLibSize && window.neatoLibSize != res.length) {
-
-                    new Notification(plugin.getName(), { body : `Metalloriff's lib requires an update for this plugin to work correctly. Click this notification to update it, or restart Discord (Ctrl + R).` }).onclick = () => {
-                        try { plugin.stop(); }
-                        catch(e) { console.error(e); }
-                        setTimeout(() => {
-                            plugin.start();
-                        }, 100);
-                        document.getElementById("NeatoBurritoLibrary").outerHTML = "";
-                    }
-
-                }
-
-                window.neatoLibSize = res.length;
-
-            });
-
-            NeatoLib.lastCheckedForUpdate = performance.now();
-
-        }
-
-    } catch(err) { console.error(plugin.getName(), "failed to call onPluginLoaded event. If you see this, please screenshot it and send it to Metalloriff, because I probably broke something again.", err); }
-
 };
 
 NeatoLib.Events.classes = {
@@ -1587,7 +1599,7 @@ NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName,
         try{
             newFunction.apply(module, arguments);
             returnValue = module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
-        } catch(err) { console.error(pluginName, "could not run patched function '" + functionName + "'.", err); }
+        } catch(err) { console.error(pluginName, "could not call patched function '" + functionName + "'.", err); }
         return returnValue;
     };
 
@@ -1766,20 +1778,51 @@ NeatoLib.showToast = function(text, type, options = {}) {
     if(options.icon) toast.classList.add("icon");
     if(options.color) toast.style.backgroundColor = options.color;
 
-    if(options.onclick) toast.addEventListener("click", options.onclick);
-
-    toast.innerText = text;
-
-    document.getElementsByClassName("toasts")[0].appendChild(toast);
-
-    setTimeout(() => {
+    let destroy = () => {
         toast.classList.add("closing");
         setTimeout(() => {
             toast.remove();
             if(document.getElementsByClassName("toast")[0] == undefined) document.getElementsByClassName("toasts")[0].remove();
         }, 300);
-    }, options.timeout || 3000);
+    };
+
+    if(options.onClick) toast.addEventListener("click", options.onClick);
+    if(options.destroyOnClick) toast.addEventListener("click", destroy);
+
+    toast.innerText = text;
+
+    document.getElementsByClassName("toasts")[0].appendChild(toast);
+
+    setTimeout(destroy, options.timeout || 3000);
 
     return toast;
+
+};
+
+NeatoLib.injectCSS = function(css) {
+    
+    let element = document.createElement("style");
+
+    element.type = "text/css";
+
+    element.innerText = css;
+
+    document.head.appendChild(element);
+
+    return {
+        element : element,
+        getStyle : selector => {
+            let selectorIDX = css.indexOf(selector);
+            if(selectorIDX == -1) return null;
+            return css.substring(selectorIDX, selectorIDX + css.substring(selectorIDX, css.length).indexOf("}")).split("{")[1].trim();
+        },
+        append : toAppend => {
+            css += toAppend;
+            element.innerText = css;
+        },
+        destroy : () => {
+            element.remove();
+        }
+    };
 
 };

@@ -1595,12 +1595,8 @@ NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName,
     module[functionName + "_unpatched_" + pluginName] = module[functionName];
     
     module[functionName] = replace ? newFunction : function() {
-        let returnValue;
-        try{
-            newFunction.apply(module, arguments);
-            returnValue = module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
-        } catch(err) { console.error(pluginName, "could not call patched function '" + functionName + "'.", err); }
-        return returnValue;
+        newFunction.apply(module, arguments);
+        return module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
     };
 
 };

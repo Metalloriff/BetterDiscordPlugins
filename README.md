@@ -7,6 +7,10 @@
 
 ## This page is ordered from my latest plugins to my oldest plugins.
 
+## [Unread Count Badges](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UnreadCountBadges.plugin.js)
+- Adds an unread count badge on unread servers and channels.
+- [View Preview](https://imgur.com/a/4gzPaMN)
+
 ## [BD Emote Auto-complete](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BDEmoteAutocomplete.plugin.js)
 - Adds an auto-complete menu for BetterDiscord emotes.
 - [View Preview](https://imgur.com/a/dAGFRO3)

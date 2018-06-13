@@ -39,7 +39,7 @@ class UnreadCountBadges {
 		setTimeout(() => {
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ucb-toggles", "Toggles", [
-                { title : "Ignored muted servers", value : "ignoreMutedGuilds", setValue : this.settings.ignoreMutedGuilds }
+                { title : "Ignore muted servers", value : "ignoreMutedGuilds", setValue : this.settings.ignoreMutedGuilds }
             ], choice => {
                 this.settings[choice.value] = !this.settings[choice.value];
                 this.applySettings();

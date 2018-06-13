@@ -7,6 +7,9 @@
 
 ## This page is ordered from my latest plugins to my oldest plugins.
 
+## [Auto Refresh Settings Panel](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AutoRefreshSettingsPanel.plugin.js)
+- Automatically refreshes the BetterDiscord plugin settings panel when clicking into Discord, making developing settings menus 1,000x faster if you have a lot of plugins.
+
 ## [Unread Count Badges](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UnreadCountBadges.plugin.js)
 - Adds an unread count badge on unread servers and channels.
 - [View Preview](https://imgur.com/a/4gzPaMN)

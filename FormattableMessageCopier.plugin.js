@@ -67,12 +67,12 @@ class FormattableMessageCopier {
             }), this.getName());
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint(`
-                Header variables:<br><br>
-                $channel - The name of the selected channel<br>
-                $selectionstarttime - The timestamp of the first selected message<br>
-                $selectionendtime - The timestamp of the last selected message<br>
-                $selectiondate - The date of the selected messages<br>
-                $newline - New line<br>
+                Header variables:\n\n
+                $channel - The name of the selected channel\n
+                $selectionstarttime - The timestamp of the first selected message\n
+                $selectionendtime - The timestamp of the last selected message\n
+                $selectiondate - The date of the selected messages\n
+                $newline - New line\n
                 $tab - Tab
             `), this.getName());
 
@@ -83,11 +83,11 @@ class FormattableMessageCopier {
             }), this.getName());
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint(`
-                $time - Message group timestamp<br>
-                $username - Message group sender's username<br>
-                $usertag - Message group sender's username and discriminator<br>
-                $message - Formatted message<br>
-                $newline - New line<br>
+                $time - Message group timestamp\n
+                $username - Message group sender's username\n
+                $usertag - Message group sender's username and discriminator\n
+                $message - Formatted message\n
+                $newline - New line\n
                 $tab - Tab
             `), this.getName());
 
@@ -98,10 +98,10 @@ class FormattableMessageCopier {
             }), this.getName());
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint(`
-                $time - Message timestamp<br>
-                $jumplink - A link that redirects the user to the message, if they are in the server it was from, and have access to the channel<br>
-                $messagetext - Message text<br>
-                $newline - New line<br>
+                $time - Message timestamp\n
+                $jumplink - A link that redirects the user to the message, if they are in the server it was from, and have access to the channel\n
+                $messagetext - Message text\n
+                $newline - New line\n
                 $tab - Tab
             `), this.getName());
 
@@ -112,9 +112,9 @@ class FormattableMessageCopier {
             }), this.getName());
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint(`
-                $filename - Name of the uploaded file<br>
-                $fileurl - URL of the uploaded file<br>
-                $newline - New line<br>
+                $filename - Name of the uploaded file\n
+                $fileurl - URL of the uploaded file\n
+                $newline - New line\n
                 $tab - Tab
             `), this.getName());
 
@@ -125,9 +125,9 @@ class FormattableMessageCopier {
             }), this.getName());
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint(`
-                $emoji - Reaction's emoji<br>
-                $count - Reaction count<br>
-                $newline - New line<br>
+                $emoji - Reaction's emoji\n
+                $count - Reaction count\n
+                $newline - New line\n
                 $tab - Tab
             `), this.getName());
 

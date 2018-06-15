@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.1";
+NeatoLib.version = "0.0.2";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -37,11 +37,11 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
         try { plugin.stop(); }
         catch(e) { console.error(plugin.getName() + ".stop()", e); }
 
-        return true;
+        return false;
 
     }
 
-    return false;
+    return true;
 
 };
 
@@ -647,8 +647,12 @@ NeatoLib.Settings.pushChangelogElements = function(plugin) {
 
 };
 
-NeatoLib.Settings.pushElement = function(element, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentElement("beforeend", element); };
-NeatoLib.Settings.pushHTML = function(html, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html); }
+NeatoLib.Settings.pushElement = function(element, name) { document.getElementById(`plugin-settings-${name}`).appendChild(element); };
+NeatoLib.Settings.pushElements = function(elments, name) {
+    let panel = document.getElementById(`plugin-settings-${name}`);
+    for(let i = 0; i < elements.length; i++) panel.appendChild(elements[i]);
+};
+NeatoLib.Settings.pushHTML = function(html, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html); };
 
 NeatoLib.Settings.showPluginSettings = function(name) {
 
@@ -1193,7 +1197,7 @@ window.neatoObserver = new MutationObserver(mutations => {
             if(window.activeNeatoEvents[i].type == type) {
                 if(typeof(window.activeNeatoEvents[i].callback) == "function") {
                     try { window.activeNeatoEvents[i].callback(); }
-                    catch(err) { console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback); }
+                    catch(err) { console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback, err); }
                 }
             }
         }
@@ -1210,6 +1214,8 @@ window.neatoObserver = new MutationObserver(mutations => {
         let added = mutations[i].addedNodes[0];
 
         if(added == undefined || !(added instanceof Element)) continue;
+
+        if(document.getElementById("user-settings")) console.log("Test");
 
         if(added.classList.contains(NeatoLib.Events.classes.layer) && added.getElementsByClassName(NeatoLib.Events.classes.socialLinks[0] != undefined)) call("settings");
 
@@ -1301,6 +1307,7 @@ NeatoLib.ContextMenu.create = function(items, event, options = {}) {
     let close = () => {
         menu.remove();
         document.removeEventListener("click", onClick);
+        document.removeEventListener("contextmenu", onClick);
         document.removeEventListener("keyup", onKeyUp);
     };
 
@@ -1313,6 +1320,9 @@ NeatoLib.ContextMenu.create = function(items, event, options = {}) {
     };
 
     document.addEventListener("click", onClick);
+    setTimeout(() => {
+        document.addEventListener("contextmenu", onClick);
+    }, 0);
     document.addEventListener("keyup", onKeyUp);
 
     document.getElementById("app-mount").appendChild(menu);
@@ -1384,7 +1394,7 @@ NeatoLib.ContextMenu.createSubMenu = function(label, items, options = {}) {
 };
 
 NeatoLib.ContextMenu.get = function() {
-    return document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu)[0];
+    return Array.filter(document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu), x => x.style.display != "none")[0];
 };
 
 NeatoLib.ContextMenu.close = function() {
@@ -1477,6 +1487,12 @@ NeatoLib.Tooltip.attach = function(content, element, options = {}) {
 
     return element.tooltip;
 
+};
+
+NeatoLib.Colors = {};
+
+NeatoLib.Colors.hexToRGB = function(hex, format = "R, G, B") {
+    return format.replace("R", parseInt(hex.substring(1, 7).substring(0, 2), 16)).replace("G", parseInt(hex.substring(1, 7).substring(2, 4), 16)).replace("B", parseInt(parseInt(hex.substring(1, 7).substring(4, 6), 16)));
 };
 
 NeatoLib.downloadFile = function(url, path, fileName, onCompleted) {

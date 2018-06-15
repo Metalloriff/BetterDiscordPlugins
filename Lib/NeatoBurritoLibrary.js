@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.2";
+NeatoLib.version = "0.0.3";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1245,7 +1245,7 @@ NeatoLib.ReactData = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.
 
 NeatoLib.ReactData.get = function(element) {
 
-    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+    if(!(element instanceof Element)) return null;
 
     return element[Object.keys(element).find(key => key.startsWith("__reactInternalInstance"))];
 
@@ -1253,7 +1253,7 @@ NeatoLib.ReactData.get = function(element) {
 
 NeatoLib.ReactData.getEvents = function(element) {
 
-    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+    if(!(element instanceof Element)) return null;
 
     return element[Object.keys(element).find(key => key.startsWith("__reactEventHandlers"))];
 
@@ -1261,7 +1261,7 @@ NeatoLib.ReactData.getEvents = function(element) {
 
 NeatoLib.ReactData.getOwner = function(element) {
 
-    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+    if(!(element instanceof Element)) return null;
     
     let reactData = this.get(element);
 
@@ -1277,7 +1277,7 @@ NeatoLib.ReactData.getOwner = function(element) {
 
 NeatoLib.ReactData.getProps = function(element) {
 
-    if(!(element instanceof Element)) return console.error(element, "is not an element.");
+    if(!(element instanceof Element)) return null;
 
     let owner = this.getOwner(element);
 
@@ -1494,6 +1494,30 @@ NeatoLib.Colors = {};
 
 NeatoLib.Colors.hexToRGB = function(hex, format = "R, G, B") {
     return format.replace("R", parseInt(hex.substring(1, 7).substring(0, 2), 16)).replace("G", parseInt(hex.substring(1, 7).substring(2, 4), 16)).replace("B", parseInt(parseInt(hex.substring(1, 7).substring(4, 6), 16)));
+};
+
+NeatoLib.DOM = {};
+
+NeatoLib.DOM.searchForParentElementByClassName = function(e, className) {
+
+    if(!e || !(e instanceof Element)) return null;
+
+    if(e.classList.contains(className)) return e;
+
+    let element = e;
+
+    while(element && element.parentElement && element.parentElement != document) {
+
+        element = element.parentElement;
+
+        if(element.classList.contains(className)) return element;
+
+        for(let i = 0; i < element.children.length; i++) if(element.children[i].classList.contains(className)) return element.children[i];
+
+    }
+
+    return null;
+
 };
 
 NeatoLib.downloadFile = function(url, path, fileName, onCompleted) {

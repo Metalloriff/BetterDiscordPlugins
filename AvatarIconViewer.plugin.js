@@ -35,8 +35,6 @@ class AvatarIconViewer {
 
 		NeatoLib.Updates.check(this);
 
-		NeatoLib.Events.onPluginLoaded(this);
-
 		this.contextEvent = e => this.onContextMenu(e);
 
 		this.keyUpEvent = e => {
@@ -47,6 +45,8 @@ class AvatarIconViewer {
 		};
 
 		document.addEventListener("contextmenu", this.contextEvent);
+
+		NeatoLib.Events.onPluginLoaded(this);
 
 	}
 	

@@ -7,6 +7,10 @@
 
 ## This page is ordered from my latest plugins to my oldest plugins.
 
+## [Pin Plugins And Themes](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/PinPluginsAndThemes.plugin.js)
+- Allows you to pin plugins and themes via the context menu.
+- [View Preview](https://imgur.com/a/GLK9zBY)
+
 ## [Auto Refresh Settings Panel](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AutoRefreshSettingsPanel.plugin.js)
 - Automatically refreshes the BetterDiscord plugin settings panel when clicking into Discord, making developing settings menus 1,000x faster if you have a lot of plugins.
 

@@ -33,8 +33,6 @@ class AvatarIconViewer {
 
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.3")) return;
 
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/AvatarIconViewer.plugin.js");
-
 		NeatoLib.Updates.check(this);
 
 		NeatoLib.Events.onPluginLoaded(this);

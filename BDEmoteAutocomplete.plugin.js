@@ -1,10 +1,10 @@
-//META{"name":"BDEmoteAutocomplete"}*//
+//META{"name":"BDEmoteAutocomplete","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BDEmoteAutocomplete.plugin.js"}*//
 
 class BDEmoteAutocomplete {
 	
     getName() { return "BDEmoteAutocomplete"; }
     getDescription() { return "Adds an auto-complete menu for BetterDiscord emotes."; }
-    getVersion() { return "1.0.3"; }
+    getVersion() { return "1.0.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -268,10 +268,14 @@ class BDEmoteAutocomplete {
 
         this.emotes = [];
 
+        let blacklisted = {};
+
+        for(let i = 0; i < window.bemotes.length; i++) blacklisted[window.bemotes[i]] = true;
+
 		for(let ec of emoteChannels) {
 			let emoteChannel = window.bdEmotes[ec];
 			for(let emote in emoteChannel) {
-				if(emote.length > 2 && !pushed[emote]) {
+				if(emote.length > 2 && !pushed[emote] && !blacklisted[emote]) {
                     this.emotes.push({ name : emote, url : emoteChannel[emote], channel : ec });
                     pushed[emote] = true;
                 }

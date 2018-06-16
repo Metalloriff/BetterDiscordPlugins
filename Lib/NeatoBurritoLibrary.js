@@ -312,11 +312,11 @@ NeatoLib.Settings.Elements.createToggleGroup = function(id, label, choices, call
 
     let element = document.createElement("div");
 
-    element.style.paddingTop = "20px";
+    element.style.paddingTop = "10px";
 
     element.insertAdjacentHTML("beforeend", `
-        <h5 style="color:white;padding-bottom:10px;">${label}</h5>
-        <h5 style="Color:white;padding-bottom:10px;opacity:0.5;">${description}<h5>
+        <h5 style="color:white;padding-bottom:5px;">${label}</h5>
+        <h5 style="Color:white;padding-bottom:5px;opacity:0.5;">${description}<h5>
         <div id="${id}" style="color:white;"></div>
     `);
 
@@ -649,7 +649,7 @@ NeatoLib.Settings.pushChangelogElements = function(plugin) {
 };
 
 NeatoLib.Settings.pushElement = function(element, name) { document.getElementById(`plugin-settings-${name}`).appendChild(element); };
-NeatoLib.Settings.pushElements = function(elments, name) {
+NeatoLib.Settings.pushElements = function(elements, name) {
     let panel = document.getElementById(`plugin-settings-${name}`);
     for(let i = 0; i < elements.length; i++) panel.appendChild(elements[i]);
 };
@@ -1520,6 +1520,16 @@ NeatoLib.DOM.searchForParentElementByClassName = function(e, className) {
     }
 
     return null;
+
+};
+
+NeatoLib.DOM.createElement = function(values, options = {}) {
+
+    let element = document.createElement(options.type || "div");
+
+    for(let key in values) element[key] = values[key];
+
+    return element;
 
 };
 

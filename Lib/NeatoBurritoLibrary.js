@@ -249,7 +249,7 @@ NeatoLib.Settings.Elements.pluginNameLabel = function(name) {
                 display: none;
             }
         </style>
-        <h style="color: white;font-size: 30px;font-weight: bold;">${name} by Metalloriff</h>`;
+        <h style="color: white;font-size: 30px;font-weight: bold;">${name.replace(/([A-Z])/g, ' $1').trim()} by Metalloriff</h>`;
 }
 
 NeatoLib.Settings.Elements.createRadioGroup = function(id, label, choices, selectedChoice, callback, description = "") {

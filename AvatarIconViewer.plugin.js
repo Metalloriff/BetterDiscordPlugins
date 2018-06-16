@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.5.12"; }
+    getVersion() { return "0.5.13"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -54,9 +54,11 @@ class AvatarIconViewer {
 
 		let context = NeatoLib.ContextMenu.get(), viewLabel, copyLabel;
 		
-		if(!context && !e.target.classList.contains("maskProfile-1ObLFT")) return;
+		if(!context && !e.target.classList.contains("maskProfile-1ObLFT") && !e.target.classList.contains("guildIconImage-3qTk45")) return;
 
 		this.url = "";
+
+		if(e.target.classList.contains("guildIconImage-3qTk45")) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
 
 		let getAvatar = () => {
 
@@ -82,7 +84,7 @@ class AvatarIconViewer {
 		
 		getServerIcon = () => {
 
-			if(!e.target.classList.contains("avatar-small")) return null;
+			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains("guildIconImage-3qTk45")) return null;
 
 			let iconBackground = e.target.style.backgroundImage;
 
@@ -116,8 +118,8 @@ class AvatarIconViewer {
 
 			formatURL();
 
-			if(viewLabel) context.firstChild.nextSibling.appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
-			if(copyLabel) context.firstChild.nextSibling.appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
+			if(viewLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
+			if(copyLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
 
 		} else if(e.target.classList.contains("maskProfile-1ObLFT")){
 

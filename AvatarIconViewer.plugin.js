@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.5.13"; }
+    getVersion() { return "0.5.14"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -63,7 +63,7 @@ class AvatarIconViewer {
 		let getAvatar = () => {
 
 			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group")),
-			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "member-3W1lQa")),
+			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "member-3W1lQa") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "reactor-3UBcOI")),
 			dmElement = NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "private"),
 			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length > 0 ? dmElement.getElementsByClassName("avatar-small")[0].style.backgroundImage : null;
 
@@ -128,10 +128,7 @@ class AvatarIconViewer {
 
 			NeatoLib.ContextMenu.create([
 				NeatoLib.ContextMenu.createGroup([
-					NeatoLib.ContextMenu.createItem("View Avatar", () => {
-						document.getElementsByClassName("backdrop-1ocfXc")[0].click();
-						this.createImagePreview();
-					}),
+					NeatoLib.ContextMenu.createItem("View Avatar", () => this.createImagePreview()),
 					NeatoLib.ContextMenu.createItem("Copy Avatar Link", () => this.copyURL())
 				])
 			], e);
@@ -151,7 +148,7 @@ class AvatarIconViewer {
 			let scale = window.innerHeight - 160;
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend",
-			`<div id="aiv-preview-window">
+			`<div id="aiv-preview-window" style="z-index: 5000">
 				<div id="aiv-preview-backdrop" class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
 				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
 					<div class="inner-1JeGVc">

@@ -110,6 +110,7 @@ Double click the top of a message group to select it, then shift click to the ne
 
 ## [Voice Chat Mute Sounds](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VCMuteSounds.plugin.js)
 - Enables the mute and unmute sound for all users in a voice call when the server/group is selected.
+## This plugin is deprecated and will not be updated. Please use [Voice Channel Notifications](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js) instead.
 
 ## [Idle Guildlist Scroller](https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/IdleGuildlistScroller.plugin.js)
 - Automatically scrolls to the top of the guilds list after the specified amount of time that your mouse isn't over it.

@@ -1069,7 +1069,7 @@ NeatoLib.Updates.hideNotice = function(pluginName) {
         if(notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
         else if(notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
         notice.remove();
-    } else if(document.getElementById("outdatedPlugins").getElementsByTagName("span").length == 0 && document.getElementById("pluginNotice").getElementsByClassName("btn-reload").length == 0) document.getElementById("pluginNotice").getElementsByClassName("notice-message")[0].innerText = "To finish updating you need to reload.";
+    } else if(!document.querySelector("#outdatedPluings > span") && !document.querySelector("#pluginNotice > .btn-reload")) document.querySelector("#pluginNotice > .notice-message").innerText = "To finish updating you need to reload.";
 
 };
 

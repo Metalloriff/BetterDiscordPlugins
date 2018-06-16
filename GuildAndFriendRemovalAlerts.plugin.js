@@ -1,4 +1,4 @@
-//META{"name":"GuildAndFriendRemovalAlerts"}*//
+//META{"name":"GuildAndFriendRemovalAlerts","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js"}*//
 
 class GuildAndFriendRemovalAlerts {
 	

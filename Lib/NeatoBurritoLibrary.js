@@ -254,7 +254,7 @@ NeatoLib.Settings.Elements.pluginNameLabel = function(name) {
 
 NeatoLib.Settings.Elements.createRadioGroup = function(id, label, choices, selectedChoice, callback, description = "") {
 
-    var element = document.createElement("div");
+    let element = document.createElement("div");
 
     element.style.paddingTop = "20px";
 
@@ -263,11 +263,11 @@ NeatoLib.Settings.Elements.createRadioGroup = function(id, label, choices, selec
     <h5 style="Color:white;padding-bottom:10px;opacity:0.5;">${description}<h5>
     <div id="${id}" style="color:white;"></div>`;
 
-    for(var i = 0; i < choices.length; i++) {
+    for(let i = 0; i < choices.length; i++) {
 
         if(choices[i].description == undefined) choices[i].description = "";
 
-        var choiceButton = document.createElement("div");
+        let choiceButton = document.createElement("div");
 
         choiceButton.setAttribute("id", `${id}-${i}`);
         choiceButton.setAttribute("data-value", choices[i].value);
@@ -290,11 +290,11 @@ NeatoLib.Settings.Elements.createRadioGroup = function(id, label, choices, selec
 
         choiceButton.addEventListener("click", e => {
 
-            var i = e.currentTarget.getAttribute("data-index");
+            let i = e.currentTarget.getAttribute("data-index");
 
-            var checkboxes = $(e.currentTarget.parentElement).find(`.metalloriff-checkbox-item > label > div`);
+            let checkboxes = e.currentTarget.parentElement.querySelectorAll(`.metalloriff-checkbox-item > label > div`);
 
-            for(var ii = 0; ii < checkboxes.length; ii++) { checkboxes[ii].style.backgroundColor = ""; }
+            for(let ii = 0; ii < checkboxes.length; ii++) checkboxes[ii].style.backgroundColor = "";
 
             element.querySelector(`#${id}-${i} > label > div`).style.backgroundColor = "white";
 
@@ -1063,13 +1063,13 @@ NeatoLib.Updates.displayNotice = function(pluginName, url) {
 
 NeatoLib.Updates.hideNotice = function(pluginName) {
 
-    let notice = $("#" + pluginName + "-notice");
+    let notice = document.getElementById(pluginName + "-notice");
 
-    if(notice.length) {
-        if(notice.next(".separator").length) notice.next().remove();
-        else if(notice.prev(".separator").length) notice.prev().remove();
+    if(notice) {
+        if(notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
+        else if(notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
         notice.remove();
-    } else if(!$("#outdatedPlugins").children("span").length && $("#pluginNotice .btn-reload").length) $("#pluginNotice .notice-message").text("To finish updating you need to reload.");
+    } else if(document.getElementById("outdatedPlugins").getElementsByTagName("span").length == 0 && document.getElementById("pluginNotice").getElementsByClassName("btn-reload").length == 0) document.getElementById("pluginNotice").getElementsByClassName("notice-message")[0].innerText = "To finish updating you need to reload.";
 
 };
 
@@ -1098,9 +1098,12 @@ NeatoLib.Updates.download = function(pluginName, url) {
                 
                 window.PluginUpdates.downloaded = [];
 
-                let button = $(`<button class="btn btn-reload ${DiscordModules.NoticeBarClasses.btn} ${DiscordModules.NoticeBarClasses.button}">Reload</button>`);
+                let button = document.createElement("button");
+                
+                button.className = "btn btn-reload btn-2o56RF button-1MICoQ size14-3iUx6q weightMedium-2iZe9B";
+                button.innerText = "Reload";
 
-                button.on("click", e => {
+                button.addEventListener("click", e => {
                     e.preventDefault();
                     window.location.reload(false);
                 });
@@ -1110,14 +1113,14 @@ NeatoLib.Updates.download = function(pluginName, url) {
 
                 tooltip.style.maxWidth = "400px";
                 
-                button.on("mouseenter", () => {
+                button.addEventListener("mouseenter", () => {
                     document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
                     tooltip.innerText = window.PluginUpdates.downloaded.join(", ");
-                    tooltip.style.left = button.offset().left + (button.outerWidth() / 2) - ($(tooltip).outerWidth() / 2) + "px";
-                    tooltip.style.top = button.offset().top + button.outerHeight() + "px";
+                    tooltip.style.left = button.getBoundingClientRect().left + (button.offsetWidth / 2) - (tooltip.offsetWidth / 2) + "px";
+                    tooltip.style.top = button.getBoundingClientRect().top + button.offsetHeight + "px";
                 });
 
-                button.on("mouseleave", () => tooltip.remove());
+                button.addEventListener("mouseleave", () => tooltip.remove());
 
                 document.getElementById("pluginNotice").appendChild(button);
 
@@ -1313,7 +1316,7 @@ NeatoLib.ContextMenu.create = function(items, event, options = {}) {
     };
 
     let onClick = e => {
-        if(!$(menu).has(e.target).length) close();
+        if(!menu.contains(e.target)) close();
     };
 
     let onKeyUp = e => {
@@ -1500,7 +1503,7 @@ NeatoLib.DOM = {};
 
 NeatoLib.DOM.searchForParentElementByClassName = function(e, className) {
 
-    if(!e || !(e instanceof Element)) return null;
+    if(!e) return null;
 
     if(e.classList.contains(className)) return e;
 

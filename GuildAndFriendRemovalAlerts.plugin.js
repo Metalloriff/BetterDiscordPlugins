@@ -2,269 +2,321 @@
 
 class GuildAndFriendRemovalAlerts {
 	
-	constructor() {
-		this.defaultSettings = {
-			guildNotifications: true,
-			friendNotifications: true,
-			windowsNotifications : true
-		};
-		this.settings;
-		this.allGuilds = new Array();
-		this.allFriends = new Array();
-		this.guildsModule;
-		this.friendsModule;
-		this.userModule;
-		this.guildsObserver;
-		this.checkLoopFunc = undefined;
-	}
-	
     getName() { return "Guild And Friend Removal Alerts"; }
     getDescription() { return "Alerts you when a guild or friend is removed."; }
-    getVersion() { return "0.1.6"; }
+    getVersion() { return "0.2.6"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 	
-	getSettingsPanel(){
-		if(!$(".plugin-settings").length)
-			setTimeout(() => { this.getSettingsPanel(); }, 100);
-		else
-			this.createSettingsPanel();
-	}
-	
-	createSettingsPanel(){
-		var panel = $(".plugin-settings");
-		if(panel.length){
-			panel.append(`<h style="color: white;font-size: 30px;font-weight: bold;">Guild And Friend Removal Alerts by Metalloriff</h>
-				<div style="padding-top: 20px;">
-				   <div id="ra-settings-checkboxgroup" class="radioGroup-1GBvlr">
-					  <div id="ra-checkbox-1" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx" style="padding: 10px;border-radius: 0px !important;">
-						 <label class="checkboxWrapper-SkhIWG">
-							<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
-							<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
-							<div id="ra-checkbox-ticked-1" style="background-color: white;height: 60%;width: 60%;border-radius: 3px;"></div>
-							</div>
-						 </label>
-						 <div class="info-3LOr12">
-							<div class="title-3BE6m5">Guild alerts</div>
-						 </div>
-					  </div>
-					  <div id="ra-checkbox-2" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx" style="padding: 10px;border-radius: 0px !important;">
-						 <label class="checkboxWrapper-SkhIWG">
-							<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
-							<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
-							<div id="ra-checkbox-ticked-2" style="background-color: white;height: 60%;width: 60%;border-radius: 3px;"></div>
-							</div>
-						 </label>
-						 <div class="info-3LOr12">
-							<div class="title-3BE6m5">Friend alerts</div>
-						 </div>
-					  </div>
-					  <div id="ra-checkbox-3" class="item-26Dhrx marginBottom8-AtZOdT horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG cardPrimaryEditable-3KtE4g card-3Qj_Yx" style="padding: 10px;border-radius: 0px !important;">
-						 <label class="checkboxWrapper-SkhIWG">
-							<input type="checkbox" class="inputDefault-3JxKJ2 input-3ITkQf" value="on">
-							<div class="checkbox-1ix_J3 flexCenter-3_1bcw flex-1O1GKY justifyCenter-3D2jYp alignCenter-1dQNNs box-mmYMsp">
-							<div id="ra-checkbox-ticked-3" style="background-color: white;height: 60%;width: 60%;border-radius: 3px;"></div>
-							</div>
-						 </label>
-						 <div class="info-3LOr12">
-							<div class="title-3BE6m5">Show Windows notifications</div>
-						 </div>
-					  </div>
-				   </div>
-				</div>`);
-				if(this.settings.guildNotifications == false)
-					$("#ra-checkbox-ticked-1").hide();
-				if(this.settings.friendNotifications == false)
-					$("#ra-checkbox-ticked-2").hide();
-				if(this.settings.windowsNotifications == false)
-					$("#ra-checkbox-ticked-3").hide();
-				$("#ra-checkbox-1").on("click", e => { $("#ra-checkbox-ticked-1").toggle(); this.settings.guildNotifications = !this.settings.guildNotifications; this.saveSettings(); });
-				$("#ra-checkbox-2").on("click", e => { $("#ra-checkbox-ticked-2").toggle(); this.settings.friendNotifications = !this.settings.friendNotifications; this.saveSettings(); });
-				$("#ra-checkbox-3").on("click", e => { $("#ra-checkbox-ticked-3").toggle(); this.settings.windowsNotifications = !this.settings.windowsNotifications; this.saveSettings(); });
-		}else
-			this.getSettingsPanel();
+	getSettingsPanel() {
+
+		setTimeout(() => {
+
+			NeatoLib.Settings.pushElements([
+
+				NeatoLib.Settings.Elements.createToggleGroup("ra-togs", "", [
+					{ title : "Alerts for server removals", value : "guildNotifications", setValue : this.settings.guildNotifications },
+					{ title : "Alerts for friend removals", value : "friendNotifications", setValue : this.settings.friendNotifications },
+					{ title : "Also display OS notifications", value : "windowsNotifications", setValue : this.settings.windowsNotifications }
+				], choice => {
+					this.settings[choice.value] = !this.settings[choice.value];
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Ignored server IDs (separate with spaces)", this.settings.ignoredServers, e => {
+					this.settings.ignoredServers = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Notification background color", this.settings.color, e => {
+					this.settings.color = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.DOM.createElement({ innerHTML :
+				`<div class="ra-serveritem">
+					<header class="ra-serveritem-inner">
+						<div class="ra-icon"><img src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90"></div>
+						<div style="flex: 1;">
+							<span class="ra-label">A Server</span>
+							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
+							<div class="ra-label ra-description">Owner: SomeOwner#6969</div>
+						</div>
+						<span class="ra-x-button" style="margin-bottom: 9%;">X</span>
+					</header>
+				</div>` })
+				
+			], this.getName());
+			
+			NeatoLib.Settings.pushChangelogElements(this);
+
+		}, 0);
+
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
+		
 	}
 
-	saveSettings(){
-		PluginUtilities.saveSettings("GuildAndFriendRemovalAlerts", this.settings);
+	saveSettings() {
+		this.applyCSS();
+		NeatoLib.Settings.save(this);
 	}
 	
-	save(){
-		PluginUtilities.saveData("GuildAndFriendRemovalAlerts", "data", {
-			guilds : (this.settings.guildNotifications ? this.allGuilds : new Array()),
-			friends : (this.settings.friendNotifications ? this.allFriends : new Array())
+	save() {
+		NeatoLib.Data.save(this.getName(), "data", {
+			guilds : (this.settings.guildNotifications ? this.allGuilds : []),
+			friends : (this.settings.friendNotifications ? this.allFriends : [])
 		});
 	}
 
     start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
+
 	}
 	
-	initialize(){
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/GuildAndFriendRemovalAlerts.plugin.js");
-		this.settings = PluginUtilities.loadSettings("GuildAndFriendRemovalAlerts", this.defaultSettings);
-		var data = PluginUtilities.loadData("GuildAndFriendRemovalAlerts", "data", {
-			guilds : new Array(),
-			friends : new Array()
+	onLibLoaded() {
+
+		NeatoLib.Updates.check(this);
+
+		this.settings = NeatoLib.Settings.load(this, {
+			guildNotifications: true,
+			friendNotifications: true,
+			windowsNotifications : true,
+			ignoredServers : ["280806472928198656"],
+			color : "#7289da"
 		});
+
+		let data = NeatoLib.Data.load(this.getName(), "data", {
+			guilds : [],
+			friends : []
+		});
+
 		this.allGuilds = data.guilds;
 		this.allFriends = data.friends;
-		this.guildsModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuilds"]);
-		this.friendsModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getFriendIDs"]);
-		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
-		if($(".guilds.scroller").length && this.settings.guildNotifications == true){
-			var observer = new MutationObserver((changes) => { this.checkGuilds(); });
-			observer.observe($(".guilds.scroller")[0], { childList : true });
-			this.guildsObserver = observer;
-		}
+
+		this.guildsModule = NeatoLib.Modules.get("getGuilds");
+		this.friendsModule = NeatoLib.Modules.get("getFriendIDs");
+		this.userModule = NeatoLib.Modules.get("getUser");
+
+		this.guildsObserver = new MutationObserver(() => this.checkGuilds());
+		this.guildsObserver.observe(document.getElementsByClassName("guilds scroller")[0], { childList : true });
+
 		this.checkLoopFunc = setInterval(() => {
 			this.checkGuilds();
 			this.checkFriends();
 		}, 5000);
+
+		this.applyCSS();
+		
 	}
-	
-	getGuilds(){
-		var guilds = this.guildsModule.getGuilds(), temp = new Array();
-		for(var guildID in guilds){
-			var guild = guilds[guildID], ownerUser = this.userModule.getUser(guild.ownerId), ownerTag = undefined;
-			if(ownerUser)
-				ownerTag = ownerUser.tag;
-			temp.push({ id : guild.id, name : guild.name, owner : ownerTag, icon : guild.getIconURL() });
-		}
-		return temp;
-	}
-	
-	checkGuilds(){
-		if(this.settings.guildNotifications == false)
-			return;
-		var guilds = this.getGuilds(), guildIDs = Array.from(guilds, x => x.id), app = $(".app").last(), save = false;
-		if(guilds.length == 0){
-			setTimeout(() => this.checkGuilds(), 5000);
-			return;
-		}
-		for(var i = 0; i < this.allGuilds.length; i++){
-			var guild = this.allGuilds[i];
-			if(!guildIDs.includes(guild.id)){
-				if(!$("#ra-alertwindow").length){
-					app.append(`<div id="ra-alertwindow">
-					   <div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
-					   <div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
-					</div>`);
-				}
-				$("#ra-modal").append(`
-					<div class="inner-1JeGVc ra-serveritem" style="margin: 20px; min-height: 134px;">
-					<div class="topSectionNormal-2-vo2m">
-						<header class="header-QKLPzZ flex-1O1GKY alignCenter-1dQNNs">
-							<div class="avatar-16XVId profile-ZOdGIb avatar-3EQepX"><img id="ra-icon" src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90"></div>
-							<div class="headerInfo-30uryT">
-								<div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW">
-									<span id="ra-namelabel" class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="padding-right: 7px;">Unknown</span>
-									<span class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="float: right; cursor: pointer;" onclick="$(this.parentElement.parentElement.parentElement.parentElement.parentElement).remove();">X</span>
-								</div>
-								<div class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="color: rgb(150, 150, 150); padding-top: 20px">Guild no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
-								<div id="ra-ownerlabel" class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="color: rgb(150, 150, 150); padding-top: 20px">Owner unknown</div>
-							</div>
-						</header>
-					</div>
-					</div>
-				`);
-				var item = $(".ra-serveritem").last();
-				item.find("#ra-namelabel")[0].textContent = guild.name;
-				if(guild.owner != undefined)
-					item.find("#ra-ownerlabel")[0].textContent = "Owner: " + guild.owner;
-				if(guild.icon != undefined)
-					item.find("#ra-icon")[0].src = guild.icon;
-				if(this.settings.windowsNotifications){
-					new Notification(guild.name, {
-						silent : true,
-						body : "Guild removed.",
-						icon : guild.icon
-					});
-				}
-				save = true;
+
+	applyCSS() {
+
+		if(this.styles) this.styles.destroy();
+
+		this.styles = NeatoLib.injectCSS(`
+		
+			.ra-serveritem {
+				margin: 20px;
+				min-height: 134px;
+				display: flex;
+				flex-direction: column;
+				contain: layout;
+				pointer-events: auto;
 			}
+
+			.ra-serveritem-inner {
+				padding: 10px;
+				align-items: center;
+				display: flex;
+				background: ${this.settings.color};
+				border-radius: 5px;
+				min-width: 400px;
+			}
+
+			.ra-icon {
+				margin-right: 10px;
+				height: 90px;
+				width: 90px;
+			}
+
+			.ra-icon img {
+				border-radius: 5px;
+			}
+
+			.ra-label {
+				color: white;
+				margin-top: 10px;
+				width: 95%;
+			}
+			
+			.ra-description {
+				opacity: 0.6;
+			}
+
+			.ra-x-button {
+				float: right;
+				cursor: pointer;
+				color: white;
+				width: 15px;
+				height: 15px;
+				margin-bottom: 17.5%;
+			}
+		
+		`);
+
+	}
+	
+	getGuilds() {
+
+		let guilds = this.guildsModule.getGuilds(), arr = [];
+
+		for(let id in guilds) {
+			let guild = guilds[id], ownerUser = this.userModule.getUser(guild.ownerId), ownerTag = ownerUser ? ownerUser.tag : undefined;
+			arr.push({ id : guild.id, name : guild.name, owner : ownerTag, icon : guild.getIconURL() });
 		}
-		if(this.allGuilds.length != guilds.length){ save = true; }
+		
+		return arr;
+
+	}
+	
+	checkGuilds() {
+
+		if(!this.settings.guildNotifications) return;
+
+		let guilds = this.getGuilds(), guildIds = Array.from(guilds, x => x.id), app = document.getElementsByClassName("app")[0], save = false;
+
+		if(!guilds.length) return setTimeout(() => this.checkGuilds(), 5000);
+
+		for(let i = 0; i < this.allGuilds.length; i++) {
+
+			let guild = this.allGuilds[i];
+
+			if(this.settings.ignoredServers && this.settings.ignoredServers.split(" ").indexOf(guild.id) != -1) continue;
+
+			if(guildIds.indexOf(guild.id) == -1) {
+
+				if(!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
+				<div id="ra-alertwindow">
+					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
+					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
+				</div>`);
+
+				let modal = document.getElementById("ra-modal");
+				 
+				modal.insertAdjacentHTML("beforeend", `
+				<div class="ra-serveritem">
+					<header class="ra-serveritem-inner">
+						<div class="ra-icon"><img src="${guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
+						<div style="flex: 1;">
+							<span class="ra-label">${guild.name}</span>
+							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
+							<div class="ra-label ra-description">${guild.owner ? "Owner: " + guild.owner : "Owner unknown"}</div>
+						</div>
+						<span class="ra-x-button" style="margin-bottom: 9%;" onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();">X</span>
+					</header>
+				</div>`);
+				
+				if(this.settings.windowsNotifications) new Notification(guild.name, { silent : true, body : "Server removed", icon : guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg" });
+
+				save = true;
+
+			}
+
+		}
+
+		if(this.allGuilds.length != guilds.length) save = true;
+
 		this.allGuilds = guilds;
-		if(save == true){ this.save(); }
+
+		if(save) this.save();
+		
 	}
 	
-	getFriends(){
-		var friends = this.friendsModule.getFriendIDs(), temp = new Array();
-		for(var idx in friends){
-			var friend = this.userModule.getUser(friends[idx]);
-			if(friend != undefined)
-				temp.push({ id : friend.id, tag : friend.tag, avatar : friend.getAvatarURL() });
+	getFriends() {
+
+		let friends = this.friendsModule.getFriendIDs(), arr = [];
+
+		for(let i = 0; i < friends.length; i++) {
+			let friend = this.userModule.getUser(friends[i]);
+			if(friend) arr.push({ id : friend.id, tag : friend.tag, avatar : friend.getAvatarURL() });
 		}
-		return temp;
+		
+		return arr;
+
 	}
 	
-	checkFriends(){
-		if(this.settings.friendNotifications == false)
-			return;
-		var friends = this.getFriends(), friendIDs = Array.from(friends, x => x.id), app = $(".app").last(), save = false;
-		if(friends.length == 0){
-			setTimeout(() => this.checkFriends(), 5000);
-			return;
-		}
-		for(var i = 0; i < this.allFriends.length; i++){
-			var friend = this.allFriends[i];
-			if(!friendIDs.includes(friend.id)){
-				if(!$("#ra-alertwindow").length){
-					app.append(`<div id="ra-alertwindow">
-					   <div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
-					   <div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
-					</div>`);
-				}
-				$("#ra-modal").append(`
-					<div class="inner-1JeGVc ra-frienditem" style="margin: 20px; min-height: 134px;">
-					<div class="topSectionNormal-2-vo2m">
-						<header class="header-QKLPzZ flex-1O1GKY alignCenter-1dQNNs">
-							<div class="avatar-16XVId profile-ZOdGIb avatar-3EQepX"><img id="ra-avatar" src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90"></div>
-							<div class="headerInfo-30uryT">
-								<div class="nameTag-2n-N0D userSelectText-wz4t4g nameTag-26T3kW">
-									<span id="ra-taglabel" class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="padding-right: 7px;">Unknown</span>
-									<span class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="float: right; cursor: pointer;" onclick="$(this.parentElement.parentElement.parentElement.parentElement.parentElement).remove();">X</span>
-								</div>
-								<div class="username username-3gJmXY size18-3EXdSj weightSemiBold-NJexzi" style="color: rgb(150, 150, 150); padding-top: 20px">Friend was removed.</div>
-							</div>
-						</header>
-					</div>
-					</div>
-				`);
-				var item = $(".ra-frienditem").last();
-				item.find("#ra-taglabel")[0].textContent = friend.tag;
-				item.find("#ra-avatar")[0].src = friend.avatar;
-				if(this.settings.windowsNotifications){
-					var notif = new Notification(friend.tag, {
-						silent : true,
-						body : "Friend removed.",
-						icon : friend.avatar
-					});
-				}
+	checkFriends() {
+
+		if(!this.settings.friendNotifications) return;
+
+		let friends = this.getFriends(), friendIDs = Array.from(friends, x => x.id), app = document.getElementsByClassName("app")[0], save = false;
+
+		if(!friends.length) return setTimeout(() => this.checkFriends(), 5000);
+
+		for(let i = 0; i < this.allFriends.length; i++) {
+
+			let friend = this.allFriends[i];
+
+			if(friendIDs.indexOf(friend.id) == -1) {
+
+				if(!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
+				<div id="ra-alertwindow">
+					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
+					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
+				</div>`);
+
+				document.getElementById("ra-modal").insertAdjacentHTML("beforeend", `
+				<div class="ra-serveritem">
+					<header class="ra-serveritem-inner">
+						<div class="ra-icon"><img src="${friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
+						<div style="flex: 1;">
+							<span class="ra-label">${friend.tag}</span>
+							<div class="ra-label ra-description">Friend was removed.</div>
+						</div>
+						<span class="ra-x-button" onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();">X</span>
+					</header>
+				</div>`);
+			
+				if(this.settings.windowsNotifications) new Notification(friend.tag, { silent : true, body : "Friend removed", icon : friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg" });
+
 				save = true;
+
 			}
+
 		}
-		if(this.allFriends.length != friends.length){ save = true; }
+
+		if(this.allFriends.length != friends.length) save = true;
+
 		this.allFriends = friends;
-		if(save == true){ this.save(); }
+
+		if(save) this.save();
+		
 	}
 	
     stop() {
-		if(this.guildsObserver != undefined)
-			this.guildsObserver.disconnect();
-		if(this.checkLoopFunc != undefined)
-			clearInterval(this.checkLoopFunc);
+
+		if(this.guildsObserver) this.guildsObserver.disconnect();
+
+		clearInterval(this.checkLoopFunc);
+
+		this.styles.destroy();
+		
 	}
 	
 }

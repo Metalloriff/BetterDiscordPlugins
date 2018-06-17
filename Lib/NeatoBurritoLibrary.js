@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.5";
+NeatoLib.version = "0.0.4";
 
 NeatoLib.parseVersion = function(version) {
 

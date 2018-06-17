@@ -1,4 +1,4 @@
-var NeatoLib = {}; //test
+var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 

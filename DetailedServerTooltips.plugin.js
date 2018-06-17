@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 	
     getName() { return "DetailedServerTooltips"; }
     getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date and time joined, how many days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-    getVersion() { return "0.1.1"; }
+    getVersion() { return "0.1.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -30,7 +30,7 @@ class DetailedServerTooltips {
 			lib = document.createElement("script");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
 			document.head.appendChild(lib);
 		}
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
@@ -123,7 +123,7 @@ class DetailedServerTooltips {
 
 	onLibLoaded() {
 
-        if(!NeatoLib.hasRequiredLibVersion(this, "0.0.4")) return;
+        if(!NeatoLib.hasRequiredLibVersion(this, "0.0.6")) return;
 		
 		this.settings = NeatoLib.Settings.load(this, {
             displayUpdateNotes : true,

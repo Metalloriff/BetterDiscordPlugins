@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 	
     getName() { return "DetailedServerTooltips"; }
     getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date and time joined, how many days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -151,6 +151,19 @@ class DetailedServerTooltips {
 
         let tooltip, timeout;
 
+        this.dragGuild = () => {
+
+            this.mouseLeaveGuild();
+
+            let tooltips = document.getElementsByClassName("dst-tooltip");
+    
+            for(let i = 0; i < tooltips.length; i++) {
+                if(tooltips[i].updateLoop) clearInterval(tooltips[i].updateLoop);
+                tooltips[i].remove();
+            }
+
+        };
+
         this.mouseEnterGuild = e => {
 
             timeout = setTimeout(() => {
@@ -163,7 +176,7 @@ class DetailedServerTooltips {
 
         };
 
-        this.mouseLeaveGuild = e => {
+        this.mouseLeaveGuild = () => {
 
             clearTimeout(timeout);
             if(tooltip) tooltip.remove();
@@ -191,12 +204,16 @@ class DetailedServerTooltips {
 
             let reactEvents = NeatoLib.ReactData.getEvents(guilds[i]);
             
+            guilds[i].parentElement.removeEventListener("dragstart", this.dragGuild);
+            guilds[i].parentElement.removeEventListener("dragend", this.dragGuild);
             guilds[i].removeEventListener("mouseenter", this.mouseEnterGuild);
             guilds[i].removeEventListener("mouseleave", this.mouseLeaveGuild);
 
             if(reactEvents) {
+
                 if(reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter = reactEvents.onMouseEnter_unpatched;
                 if(reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave = reactEvents.onMouseLeave_unpatched;
+
             }
 
             if(detach) continue;
@@ -211,6 +228,8 @@ class DetailedServerTooltips {
 
             }
 
+            guilds[i].parentElement.addEventListener("dragstart", this.dragGuild);
+            guilds[i].parentElement.addEventListener("dragend", this.dragGuild);
             guilds[i].addEventListener("mouseenter", this.mouseEnterGuild);
             guilds[i].addEventListener("mouseleave", this.mouseLeaveGuild);
 

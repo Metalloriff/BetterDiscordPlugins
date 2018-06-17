@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.3";
+NeatoLib.version = "0.0.4";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1878,5 +1878,34 @@ NeatoLib.injectCSS = function(css) {
             element.remove();
         }
     };
+
+};
+
+NeatoLib.getSnowflakeCreationDate = function(id) {
+
+    let epoch = 1420070400000;
+
+    let toBinary = sf => {
+
+        let binary = "", high = parseInt(sf.slice(0, -10)) || 0, low = parseInt(sf.slice(-10));
+
+        while(low > 0 || high > 0) {
+
+            binary = String(low & 1) + binary;
+
+            low = Math.floor(low / 2);
+
+            if(high > 0) {
+                low += 5000000000 * (high % 2);
+                high = Math.floor(high / 2);
+            }
+
+        }
+
+        return binary;
+
+    };
+
+    return new Date(parseInt(toBinary(id).padStart(64).substring(0, 42), 2) + epoch);
 
 };

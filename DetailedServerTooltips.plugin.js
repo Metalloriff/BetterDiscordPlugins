@@ -4,11 +4,15 @@ class DetailedServerTooltips {
 	
     getName() { return "DetailedServerTooltips"; }
     getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date and time joined, how many days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+            "0.1.1" :
+            `
+                Fixed incompatibility with DevilBro's ServerFolders.
+                Added a creation date field.
+            `
 		};
 	}
 
@@ -118,6 +122,8 @@ class DetailedServerTooltips {
     }
 
 	onLibLoaded() {
+
+        if(!NeatoLib.hasRequiredLibVersion(this, "0.0.4")) return;
 		
 		this.settings = NeatoLib.Settings.load(this, {
             displayUpdateNotes : true,
@@ -148,7 +154,8 @@ class DetailedServerTooltips {
         this.mouseEnterGuild = e => {
 
             timeout = setTimeout(() => {
-                tooltip = this.tooltip(e.target.parentElement.href.match(/\d+/)[0], e.target);
+                tooltip = this.tooltip((e.target.parentElement.href.match(/\d+/) || [])[0], e.target);
+                if(!tooltip) return;
                 document.getElementsByClassName("tooltips")[0].insertAdjacentElement("beforeend", tooltip);
                 let bottomPos = parseFloat(tooltip.style.top) + tooltip.offsetHeight;
                 if(bottomPos > window.innerHeight) tooltip.style.top = (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight)) + "px";
@@ -165,6 +172,9 @@ class DetailedServerTooltips {
 
         this.switchEvent = () => this.applyToGuilds();
 
+        this.guildObserver = new MutationObserver(this.switchEvent);
+        this.guildObserver.observe(document.getElementsByClassName("guilds-wrapper")[0], { childList : true, subtree : true });
+
         NeatoLib.Events.attach("switch", this.switchEvent);
         
         this.applyToGuilds();
@@ -180,22 +190,26 @@ class DetailedServerTooltips {
         for(let i = 0; i < guilds.length; i++) {
 
             let reactEvents = NeatoLib.ReactData.getEvents(guilds[i]);
-
-            if(!reactEvents) continue;
             
             guilds[i].removeEventListener("mouseenter", this.mouseEnterGuild);
             guilds[i].removeEventListener("mouseleave", this.mouseLeaveGuild);
 
-            if(reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter = reactEvents.onMouseEnter_unpatched;
-            if(reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave = reactEvents.onMouseLeave_unpatched;
+            if(reactEvents) {
+                if(reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter = reactEvents.onMouseEnter_unpatched;
+                if(reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave = reactEvents.onMouseLeave_unpatched;
+            }
 
             if(detach) continue;
 
-            if(!reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter_unpatched = reactEvents.onMouseEnter;
-            if(!reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave_unpatched = reactEvents.onMouseLeave;
+            if(reactEvents) {
 
-            reactEvents.onMouseEnter = () => {};
-            reactEvents.onMouseLeave = () => {};
+                if(!reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter_unpatched = reactEvents.onMouseEnter;
+                if(!reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave_unpatched = reactEvents.onMouseLeave;
+
+                reactEvents.onMouseEnter = () => {};
+                reactEvents.onMouseLeave = () => {};
+
+            }
 
             guilds[i].addEventListener("mouseenter", this.mouseEnterGuild);
             guilds[i].addEventListener("mouseleave", this.mouseLeaveGuild);
@@ -206,6 +220,8 @@ class DetailedServerTooltips {
 
     tooltip(guildId, element) {
 
+        if(!guildId || !element) return;
+
         let tooltip = document.createElement("div"), guild = this.guildModule.getGuild(guildId), owner = this.userModule.getUser(guild.ownerId);
 
         tooltip.className = "tooltip tooltip-right dst-tooltip";
@@ -213,10 +229,13 @@ class DetailedServerTooltips {
         tooltip.style.left = (element.getBoundingClientRect().left + element.offsetWidth) + "px";
         tooltip.style.top = ((element.getBoundingClientRect().top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2) - 25) + "px";
 
+        let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);
+
         tooltip.innerHTML = `${guild.name}
         <div class="dst-tooltip-icon" style="background-image: url(${guild.getIconURL()});"></div>
         <div id="dst-tooltip-owner-label" class="dst-tooltip-label">Owner: ${owner ? owner.tag : "unknown"}</div>
-        <div class="dst-tooltip-label">${owner && owner.id == this.localUser.id ? "Created at:" : "Joined at:"} ${guild.joinedAt.toLocaleDateString()}, ${guild.joinedAt.toLocaleTimeString()} (${Math.round(Math.abs(guild.joinedAt.getTime() - new Date().getTime()) / 86400000)} days ago)</div>
+        <div class="dst-tooltip-label">Created at: ${creationDate.toLocaleDateString()}, ${creationDate.toLocaleTimeString()} (${Math.round(Math.abs(creationDate.getTime() - new Date().getTime()) / 86400000)} days ago)</div>
+        ${creationDate.toString() == guild.joinedAt.toString() ? "" : `<div class="dst-tooltip-label">Joined at: ${guild.joinedAt.toLocaleDateString()}, ${guild.joinedAt.toLocaleTimeString()} (${Math.round(Math.abs(guild.joinedAt.getTime() - new Date().getTime()) / 86400000)} days ago)</div>`}
         <div id="dst-tooltip-member-count-label" class="dst-tooltip-label">${this.memberCounts[guildId] ? this.memberCounts[guildId] : "Loading"} members</div>
         <div class="dst-tooltip-label">${Array.filter(Object.values(this.channelModule.getChannels()), c => c.guild_id == guildId).length} channels</div>
         <div class="dst-tooltip-label">${Object.keys(guild.roles).length} roles</div>
@@ -255,6 +274,8 @@ class DetailedServerTooltips {
         if(this.style) this.style.destroy();
 
         NeatoLib.Events.detach("switch", this.switchEvent);
+
+        this.guildObserver.disconnect();
 
 	}
 	

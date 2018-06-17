@@ -29,7 +29,7 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
             setTimeout(() => {
                 NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
                 plugin.start();
-            }, 100);
+            }, 1500);
             document.getElementById("NeatoBurritoLibrary").outerHTML = "";
         };
 

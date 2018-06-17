@@ -27,12 +27,16 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
 
         let updateLibrary = () => {
             setTimeout(() => {
-                window.location.reload(true);
+                NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
+                plugin.start();
             }, 1500);
             document.getElementById("NeatoBurritoLibrary").outerHTML = "";
         };
 
-        NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it and restart Discord.`, "error", { timeout : 30000, onClick : updateLibrary, destroyOnClick : true });
+        NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it.`, "error", { timeout : 30000, onClick : updateLibrary, destroyOnClick : true });
+
+        try { plugin.stop(); }
+        catch(e) { console.error(plugin.getName() + ".stop()", e); }
 
         return false;
 

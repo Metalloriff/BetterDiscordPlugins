@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.5";
+NeatoLib.version = "0.0.6";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -26,17 +26,22 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
     if(NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
 
         let updateLibrary = () => {
-            setTimeout(() => {
+
+            NeatoLib.version = undefined;
+
+            let tryStart = () => setTimeout(() => {
+                if(!NeatoLib.version) return tryStart();
                 NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
                 plugin.start();
             }, 1500);
+
+            tryStart();
+
             document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+
         };
 
         NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it.`, "error", { timeout : 30000, onClick : updateLibrary, destroyOnClick : true });
-
-        try { plugin.stop(); }
-        catch(e) { console.error(plugin.getName() + ".stop()", e); }
 
         return false;
 

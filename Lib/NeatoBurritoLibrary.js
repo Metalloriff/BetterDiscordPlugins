@@ -1921,7 +1921,6 @@ NeatoLib.getSnowflakeCreationDate = function(id) {
 };
 
 for(let pluginName in window.bdplugins) {
-    if(typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function") console.log(window.bdplugins[pluginName].plugin.ready);
     if(typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
         setTimeout(() => {
             if(window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);

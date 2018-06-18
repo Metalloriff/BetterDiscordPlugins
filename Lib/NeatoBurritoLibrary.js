@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.12";
+NeatoLib.version = "0.1.12";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -25,6 +25,8 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
 
     if(NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
 
+        if(plugin.ready) plugin.ready = false;
+
         let updateLibrary = () => {
 
             if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").outerHTML = "";
@@ -44,7 +46,7 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
 
                     new Promise(exec => exec(lib.runInThisContext())).then(() => {
                         NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
-                        plugin.start();
+                        setTimeout(() => plugin.start(), 1000);
                     });
 
                 });
@@ -1153,9 +1155,9 @@ NeatoLib.Updates.download = function(pluginName, url) {
 
 };
 
-NeatoLib.Updates.check = function(plugin) {
+NeatoLib.Updates.check = function(plugin, path) {
 
-    let url = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
+    let url = path ? path : "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
 
     if(typeof window.PluginUpdates == "undefined") window.PluginUpdates = { plugins : {} };
     window.PluginUpdates.plugins[url] = { name : plugin.getName(), raw : url, version : plugin.getVersion() };
@@ -1939,3 +1941,23 @@ NeatoLib.getSnowflakeCreationDate = function(id) {
     return new Date(parseInt(toBinary(id).padStart(64).substring(0, 42), 2) + epoch);
 
 };
+
+for(let pluginName in window.bdplugins) {
+    if(typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
+        setTimeout(() => {
+            try {
+                window.bdplugins[pluginName].plugin.onLibLoaded();
+                if(window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
+            }
+            catch(err) {
+                console.error(`[${pluginName}]: Failed to start plugin!`, err);
+                NeatoLib.showToast(`[${pluginName}]: Failed to start! Please check the console (Ctrl/Cmd + Shift + I) and report any errors to the developer.`, "error");
+            }
+        }, 100);
+        console.log(pluginName);
+    }
+}
+
+setTimeout(() => {
+    if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").remove();
+}, 15000);

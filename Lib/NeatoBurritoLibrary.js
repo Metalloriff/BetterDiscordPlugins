@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.1.12";
+NeatoLib.version = "0.1.13";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1932,11 +1932,9 @@ for(let pluginName in window.bdplugins) {
                 NeatoLib.showToast(`[${pluginName}]: Failed to start! Please check the console (Ctrl/Cmd + Shift + I) and report any errors to the developer.`, "error");
             }
         }, 100);
-        console.log(pluginName);
     }
 }
 
 setTimeout(() => {
-    console.log("TEST");
     if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").remove();
 }, 15000);

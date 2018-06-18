@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.11";
+NeatoLib.version = "0.0.12";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -27,6 +27,8 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
 
         let updateLibrary = () => {
 
+            if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").outerHTML = "";
+
             let req = require("request"), vm = require("vm");
 
             setTimeout(() => {
@@ -38,8 +40,6 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
         
                 req("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now(), (err, res, data) => {
 
-                    console.log("test");
-
                     let lib = new vm.Script(data, { filename : "NeatoBurritoLibrary.js", displayErrors : true });
 
                     new Promise(exec => exec(lib.runInThisContext())).then(() => {
@@ -50,8 +50,6 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
                 });
 
             }, 500);
-
-            if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").outerHTML = "";
 
         };
 

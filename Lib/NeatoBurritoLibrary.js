@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.0.6";
+NeatoLib.version = "0.0.7";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1545,6 +1545,19 @@ NeatoLib.DOM.createElement = function(values, options = {}) {
     for(let key in values) element[key] = values[key];
 
     return element;
+
+};
+
+NeatoLib.DOM.sortChildren = function(element, sortFunc) {
+
+    let children = Array.from(element.children).sort(sortFunc || function(a, b) {
+        let x = a.innerText.toLowerCase(), y = b.innerText.toLowerCase();
+        if(x < y) return -1;
+        else if(x > y) return 1;
+        return 0;
+    });
+
+    for(let i = 0; i < children.length; i++) element.appendChild(children[i]);
 
 };
 

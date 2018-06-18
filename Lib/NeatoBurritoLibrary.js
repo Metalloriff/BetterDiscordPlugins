@@ -38,12 +38,12 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
                     catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
                 };
         
-                req("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now(), (err, res, data) => {
+                req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
 
                     let lib = new vm.Script(data, { filename : "NeatoBurritoLibrary.js", displayErrors : true });
 
                     new Promise(exec => exec(lib.runInThisContext())).then(() => {
-                        NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
+                        NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
                         setTimeout(() => plugin.start(), 1000);
                     });
 
@@ -1923,14 +1923,7 @@ NeatoLib.getSnowflakeCreationDate = function(id) {
 for(let pluginName in window.bdplugins) {
     if(typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
         setTimeout(() => {
-            try {
-                window.bdplugins[pluginName].plugin.onLibLoaded();
-                if(window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
-            }
-            catch(err) {
-                console.error(`[${pluginName}]: Failed to start plugin!`, err);
-                NeatoLib.showToast(`[${pluginName}]: Failed to start! Please check the console (Ctrl/Cmd + Shift + I) and report any errors to the developer.`, "error");
-            }
+            if(window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
         }, 100);
     }
 }

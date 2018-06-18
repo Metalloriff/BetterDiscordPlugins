@@ -29,8 +29,6 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
 
         let updateLibrary = () => {
 
-            if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").outerHTML = "";
-
             let req = require("request"), vm = require("vm");
 
             setTimeout(() => {
@@ -1425,26 +1423,6 @@ NeatoLib.ContextMenu.close = function() {
     if(cm) cm.style.display = "none";
 };
 
-NeatoLib.Debug = {};
-
-NeatoLib.Debug.reloadLib = function() {
-
-    setTimeout(() => {
-
-        let lib = document.createElement("script");
-
-        lib.setAttribute("id", "NeatoBurritoLibrary");
-        lib.setAttribute("type", "text/javascript");
-        lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-
-        document.head.appendChild(lib);
-
-    }, 100);
-
-    document.getElementById("NeatoBurritoLibrary").outerHTML = "";
-
-};
-
 NeatoLib.Tooltip = {};
 
 NeatoLib.Tooltip.attach = function(content, element, options = {}) {
@@ -1959,5 +1937,6 @@ for(let pluginName in window.bdplugins) {
 }
 
 setTimeout(() => {
+    console.log("TEST");
     if(document.getElementById("NeatoBurritoLibrary")) document.getElementById("NeatoBurritoLibrary").remove();
 }, 15000);

@@ -35,10 +35,11 @@ NeatoLib.hasRequiredLibVersion = function(plugin, requiredVersion) {
                 };
         
                 require("request")("https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now(), (err, res, data) => {
-                    let lib = require("vm").Script(data, { filename : "NeatoBurritoLibrary.js", displayErrors : true });
+                    let lib = new require("vm").Script(data, { filename : "NeatoBurritoLibrary.js", displayErrors : true });
                     new Promise(exec => exec(lib.runInThisContext()));
                     NeatoLib.showToast(`[${plugin.getName()}]: Library updated successfully!`, "success");
                     plugin.start();
+                    console.log(lib);
                 });
 
                 lib.addEventListener("load", () => {

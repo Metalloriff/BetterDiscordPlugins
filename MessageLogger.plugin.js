@@ -4,7 +4,7 @@ class MessageLogger {
 	
     getName() { return "MessageLogger"; }
     getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-    getVersion() { return "1.7.6"; }
+    getVersion() { return "1.8.6"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -58,6 +58,12 @@ class MessageLogger {
 				Bulk deletes (purges, bans, etc.) are now logged.
 				Clicking a notification (toast) will now take you to the log of that type.
 				Added a context menu to images in the log.
+			`,
+			"1.8.6" :
+			`
+				Bulk deletes are now separated from deleted messages.
+				Hotkeys will now close the window if open.
+				You can now save and load backups with Ctrl + S and Ctrl + O. Also includes sent messages.
 			`
 		};
 	}
@@ -158,15 +164,6 @@ class MessageLogger {
 				} else NeatoLib.showToast("Keybind empty!", "error");
 			}), this.getName());
 
-			/* NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("ml-count-toggles", "Display amount of new messages since the last time the channel was visited", [
-				{ title : "Sent messages", value : "sent", setValue : this.settings.countToggles.sent },
-				{ title : "Edited messages", value : "edited", setValue : this.settings.countToggles.edited },
-				{ title : "Deleted messages", value : "deleted", setValue : this.settings.countToggles.deleted }
-			], choice => {
-				this.settings.countToggles[choice.value] = !this.settings.countToggles[choice.value];
-				this.saveSettings();
-			}), this.getName()); */
-
 			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
@@ -182,7 +179,8 @@ class MessageLogger {
 	saveData() {
 		NeatoLib.Data.save(this.getName() + "Data", "data", {
 			deletedMessageRecord : this.deletedMessageRecord,
-			editedMessageRecord : this.editedMessageRecord
+			editedMessageRecord : this.editedMessageRecord,
+			purgedMessageRecord : this.purgedMessageRecord
 		});
 	}
 
@@ -233,12 +231,14 @@ class MessageLogger {
 
 		let data = NeatoLib.Data.load(this.getName() + "Data", "data", {
 			deletedMessageRecord : [],
-			editedMessageRecord : []
+			editedMessageRecord : [],
+			purgedMessageRecord : []
 		});
 
 		this.messageRecord = [];
 		this.deletedMessageRecord = data.deletedMessageRecord;
 		this.editedMessageRecord = data.editedMessageRecord;
+		this.purgedMessageRecord = data.purgedMessageRecord;
 
 		this.getUser = NeatoLib.Modules.get("getUser").getUser;
 		this.getServer = NeatoLib.Modules.get("getGuild").getGuild;
@@ -271,8 +271,10 @@ class MessageLogger {
 
 			Shortcut help:
 
-			"Ctrl + M" - Open message log.
-			"Ctrl + Alt + M" - Open message log with selected channel filtered.
+			"Ctrl + M" (default) - Open message log.
+			"Ctrl + Alt + M" (default) - Open message log with selected channel filtered.
+			"Ctrl + S" - Saves a backup of the current logged messages.
+			"Ctrl + O" - Opens file browser to load a backup.
 		`;
 
 		this.classes = NeatoLib.getClasses(["contextMenu"]);
@@ -285,6 +287,60 @@ class MessageLogger {
 
 		this.transitionTo = NeatoLib.Modules.get(["transitionTo"]).transitionTo;
 
+		this.windowKeyEvent = e => {
+
+			if(e.ctrlKey) {
+
+				if(e.key == "s") {
+
+					NeatoLib.UI.createTextPrompt("ml-save-backup-prompt", "Save backup file", (name, prompt) => {
+
+						NeatoLib.Data.save(name, "data", {
+							messageRecord : this.messageRecord,
+							deletedMessageRecord : this.deletedMessageRecord,
+							editedMessageRecord : this.editedMessageRecord,
+							purgedMessageRecord : this.purgedMessageRecord
+						});
+
+						NeatoLib.showToast(`[${this.getName()}]: Backup saved as "${name}.config.json"`, "success");
+
+						prompt.close();
+
+					}, "ML_BackupData_" + new Date().toDateString().split(" ").join("_") + "_" + new Date().toLocaleTimeString().split(":").join("_").split(" ").join("_"), { placeholder : "Backup filename..." });
+
+				}
+
+				if(e.key == "o") {
+
+					NeatoLib.browseForFile(file => {
+						
+						if(!file.name.endsWith(".config.json")) return NeatoLib.showToast(`[${this.getName()}]: This is not a correct backup data file`, "error");
+
+						NeatoLib.UI.createPrompt("ml-load-backup-prompt", "Load backup file", "Are you sure you want to load from this backup? All current logged messages will be lost.", prompt => {
+
+							let data = NeatoLib.Data.load(file.name.substring(0, file.name.indexOf(".")), "data");
+	
+							this.messageRecord = data.messageRecord;
+							this.deletedMessageRecord = data.deletedMessageRecord;
+							this.editedMessageRecord = data.editedMessageRecord;
+							this.purgedMessageRecord = data.purgedMessageRecord;
+	
+							NeatoLib.showToast(`[${this.getName()}]: Backup file loaded`, "success");
+
+							this.saveData();
+
+							prompt.close();
+
+						});
+
+					});
+
+				}
+
+			}
+
+		};
+
 		NeatoLib.unpatchInternalFunction("dispatch", this.getName());
 		NeatoLib.patchInternalFunction("dispatch", dispatch => {
 			
@@ -294,13 +350,13 @@ class MessageLogger {
 
 				for(let i = 0; i < dispatch.ids.length; i++) {
 
-					let deletedMessage = this.messageRecord.find(x => x.message.id == dispatch.ids[i]);
+					let purgedMessage = this.messageRecord.find(x => x.message.id == dispatch.ids[i]);
 
-					if(!deletedMessage || this.deletedMessageRecord.find(x => x.message.id == dispatch.ids[i])) return;
+					if(!purgedMessage || this.purgedMessageRecord.find(x => x.message.id == dispatch.ids[i])) return;
 					
-					deletedMessage.timestamp = timestamp;
+					purgedMessage.timestamp = timestamp;
 
-					this.deletedMessageRecord.push(deletedMessage);
+					this.purgedMessageRecord.push(purgedMessage);
 
 				}
 
@@ -344,6 +400,7 @@ class MessageLogger {
             if(this.messageRecord.length >= this.settings.cap) this.messageRecord.splice(0, 1);
             if(this.deletedMessageRecord.length >= this.settings.savedCap) this.deletedMessageRecord.splice(0, 1);
 			if(this.editedMessageRecord.length >= this.settings.savedCap) this.editedMessageRecord.splice(0, 1);
+			if(this.purgedMessageRecord.length >= this.settings.savedCap) this.purgedMessageRecord.splice(0, 1);
 
             if(data.type == "MESSAGE_DELETE") {
 
@@ -445,15 +502,29 @@ class MessageLogger {
 
 		if(this.settings.disableKeybind) return;
 
+		let ret = false;
+
 		NeatoLib.Keybinds.attachListener("ml-open-log-filtered", this.settings.openLogFilteredKeybind, () => {
+			if(document.getElementById("message-logger-window")) {
+				document.getElementById("message-logger-window").getElementsByClassName("ml-backdrop")[0].click();
+				ret = true;
+				return;
+			}
 			let channel = NeatoLib.getSelectedTextChannel();
 			if(channel) this.filter = "channel: " + channel.id;
 			this.openWindow("deleted");
+			ret = true;
 		});
 
+		if(ret) return;
+
 		NeatoLib.Keybinds.attachListener("ml-open-log", this.settings.openLogKeybind, () => {
+			if(document.getElementById("message-logger-window")) {
+				document.getElementById("message-logger-window").getElementsByClassName("ml-backdrop")[0].click();
+				return;
+			}
 			this.filter = "";
-			this.openWindow("deleted")
+			this.openWindow("deleted");
 		});
 
 	}
@@ -597,6 +668,7 @@ class MessageLogger {
 			margin: 15px 10px;
 			cursor: pointer;
 			transition: all 0.3s;
+			font-size: 15px;
 		}
 
 		.ml-tab-button:hover, .ml-filter-help-button:hover {
@@ -669,12 +741,16 @@ class MessageLogger {
 						<div class="ml-tab-button sent">Sent Messages</div>
 						<div class="ml-tab-button deleted">Deleted Messages</div>
 						<div class="ml-tab-button edited">Edited Messages</div>
+						<div class="ml-tab-button purged">Purged Messages</div>
 						<div class="ml-tab-button ghostpings">Ghost Pings</div>
 					</div>
                 </div>
                 <div class="ml-scroller" id="message-logger-scroller"></div>
             </div>
 		</div>`);
+
+		document.removeEventListener("keydown", this.windowKeyEvent);
+		document.addEventListener("keydown", this.windowKeyEvent);
 
 		let tabs = document.getElementsByClassName("ml-tab-button"), $tabs = $(tabs);
 
@@ -705,6 +781,7 @@ class MessageLogger {
 		$backdrop.off("click");
 		$backdrop.on("click", () => {
 			this.filter = "";
+			document.removeEventListener("keydown", this.windowKeyEvent);
 			document.getElementById("message-logger-window").outerHTML = "";
 			if(this.updateWindow) clearInterval(this.updateWindow);
 		});
@@ -796,6 +873,7 @@ class MessageLogger {
 							if(type == "sent") messageA = this.messageRecord;
 							if(type == "edited") messageA = this.editedMessageRecord;
 							if(type == "deleted" || type == "ghostpings") messageA = this.deletedMessageRecord;
+							if(type == "purged") messageA = this.purgedMessageRecord;
 							let ii = messageA.findIndex(x => x.message.id == messageID);
 							if(ii != -1) messageA.splice(ii, 1);
 							this.saveData();
@@ -847,6 +925,7 @@ class MessageLogger {
 				if(type == "sent") this.messageRecord = [];
 				if(type == "edited") this.editedMessageRecord = [];
 				if(type == "deleted") this.deletedMessageRecord = [];
+				if(type == "purged") this.purgedMessageRecord = [];
 				this.saveData();
 				NeatoLib.showToast("Log cleared!", "success");
 				this.openWindow(type);
@@ -864,6 +943,7 @@ class MessageLogger {
 		if(type == "edited") messages = this.editedMessageRecord.slice(0);
 		if(type == "deleted") messages = this.deletedMessageRecord.slice(0);
 		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(this.localUser.id));
+		if(type == "purged") messages = this.purgedMessageRecord.slice(0);
 		
 		let filters = this.filter.split(",");
 
@@ -999,6 +1079,7 @@ class MessageLogger {
 		this.messageRecord = [];
 		this.deletedMessageRecord = [];
 		this.editedMessageRecord = [];
+		this.purgedMessageRecord = [];
 		this.saveData();
 	}
 	

@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.1.13";
+NeatoLib.version = "0.1.14";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1304,6 +1304,25 @@ NeatoLib.ReactData.getProps = function(element) {
     return owner ? owner.props : null;
 
 };
+
+NeatoLib.ReactData.getProp = function(element, propKey) {
+    
+    if(!(element instanceof Element)) return null;
+
+    let owner = this.getOwner(element);
+
+    if(!owner || !owner.props) return null;
+
+    let split = propKey.split("."), obj = owner.props;
+
+    for(let i = 0; i < split.length; i++) {
+        obj = obj[split[i]];
+        if(!obj) return null;
+    }
+
+    return obj;
+
+}
 
 NeatoLib.ContextMenu = {};
 

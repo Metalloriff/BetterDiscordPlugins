@@ -2,188 +2,217 @@
 
 class BetterEmoteSizes {
 	
-	constructor(){
-		this.defaultSettings = {
-			smallSize : 22,
-			largeSize : 32,
-			bdSize : 28,
-			reactionSize : 16,
-			hoverSize : 2,
-			transitionSpeed : 0.5,
-			reactionHoverSize : 2
-		};
-		this.settings = this.defaultSettings;
-	}
-	
     getName() { return "Emote Zoom"; }
-    getDescription() { return "Increases the size of emotes upon hovering over them."; }
-    getVersion() { return "1.3.10"; }
+    getDescription() { return "Increases the size of emojis, emotes, and reactions upon hovering over them and allows you to change their default sizes."; }
+    getVersion() { return "2.3.10"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
-		if(!$(".plugin-settings").length)
-			setTimeout(e => { this.getSettingsPanel(e); }, 100);
-		else
-			this.createSettingsPanel();
-	}
 
-	createSettingsPanel(){
-		var panel = $(".plugin-settings");
-		if(panel.length){
-			panel.append(`
-				<h style="color: rgb(255, 255, 255); font-size: 30px; font-weight: bold;">Emote Zoom by Metalloriff</h>
-				<br><br>
+		setTimeout(() => {
 
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Small emote intial size (px):</p>
-				<input id="ez-small-size" value="` + this.settings.smallSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+			NeatoLib.Settings.pushElements([
 
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Large emote intial size (px):</p>
-				<input id="ez-large-size" value="` + this.settings.largeSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+				NeatoLib.Settings.Elements.createToggleSwitch("Affect small emojis", this.settings.alterSmall, () => {
+					this.settings.alterSmall = !this.settings.alterSmall;
+					this.saveSettings();
+				}),
 
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">BD emote intial size (px):</p>
-				<input id="ez-bd-size" value="` + this.settings.bdSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+				NeatoLib.Settings.Elements.createNewTextField("Default small emoji size (px)", this.settings.smallSize, e => {
+					this.settings.smallSize = e.target.value;
+					this.saveSettings();
+				}),
 
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction intial size (px):</p>
-				<input id="ez-react-size" value="` + this.settings.reactionSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
-				
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Hover size multiplier:</p>
-				<input id="ez-hover-size" value="` + this.settings.hoverSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
-				
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Reaction hover size multiplier:</p>
-				<input id="ez-react-hover-size" value="` + this.settings.reactionHoverSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+				NeatoLib.Settings.Elements.createToggleSwitch("Affect large emojis", this.settings.alterLarge, () => {
+					this.settings.alterLarge = !this.settings.alterLarge;
+					this.saveSettings();
+				}),
 
-				<p style="color: rgb(255, 255, 255); font-size: 20px;">Transition speed (seconds):</p>
-				<input id="ez-trans-speed" value="` + this.settings.transitionSpeed + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+				NeatoLib.Settings.Elements.createNewTextField("Default large emoji size (px)", this.settings.largeSize, e => {
+					this.settings.largeSize = e.target.value;
+					this.saveSettings();
+				}),
 
-				<div style="text-align: center;">
-				<br>
-				<button id="ez-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Reset Settings</div>
-				</button>
-				<button id="ez-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Save and Apply</div>
-				</button>
-				</div>
-			`);
-			var hoverSize = document.getElementById("ez-hover-size"),
-				transitionSpeed = document.getElementById("ez-trans-speed"),
-				smallSize = document.getElementById("ez-small-size"),
-				largeSize = document.getElementById("ez-large-size"),
-				bdSize = document.getElementById("ez-bd-size"),
-				reactionSize = document.getElementById("ez-react-size"),
-				reactionHoverSize = document.getElementById("ez-react-hover-size");
-			$("#ez-reset-button").on("click", () => {
-				this.setings = this.defaultSettings;
-				hoverSize.value = "2";
-				transitionSpeed.value = "0.5";
-				smallSize.value = "22";
-				largeSize.value = "32";
-				bdSize.value = "28";
-				reactionSize.value = "16";
-				reactionHoverSize.value = "2";
-			});
-			$("#ez-save-button").on("click", () => {
-				this.settings.hoverSize = hoverSize.value;
-				this.settings.transitionSpeed = transitionSpeed.value;
-				this.settings.smallSize = smallSize.value;
-				this.settings.largeSize = largeSize.value;
-				this.settings.bdSize = bdSize.value;
-				this.settings.reactionSize = reactionSize.value;
-				this.settings.reactionHoverSize = reactionHoverSize.value;
-				this.saveSettings();
-			});
-		}else
-			this.getSettingsPanel();
+				NeatoLib.Settings.Elements.createToggleSwitch("Affect BetterDiscord emotes", this.settings.alterBD, () => {
+					this.settings.alterBD = !this.settings.alterBD;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Default BetterDiscord emote size (px)", this.settings.bdSize, e => {
+					this.settings.bdSize = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createToggleSwitch("Affect reactions", this.settings.alterReactions, () => {
+					this.settings.alterReactions = !this.settings.alterReactions;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Default reaction size (px)", this.settings.reactionSize, e => {
+					this.settings.reactionSize = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Emoji and BD emote hover size mulitplier", this.settings.hoverSize, e => {
+					this.settings.hoverSize = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("reaction hover size mulitplier", this.settings.reactionHoverSize, e => {
+					this.settings.reactionHoverSize = e.target.value;
+					this.saveSettings();
+				}),
+
+				NeatoLib.Settings.Elements.createNewTextField("Transition time (seconds)", this.settings.transitionSpeed, e => {
+					this.settings.transitionSpeed = e.target.value;
+					this.saveSettings();
+				}),
+
+			], this.getName());
+			
+			NeatoLib.Settings.pushChangelogElements(this);
+
+		}, 0);
+
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
+
 	}
 	
 	saveSettings(){
-		PluginUtilities.saveSettings("BetterEmoteSizes", this.settings);
+		NeatoLib.Settings.save(this);
 		this.update();
 	}
 
     load() {}
 
-    start(){
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+    start() {
+
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
+
 	}
 	
-	initialize(){
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/BetterEmoteSizes.plugin.js");
-		this.settings = PluginUtilities.loadSettings("BetterEmoteSizes", this.defaultSettings);
+	onLibLoaded() {
+
+		this.settings = NeatoLib.Settings.load(this, {
+			displayUpdateNotes : true,
+			alterSmall : true,
+			smallSize : 22,
+			alterLarge : true,
+			largeSize : 32,
+			alterBD : true,
+			bdSize : 28,
+			alterReactions : true,
+			reactionSize : 16,
+			hoverSize : 3,
+			transitionSpeed : 0.5,
+			reactionHoverSize : 2
+		});
+
+		NeatoLib.Updates.check(this);
+
 		this.update();
+
+		NeatoLib.Events.onPluginLoaded(this);
+		
 	}
 	
 	update(){
-		BdApi.clearCSS("BetterEmoteSizes");
-		BdApi.injectCSS("BetterEmoteSizes",
-		`	.message-group .emoji, .emote {
-				transform: scale(1);
-				transition: transform ` + this.settings.transitionSpeed + `s;
-			}
 
-			.markup > .emoji:not(.jumboable) {
-				min-height: ` + this.settings.smallSize + `px;
-				min-width: ` + this.settings.smallSize + `px;
-				height: ` + this.settings.smallSize + `px;
-				width: ` + this.settings.smallSize + `px;
-			}
+		if(this.style) this.style.destroy();
+		this.style = NeatoLib.injectCSS(".message-group.hide-overflow { overflow: visible; }");
+		
+		if(this.settings.alterSmall) {
+			this.style.append(`
+				#app-mount .markup > .emoji:not(.jumboable) {
+					width: ${this.settings.smallSize}px;
+					height: ${this.settings.smallSize}px;
+					transform: scale(1);
+					transition: transform ${this.settings.transitionSpeed}s;
+				}
+				#app-mount .markup > .emoji:not(.jumboable):hover {
+					transform: scale(${this.settings.hoverSize});
+					position: relative;
+					z-index: 1;
+				}
+				#app-mount .comment:last-child .markup .emoji:not(.jumboable):hover {
+					transform: scale(${this.settings.hoverSize}) translateY(-35%);
+				}
+			`);
+		}
 
-			.message-group .emoji.jumboable {
-				min-height: ` + this.settings.largeSize + `px;
-				min-width: ` + this.settings.largeSize + `px;
-				height: ` + this.settings.largeSize + `px;
-				width: ` + this.settings.largeSize + `px;
-				z-index: 1;
-			}
+		if(this.settings.alterLarge) {
+			this.style.append(`
+				#app-mount .markup > .emoji.jumboable {
+					width: ${this.settings.largeSize}px;
+					height: ${this.settings.largeSize}px;
+					transform: scale(1);
+					transition: transform ${this.settings.transitionSpeed}s;
+				}
+				#app-mount .markup > .emoji.jumboable:hover {
+					transform: scale(${this.settings.hoverSize});
+					position: relative;
+					z-index: 1;
+				}
+				#app-mount .comment:last-child .markup .emoji.jumboable:hover {
+					transform: scale(${this.settings.hoverSize}) translateY(-35%);
+				}
+			`);
+		}
 
-			.reaction .emoji, .reaction .reaction-me .emoji {
-				min-height: ` + this.settings.reactionSize + `px;
-				min-width: ` + this.settings.reactionSize + `px;
-				height: ` + this.settings.reactionSize + `px;
-				width: ` + this.settings.reactionSize + `px;
-			}
+		if(this.settings.alterBD) {
+			this.style.append(`
+				#app-mount .emote {
+					width: ${this.settings.bdSize}px;
+					height: ${this.settings.bdSize}px;
+					max-height: ${this.settings.bdSize}px !important;
+					transform: scale(1);
+					transition: transform ${this.settings.transitionSpeed}s;
+				}
+				#app-mount .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):hover {
+					transform: scale(${this.settings.hoverSize});
+					position: relative;
+					z-index: 1;
+				}
+				#app-mount .comment:last-child .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):hover {
+					transform: scale(${this.settings.hoverSize}) translateY(-35%);
+				}
+			`);
+		}
 
-			.emote {
-				height: ` + this.settings.bdSize + `px;
-				width: ` + this.settings.bdSize + `px;
-			}
-			
-			.message-group .emoji:hover, .emote:hover{
-				transform: scale(` + this.settings.hoverSize + `);
-				position: relative;
-				z-index: 1;
-			}
+		if(this.settings.alterReactions) {
+			this.style.append(`
+				#app-mount .reaction .emoji, .reaction.reaction-me .emoji {
+					width: ${this.settings.reactionSize}px;
+					height: ${this.settings.reactionSize}px;
+				}
+				#app-mount .reaction {
+					transition: transform ${this.settings.transitionSpeed}s;
+				}
+				#app-mount .reaction:hover {
+					transform: scale(${this.settings.reactionHoverSize});
+					z-index: 1000;
+				}
+			`);
+		}
 
-			.reaction .emoji:hover { transform: scale(1); }
-
-			.reaction { transition: transform ` + this.settings.transitionSpeed + `s; }
-
-			.reaction:hover {
-				transform:scale(` + this.settings.reactionHoverSize + `) !important;
-				z-index: 1000;
-			}
-			
-			.message-group:last-child > .comment > div:last-child > div.body > div > div.markup > span > img:hover, .message-group:last-child > .comment > div:last-child > div.body > div > div.markup > img:hover {
-				transform: scale(` + this.settings.hoverSize + `) translateY(-30%);
-			}
-
-			.tipsy { transform: translateY(-50px); }
-			
-			.message-group.hide-overflow { overflow: visible; }
-		`);
 	}
 	
     stop(){
-		BdApi.clearCSS("BetterEmoteSizes");
+		if(this.style) this.style.destroy();
 	}
 	
 }

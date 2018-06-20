@@ -1,18 +1,10 @@
-//META{"name":"ShareButton"}*//
+//META{"name":"ShareButton","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ShareButton.plugin.js"}*//
 
 class ShareButton {
-
-    constructor() {
-
-        this.defaultSettings = {
-            displayUpdateNotes : true
-        };
-
-    }
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.1.4"; }
+    getVersion() { return "0.2.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -31,16 +23,21 @@ class ShareButton {
 
     start() {
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
 
 	}
     
@@ -57,53 +54,57 @@ class ShareButton {
     }
 
     saveSettings() {
-
-        PluginUtilities.saveSettings("ShareButton", this.settings);
-
+        NeatoLib.Settings.save(this);
     }
 	
-	initialize() {
+	onLibLoaded() {
 
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/ShareButton.plugin.js");
+        NeatoLib.Updates.check(this);
 
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
-
-        $(document).on("contextmenu.ShareButton", e => { 
-            if(document.getElementsByClassName("contextMenu-HLZMGh").length == 0) setTimeout(() => this.onContextMenu(e), 0);
-            else this.onContextMenu(e);
+        this.settings = NeatoLib.Settings.load(this, {
+            displayUpdateNotes : true
         });
 
-        this.guildModule = DiscordModules.GuildStore;
-        this.channelModule = DiscordModules.ChannelStore;
+        Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
 
-        this.dmModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getPrivateChannelIds"]);
+        this.guildModule = NeatoLib.Modules.get(["getGuild", "getGuilds"]);
+        this.sortedGuildModule = NeatoLib.Modules.get("getSortedGuilds");
+        this.channelModule = NeatoLib.Modules.get(["getChannel", "getChannels"]);
+        this.dmModule = NeatoLib.Modules.get("getPrivateChannelIds");
+        this.userModule = NeatoLib.Modules.get(["getUser", "getUsers"]);
+        this.transitionModule = NeatoLib.Modules.get("transitionTo");
+        this.messageModule = NeatoLib.Modules.get("sendMessage");
 
-        this.userModule = DiscordModules.UserStore;
+        let data = NeatoLib.Data.load("ShareButton", "data", { recentChannels : [], pinnedChannels : [] });
 
-        var data = PluginUtilities.loadData("ShareButton", "data", { recentChannels : new Array(), pinnedChannels : new Array() });
+        this.recentChannels = data.recentChannels || [];
+        this.pinnedChannels = data.pinnedChannels || [];
 
-        for(let i in data) { this[i] = data[i]; }
-
-        this.popoutObserver = new MutationObserver(e => {
-            if(e[0].addedNodes.length && e[0].addedNodes[0].firstChild.classList.contains("option-popout")) {
-                var dropdown = e[0].addedNodes[0].firstChild, message = ReactUtilities.getOwnerInstance(dropdown).props.message;
-                dropdown.insertAdjacentHTML("afterbegin", `<div id="sb-share-popout" class="btn-item">Share</div>`);
+        this.popoutObserver = new MutationObserver(m => {
+            if(m[0].addedNodes && m[0].addedNodes[0] instanceof Element && m[0].addedNodes[0].firstChild && m[0].addedNodes[0].firstChild.classList.contains("option-popout")) {
+                let dropdown = e[0].addedNodes[0].firstChild, message = NeatoLib.ReactData.getProps(dropdown).message;
+                dropdown.insertAdjacentHTML("afterBegin", `<div id="sb-share-popout" class="btn-item">Share</div>`);
                 document.getElementById("sb-share-popout").addEventListener("click", () => {
                     this.openShareMenu(undefined, "message", `"${message.content}" - ${message.author.username}`);
                     dropdown.style.display = "none";
                 });
             }
         });
-        this.popoutObserver.observe(document.querySelector(".popouts-3dRSmE"), { childList : true });
+
+        setTimeout(() => {
+            if(document.getElementsByClassName("popouts-3dRSmE")) this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
+        }, 5000);
+
+        this.contextEvent = e => {
+            if(!NeatoLib.ContextMenu.get()) setTimeout(() => this.onContextMenu(e), 0);
+            else this.onContextMenu(e);
+        };
+
+        document.addEventListener("contextmenu", this.contextEvent);
+
+        NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+
+        NeatoLib.Events.onPluginLoaded(this);
 
     }
     
@@ -111,280 +112,247 @@ class ShareButton {
 
     onContextMenu(e) {
 
-        if(e.target.localName == "img" || e.target.localName == "video" || e.target.className == "markup" || e.target.parentElement.className == "markup") {
+        if(e.target.localName != "img" && e.target.localName != "video" && e.target.className != "markup" && e.target.parentElement.className != "markup") return;
 
-            var choices = new PluginContextMenu.Menu(false), pinnedChannelsItem = new PluginContextMenu.Menu(false), recentChannelsItem = new PluginContextMenu.Menu(false),
-            channelClick = (channel, ce) => {
+        let choices = [], pinnedChannelsItem = [], recentChannelsItem = [];
 
-                var fileURL = e.target.src;
-        
-                if(fileURL == undefined) fileURL = e.target.href;
-                else if(fileURL.lastIndexOf("?") != -1) fileURL = fileURL.substring(0, fileURL.lastIndexOf("?"));
+        let channelClick = (channel, ce) => {
 
-                var message = ReactUtilities.getOwnerInstance(e.target).props.message;
-                
-                if(fileURL == undefined) fileURL = `"${message.content}" - ${message.author.username}`;
+            let url = e.target.src;
 
-                ce.currentTarget.setAttribute("data-guild-id", channel.guild_id);
-                ce.currentTarget.setAttribute("data-channel-id", channel.id);
-                ce.currentTarget.setAttribute("data-content", fileURL);
+            if(!url) url = e.target.href;
+            else if(url.indexOf("?") != -1) url = url.substring(0, url.lastIndexOf("?"));
 
-                this.sendMessage(ce);
+            let msg = NeatoLib.ReactData.getProps(e.target).message;
 
-                ce.currentTarget.innerText = "Sent!";
-                ce.currentTarget.style.backgroundColor = "#43b581";
-                ce.currentTarget.style.cursor = "default";
+            if(!url) url = `"${msg.content}" - ${msg.author.username}`;
 
-                $(ce.currentTarget).off();
+            ce.currentTarget.dataset.guildId = channel.guild_id;
+            ce.currentTarget.dataset.channelId = channel.id;
+            ce.currentTarget.dataset.content = url;
 
-            };
+            this.sendMessage(ce);
 
-            for(let i = 0; i < this.pinnedChannels.length; i++) {
+            ce.currentTarget.innerText = "Sent!";
+            ce.currentTarget.style.backgroundColor = "#43b581";
+            ce.currentTarget.style.cursor = "default";
 
-                let channel = this.channelModule.getChannel(this.pinnedChannels[i]);
+            ce.currentTarget.onclick = null;
 
-                pinnedChannelsItem.addItems(new PluginContextMenu.TextItem(`#${channel.name}`, {
-                    callback : ce => channelClick(channel, ce),
-                    hint : this.guildModule.getGuild(channel.guild_id)
-                }));
+        };
 
-            }
+        for(let i = 0; i < this.pinnedChannels.length; i++) {
 
-            for(let i = 0; i < this.recentChannels.length; i++) {
+            let channel = this.channelModule.getChannel(this.pinnedChannels[i]);
 
-                let channel = this.channelModule.getChannel(this.recentChannels[i]);
+            if(!channel) continue;
 
-                recentChannelsItem.addItems(new PluginContextMenu.TextItem(`#${channel.name}`, {
-                    callback : ce => channelClick(channel, ce),
-                    hint : this.guildModule.getGuild(channel.guild_id)
-                }));
-
-            }
-
-            choices.addItems(new PluginContextMenu.SubMenuItem("Pinned Channels", pinnedChannelsItem));
-            choices.addItems(new PluginContextMenu.SubMenuItem("Recent Channels", recentChannelsItem));
-            choices.addItems(new PluginContextMenu.TextItem("Open Share Menu", { callback : () => {
-
-                this.openShareMenu(e);
-
-                document.querySelector(".contextMenu-HLZMGh").style.display = "none";
-
-            }}));
-
-            $(".contextMenu-HLZMGh").prepend(new PluginContextMenu.ItemGroup().addItems(new PluginContextMenu.SubMenuItem("Share", choices, { callback : () => {
-
-                this.openShareMenu(e);
-
-                document.querySelector(".contextMenu-HLZMGh").style.display = "none";
-
-            }})).element);
+            pinnedChannelsItem.push(NeatoLib.ContextMenu.createItem("#" + channel.name, ce => channelClick(channel, ce), { hint : this.guildModule.getGuild(channel.guild_id).name }));
 
         }
+
+        for(let i = 0; i < this.recentChannels.length; i++) {
+
+            let channel = this.channelModule.getChannel(this.recentChannels[i]);
+
+            if(!channel) continue;
+
+            recentChannelsItem.push(NeatoLib.ContextMenu.createItem("#" + channel.name, ce => channelClick(channel, ce), { hint : this.guildModule.getGuild(channel.guild_id).name }));
+
+        }
+
+        let open = () => { this.openShareMenu(e); NeatoLib.ContextMenu.close(); };
+        
+        choices.push(NeatoLib.ContextMenu.createSubMenu("Pinned Channels", pinnedChannelsItem));
+        choices.push(NeatoLib.ContextMenu.createSubMenu("Recent Channels", recentChannelsItem));
+        choices.push(NeatoLib.ContextMenu.createItem("Open Share Menu", open));
+
+        NeatoLib.ContextMenu.get().insertAdjacentElement("afterBegin", NeatoLib.ContextMenu.createSubMenu("Share", [NeatoLib.ContextMenu.createGroup(choices)], { callback : open }));
 
     }
 
     openShareMenu(e, definedName, definedData) {
 
-        $(".app").last().append(`
+        if(document.getElementById("sb-menu")) return document.getElementById("sb-menu").remove();
+
+        let menu = NeatoLib.UI.createBasicScrollList("sb-menu", "Share");
+
+        menu.window.insertAdjacentHTML("afterBegin", `
         
-            <div id="sb-menu" class="popout popout-bottom-right no-arrow no-shadow">
+            <style>
+            
+            #sb-menu {
+                z-index: 1000;
+                position: absolute;
+                left: 45%;
+                bottom: 8%;
+            }
 
-                <style>
+            .sb-label {
+                color: white;
+                font-size: 30px;
+                padding-top: 20px;
+                padding-left: 20px;
+            }
+
+            .sb-button {
+                border-radius: 10px;
+                background-color: rgba(0, 0, 0, 0.2);
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+            .sb-button:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .sb-button:active {
+                background-color: rgba(0, 0, 0, 0.3);
+            }
+
+            .sb-guilds {
+                max-height: 870px;
+            }
+            
+            .sb-channel-item-button {
+                text-align: center;
+                margin: 5px;
+            }
+
+            .sb-channel-item {
+                margin: auto;
+                width: 95%;
+                height: 40px;
+                line-height: 40px;
+                color: white;
+                margin-top: 18px;
+            }
+
+            .sb-server-item {
+                margin: 5px;
+                margin-top: 10px;
+                padding: 1px;
+            }
+
+            .sb-server-item-icon {
+                width: 25px;
+                height: 25px;
+                background-color: rgba(0, 0, 0, 0.2);
+                background-size: cover;
+                margin: 10px;
+                border-radius: 5px;
+            }
+
+            .sb-server-item-label {
+                color: white;
+                display: inline-block;
+                margin-left: 35px;
+                width: 600px;
+                font-size: 25px;
+                font-weight: 500;
+            }
+
+            </style>
         
-                    #sb-menu {
-                        z-index: 1000;
-                        position: absolute;
-                        left: 45%;
-                        bottom: 8%;
-                    }
-
-                    .sb-label {
-                        color: white;
-                        font-size: 30px;
-                        padding-top: 20px;
-                        padding-left: 20px;
-                    }
-
-                    .sb-button {
-                        border-radius: 10px;
-                        background-color: rgba(0, 0, 0, 0.2);
-                        cursor: pointer;
-                        transition: background 0.3s;
-                    }
-
-                    .sb-button:hover {
-                        background-color: rgba(255, 255, 255, 0.2);
-                    }
-
-                    .sb-button:active {
-                        background-color: rgba(0, 0, 0, 0.3);
-                    }
-
-                    .sb-guilds {
-                        max-height: 870px;
-                    }
-                    
-                    .sb-channel-item-button {
-                        text-align: center;
-                        margin: 5px;
-                    }
-
-                    .sb-channel-item {
-                        margin: auto;
-                        width: 95%;
-                        height: 40px;
-                        line-height: 40px;
-                        color: white;
-                        margin-top: 18px;
-                    }
-
-                    .sb-server-item {
-                        margin: 5px;
-                        margin-top: 10px;
-                        padding: 1px;
-                    }
-
-                    .sb-server-item-icon {
-                        width: 25px;
-                        height: 25px;
-                        background-color: rgba(0, 0, 0, 0.2);
-                        background-size: cover;
-                        margin: 10px;
-                        border-radius: 5px;
-                    }
-
-                    .sb-server-item-label {
-                        color: white;
-                        display: inline-block;
-                        margin-left: 35px;
-                        width: 600px;
-                        font-size: 25px;
-                        font-weight: 500;
-                    }
-
-                </style>
-
-                <div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: black; transform: translateZ(0px);z-index: -10;" onclick="$('#sb-menu').remove();"></div>
-                <div class="messages-popout-wrap themed-popout recent-mentions-popout" style="height: 900px;width: 800px;">
-                    <div class="header" style="padding-bottom: 12px;">
-                        <div class="title" style="text-align: center;transform: translateY(6px);white-space:nowrap;text-overflow:ellipsis;display:block;overflow:hidden;max-width:700px;padding-left:50px;">Share</div>
-                        <div class="actionButtons-1sUUug" style="position: absolute;top: 5px;">
-                            <div class="closeButton-17RIVZ" onclick="$('#sb-menu').remove();" style="opacity:1;"></div>
-                        </div>
-                    </div>
-                    <div class="scroller-wrap dark">
-                        <div class="messages-popout scroller sb-guilds" style="overflow-x:hidden;">
-                            
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         `);
+        
+        let url, filename;
 
-        var menu = document.getElementById("sb-menu"), scroller = $(".sb-guilds");
-
-        var menuRect = menu.getBoundingClientRect();
-        menu.style.left =  (($(document).width() - menuRect.width) / 2) + "px";
-        menu.style.top = (($(document).height() - menuRect.height) / 2) + "px";
-
-        var fileURL, fileName;
-
-        if(definedName != undefined && definedData != undefined) {
-
-            fileURL = definedData;
-            fileName = definedName;
-
+        if(definedName && definedData) {
+            url = definedData;
+            filename = definedName;
         } else {
 
-            fileURL = e.target.src;
+            url = e.target.src;
 
-            if(fileURL == undefined) {
-
-                fileURL = e.target.href;
-                fileName = fileURL;
-
+            if(!url) {
+                url = e.target.href;
+                filename = url;
             } else {
-
-                if(fileURL.lastIndexOf("?") != -1) { fileURL = fileURL.substring(0, fileURL.lastIndexOf("?")); }
-
-                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, fileURL.length);
-            
+                if(url.indexOf("?") != -1) url = url.substring(url.substring(0, url.lastIndexOf("?")));
+                filename = url.substring(url.lastIndexOf("/") + 1, url.length);
             }
 
         }
 
-        var message = ReactUtilities.getOwnerInstance(e.target).props.message;
-        
-        if(fileURL == undefined || fileURL.length == 0) fileURL = `"${message.content}" - ${message.author.username}`;
-        
-        if(fileName != undefined && fileName != "") { menu.querySelector(".title").innerText += ` "${fileName}"`; }
+        let msg = NeatoLib.ReactData.getProps(e.target).message;
 
-        var updateChannels = () => {
+        if(!url) url = `"${msg.content}" - ${msg.author.username}`;
 
-            var channelItem = $(".sb-channel-item-button");
+        if(filename) menu.window.getElementsByTagName("h2")[0].innerText += filename;
 
-            channelItem.off("click");
-            channelItem.on("click", channelClickEvent);
+        let recentChannels, pinnedChannels;
 
-            channelItem.off("contextmenu");
-            channelItem.on("contextmenu", channelContextEvent);
+        let updateChannels = () => {
+
+            let ci = document.getElementsByClassName("sb-channel-item-button");
+
+            for(let i = 0; i < ci.length; i++) {
+                ci[i].onclick = channelClickEvent;
+                ci[i].oncontextmenu = channelContextEvent;
+            }
 
         },
-        recentChannels, updateRecentChannels = () => {
+        
+        updateRecentChannels = () => {
 
-            if(recentChannels != undefined) {
-
+            if(recentChannels) {
                 recentChannels.remove();
-                recentChannels = undefined;
-
+                recentChannels = null;
             }
 
             for(let i = 0; i < this.recentChannels.length; i++) {
 
-                var channel = this.channelModule.getChannel(this.recentChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
+                let channel = this.channelModule.getChannel(this.recentChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
 
-                if(channel == undefined || guild == undefined) { continue; }
+                if(!channel || !guild) continue;
 
-                if(recentChannels == undefined) {
-                    $(`<div id="sb-recent-channels"><div class="sb-label">Recent Channels</div></div>`).insertBefore(scroller.find("#sb-servers"));
-                    recentChannels = $("#sb-recent-channels");
-                }
+                if(!recentChannels) recentChannels = document.getElementById("sb-servers").insertBefore(NeatoLib.DOM.createElement({
+                    id : "sb-recent-channels",
+                    innerHTML : `<div class="sb-label">Recent Channels</div>`
+                }), null);
 
-                var $channelItem = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`);
+                let ci = document.createElement("div");
+                ci.className = "sb-channel-item-button sb-button";
+                ci.dataset.guildId = guild.id;
+                ci.dataset.channelId = channel.id;
+                ci.dataset.content = url;
+                ci.innerHTML = `<div class="sb-channel-item">#${channel.name} - ${guild.name}</div>`;
 
-                $channelItem.data("content", fileURL);
-
-                $channelItem.insertAfter(recentChannels.find(".sb-label"));
+                recentChannels.appendChild(ci);
 
             }
 
             updateChannels();
 
         },
-        pinnedChannels, updatePinnedChannels = () => {
-
-            if(pinnedChannels != undefined) {
-
+        
+        updatePinnedChannels = () => {
+            
+            if(pinnedChannels) {
                 pinnedChannels.remove();
-                pinnedChannels = undefined;
-
+                pinnedChannels = null;
             }
 
             for(let i = 0; i < this.pinnedChannels.length; i++) {
 
                 let channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
 
-                if(channel == undefined || guild == undefined) { continue; }
+                if(!channel || !guild) continue;
 
-                if(pinnedChannels == undefined) {
-                    scroller.prepend(`<div id="sb-pinned-channels"><div class="sb-label">Pinned Channels</div></div>`);
-                    pinnedChannels = $("#sb-pinned-channels");
+                if(!pinnedChannels) {
+                    menu.scroller.insertAdjacentHTML("afterBegin", `<div id="sb-pinned-channels"><div class="sb-label">Pinned Channels</div></div>`);
+                    pinnedChannels = document.getElementById("sb-pinned-channels");
                 }
 
-                let $channelItem = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${channel.id}"><div class="sb-channel-item">#${channel.name} - ${guild.name}</div></div>`);
+                let ci = document.createElement("div");
+                ci.className = "sb-channel-item-button sb-button";
+                ci.dataset.guildId = guild.id;
+                ci.dataset.channelId = channel.id;
+                ci.dataset.content = url;
+                ci.innerHTML = `<div class="sb-channel-item">#${channel.name} - ${guild.name}</div>`;
 
-                $channelItem.insertAfter(pinnedChannels.find(".sb-label"));
+                pinnedChannels.appendChild(ci);
 
             }
 
@@ -392,183 +360,211 @@ class ShareButton {
 
         };
 
-        var guilds = InternalUtilities.WebpackModules.findByUniqueProperties(["getSortedGuilds"]).getSortedGuilds(), guildsParent, allChannels = Object.values(this.channelModule.getChannels()).sort((x, y) => { return x.position - y.position; });
+        let guilds = this.sortedGuildModule.getSortedGuilds(), guildsParent, allChannels = Object.values(this.channelModule.getChannels()).sort((x, y) => x.position - y.position);
 
         for(let i = 0; i < guilds.length; i++) {
 
-            if(guildsParent == undefined) {
+            if(!guildsParent) {
 
-                scroller.append(`<div id="sb-servers"><div class ="sb-label">Servers</div></div>`);
+                menu.scroller.insertAdjacentHTML("beforeEnd", 
+                `<div id="sb-servers">
+                    <div class ="sb-label">Servers</div>
+                    <div data-server-id="DM" data-opened="false" class="sb-server-item sb-dm-item sb-button">
+                        <div class="sb-server-item-icon" style="background-image: url('/assets/89576a4bb71f927eb20e8aef987b499b.svg')">
+                            <div class="sb-server-item-label">Direct Messages</div>
+                        </div>
+                        <div class="sb-server-item-channels"></div>
+                    </div>
+                </div>`);
 
-                guildsParent = $("#sb-servers");
+                guildsParent = document.getElementById("sb-servers");
+                
+                document.getElementsByClassName("sb-dm-item")[0].onclick = e => {
 
-                guildsParent.append(`<div data-server-id="DM" data-opened="false" class="sb-server-item sb-dm-item sb-button"><div class="sb-server-item-icon" style="background-image: url('/assets/89576a4bb71f927eb20e8aef987b499b.svg')"><div class="sb-server-item-label">Direct Messages</div></div><div id="sb-server-item-channels"></div></div>`);
-
-                $(".sb-dm-item").on("click", e => {
-    
                     if(e.target.classList.contains("sb-dm-subitem")) return;
-    
-                    var $targ = $(e.currentTarget), channelsParent = $targ.find("#sb-server-item-channels"), allDMs = this.dmModule.getPrivateChannelIds();
-    
-                    if(channelsParent.find(".sb-server-item").length) {
-    
-                        channelsParent[0].innerHTML = "";
-                        e.currentTarget.style.backgroundColor = "";
-    
-                    } else {
-    
-                        for(let i = 0; i < allDMs.length; i++) {
 
-                            var dm = this.channelModule.getChannel(allDMs[i]);
+                    let par = e.currentTarget.getElementsByClassName("sb-server-item-channels")[0], dms = this.dmModule.getPrivateChannelIds();
+
+                    let dmClickEvent = e => {
+
+                        this.sendMessage(e);
+
+                        e.currentTarget.style.backgroundColor = "#43b581";
+                        e.currentTarget.style.cursor = "default";
+
+                        NeatoLib.showToast("Shared!", "success");
+
+                        e.currentTarget.onclick = null;
+                        getEventListeners(e.currentTarget).click[0].remove();
+
+                    };
+
+                    if(par.children.length) {
+                        par.innerHTML = "";
+                        e.currentTarget.style.backgroundColor = "";
+                    } else {
+
+                        for(let di = 0; di < dms.length; di++) {
+
+                            let dm = this.channelModule.getChannel(dms[di]);
 
                             if(dm.recipients.length > 1) {
 
-                                let $item = $(`<div data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="height: auto;width:0px"><div class="sb-server-item-label" style="pointer-events:none;">${Array.from(dm.recipients, x => this.userModule.getUser(x).username).join(", ")}</div></div></div>`);
+                                let item = document.createElement("div");
 
-                                $item.data("content", fileURL);
-        
-                                channelsParent.append($item);
+                                item.className = "sb-server-item sb-dm-subitem sb-button";
+
+                                item.style.margin = "15px";
+                                item.style.marginLeft = "30px";
+
+                                item.dataset.channelId = dms[di];
+                                item.dataset.content = url;
+
+                                item.innerHTML = `<div class="sb-server-item-icon" style="height: auto;width:0px"><div class="sb-server-item-label" style="pointer-events:none;">${Array.from(dm.recipients, uid => this.userModule.getUser(uid).username).join(", ")}</div></div>`;
+
+                                item.addEventListener("click", dmClickEvent);
+
+                                par.appendChild(item);
 
                             } else {
-        
-                                let user = this.userModule.getUser(dm.recipients[0]), $item = $(`<div data-channel-id="${allDMs[i]}" class="sb-server-item sb-dm-subitem sb-button" style="margin:15px;margin-left:30px;"><div class="sb-server-item-icon" style="background-image: url('${user.getAvatarURL()}');"><div class="sb-server-item-label" style="pointer-events:none;">${user.username}</div></div></div>`);
 
-                                $item.data("content", fileURL);
+                                let user = this.userModule.getUser(dm.recipients[0]);
 
-                                if(user == undefined) continue;
-        
-                                channelsParent.append($item);
+                                if(!user) continue;
+
+                                let item = document.createElement("div");
+
+                                item.className = "sb-server-item sb-dm-subitem sb-button";
+
+                                item.style.margin = "15px";
+                                item.style.marginLeft = "30px";
+
+                                item.dataset.channelId = dms[di];
+                                item.dataset.content = url;
+
+                                item.innerHTML = `<div class="sb-server-item-icon" style="background-image: url('${user.getAvatarURL()}');"><div class="sb-server-item-label" style="pointer-events:none;">${user.username}</div></div>`;
+
+                                item.addEventListener("click", dmClickEvent);
+
+                                par.appendChild(item);
 
                             }
-        
+
                         }
 
-                        $(".sb-dm-subitem").on("click", e => {
-                
-                            var $targ = $(e.currentTarget);
-                
-                            this.sendMessage(e);
-                
-                            $targ[0].style.backgroundColor = "#43b581";
-                            $targ[0].style.cursor = "default";
-                
-                            PluginUtilities.showToast("Sent!", { type : "success" });
-                
-                            $targ.off("click");
-                
-                        });
-    
-                        e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
-    
                     }
-    
-                });
+
+                };
 
             }
 
-            guildsParent.append(`<div data-server-id="${guilds[i].guild.id}" data-opened="false" class="sb-server-item sb-button"><div class="sb-server-item-icon" style="background-image: url('${guilds[i].guild.getIconURL()}');"><div class="sb-server-item-label">${guilds[i].guild.name}</div></div><div id="sb-server-item-channels"></div></div>`);
+            guildsParent.insertAdjacentHTML("beforeEnd", `<div data-server-id="${guilds[i].guild.id}" data-opened="false" class="sb-server-item sb-button"><div class="sb-server-item-icon" style="background-image: url('${guilds[i].guild.getIconURL()}');"><div class="sb-server-item-label">${guilds[i].guild.name}</div></div><div class="sb-server-item-channels"></div></div>`);
 
         }
-
-        var channelClickEvent = e => {
-
-            var $targ = $(e.currentTarget), item = e.currentTarget.querySelector(".sb-channel-item");
+        
+        let channelClickEvent = e => {
 
             this.sendMessage(e);
 
-            item.innerText = "Sent!";
-            $targ[0].style.backgroundColor = "#43b581";
-            $targ[0].style.cursor = "default";
+            e.currentTarget.getElementsByClassName("sb-channel-item")[0].innerText = "Shared!";
 
-            PluginUtilities.showToast("Sent!", { type : "success" });
+            e.currentTarget.style.backgroundColor = "#43b581";
+            e.currentTarget.style.cursor = "default";
 
-            $targ.off("click");
+            NeatoLib.showToast("Shared!", "success");
 
-            if(this.recentChannels.includes($targ.data("channel-id"))) { this.recentChannels.splice(this.recentChannels.indexOf($targ.data("channel-id")), 1); }
+            e.currentTarget.removeEventListener("click", channelClickEvent);
+            e.currentTarget.removeEventListener("contextmenu", channelContextEvent);
 
-            this.recentChannels.push($targ.data("channel-id"));
-
-            while(this.recentChannels.length >= 10) { this.recentChannels.splice(0, 1); }
+            if(this.recentChannels.indexOf(e.currentTarget.dataset.channelId) != -1) this.recentChannels.splice(this.recentChannels.indexOf(e.currentTarget.dataset.channelId), 1);
+            this.recentChannels.push(e.currentTarget.dataset.channelId);
+            while(this.recentChannels.length >= 10) this.recentChannels.splice(0, 1);
 
             updateRecentChannels();
 
             this.saveData();
 
         },
+
         channelContextEvent = e => {
-            
-            var menu = new PluginContextMenu.Menu(false), channelId = $(e.currentTarget).data("channel-id"), group = new PluginContextMenu.ItemGroup();
 
-            if(this.pinnedChannels.includes(channelId)) {
-                group.addItems(new PluginContextMenu.TextItem("Unpin", { callback : () => {
-                    this.pinnedChannels.splice(this.pinnedChannels.indexOf(channelId), 1);
-                    updatePinnedChannels();
-                    this.saveData();
-                    document.querySelector(".contextMenu-HLZMGh").style.display = "none";
-                }}));
-            } else {
-                group.addItems(new PluginContextMenu.TextItem("Pin", { callback : () => {
-                    this.pinnedChannels.push(channelId);
-                    updatePinnedChannels();
-                    this.saveData();
-                    document.querySelector(".contextMenu-HLZMGh").style.display = "none";
-                }}));
-            }
+            let items = [], cid = e.currentTarget.dataset.channelId;
 
-            menu.addGroup(group).show(e.clientX, e.clientY);
+            if(this.pinnedChannels.includes(cid)) items.push(NeatoLib.ContextMenu.createItem("Unpin", () => {
+                this.pinnedChannels.splice(this.pinnedChannels.indexOf(cid), 1);
+                updatePinnedChannels();
+                this.saveData();
+                NeatoLib.ContextMenu.close();
+            }));
+            else items.push(NeatoLib.ContextMenu.createItem("Pin", () => {
+                this.pinnedChannels.push(cid);
+                updatePinnedChannels();
+                this.saveData();
+                NeatoLib.ContextMenu.close();
+            }));
+
+            NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup(items)], e);
 
         };
 
-        $(".sb-server-item:not(.sb-dm-item)").on("click", e => {
+        let serverItems = Array.filter(document.getElementsByClassName("sb-server-item"), e => !e.classList.contains("sb-dm-item")),
+        
+        serverItemClickEvent = e => {
 
             if(e.target.classList.contains("sb-channel-item")) return;
 
-            var $targ = $(e.currentTarget), channelsParent = $targ.find("#sb-server-item-channels"), guild = this.guildModule.getGuild($targ.data("server-id")), categories = new Array();
+            let targ = NeatoLib.DOM.searchForParentElementByClassName(e.target, "sb-server-item");
 
-            if(channelsParent.find(".sb-channel-item-button").length) {
+            let par = targ.getElementsByClassName("sb-server-item-channels")[0], guild = this.guildModule.getGuild(targ.dataset.serverId), categories = [];
 
-                channelsParent[0].innerHTML = "";
-                e.currentTarget.style.backgroundColor = "";
-
+            if(par.children.length) {
+                par.innerHTML = "";
+                targ.style.backgroundColor = "";
             } else {
 
                 for(let i = 0; i < allChannels.length; i++) {
 
-                    if(allChannels[i].guild_id == $targ.data("server-id") && allChannels[i].type == 0) {
-                    
-                        if(allChannels[i].parent_id != undefined && !categories.includes(allChannels[i].parent_id)) {
+                    if(allChannels[i].guild_id == targ.dataset.serverId && allChannels[i].type == 0) {
 
-                            channelsParent.append(`<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">${this.channelModule.getChannel(allChannels[i].parent_id).name}</div></div>`);
+                        if(allChannels[i].parent_id && categories.indexOf(allChannels[i].parent_id) == -1) {
 
+                            par.insertAdjacentHTML("beforeEnd", `<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">${this.channelModule.getChannel(allChannels[i].parent_id).name}</div></div>`);
+                            
                             categories.push(allChannels[i].parent_id);
 
                         }
 
-                        if(allChannels[i].parent_id == undefined && !categories.includes("uncategorized")) {
+                        if(!allChannels[i].parent_id && categories.indexOf("uncategorized") == -1) {
 
-                            channelsParent.append(`<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">Uncategorized</div></div>`);
+                            par.insertAdjacentHTML("beforeEnd", `<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">Uncategorized</div></div>`);
 
                             categories.push("uncategorized");
 
                         }
 
-                        let $item = $(`<div class="sb-channel-item-button sb-button" data-guild-id="${guild.id}" data-channel-id="${allChannels[i].id}"><div class="sb-channel-item">#${allChannels[i].name}</div></div>`);
+                        let item = document.createElement("div");
 
-                        $item.data("content", fileURL);
+                        item.className = "sb-channel-item-button sb-button";
 
-                        channelsParent.append($item);
+                        item.dataset.guildId = guild.id;
+                        item.dataset.channelId = allChannels[i].id;
+                        item.dataset.content = url;
+
+                        item.innerHTML = `<div class="sb-channel-item">#${allChannels[i].name}</div>`;
+
+                        par.appendChild(item);
 
                     }
 
                 }
 
-                e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.3)";
+                updateChannels();
 
             }
 
-            updateChannels();
+        };
 
-        });
+        for(let i = 0; i < serverItems.length; i++) serverItems[i].onclick = serverItemClickEvent;
 
         updatePinnedChannels();
         updateRecentChannels();
@@ -577,31 +573,21 @@ class ShareButton {
 
     sendMessage(e) {
 
-        var $targ = $(e.currentTarget), lastServer = PluginUtilities.getCurrentServer(), selectedChannel = document.querySelector(".nameSelectedText-sp_EUw"), lastChannel = undefined, lastScroll = document.querySelector(".messages.scroller").scrollTop, trans = InternalUtilities.WebpackModules.findByUniqueProperties(["transitionTo"]);
+        let lastServer = NeatoLib.getSelectedServer(), lastChannel = NeatoLib.getSelectedTextChannel(), lastScroll = document.getElementsByClassName("messages scroller")[0].scrollTop;
 
-        if(selectedChannel != undefined) lastChannel = ReactUtilities.getOwnerInstance(selectedChannel).props.channel;
+        this.transitionModule.transitionTo(e.currentTarget.dataset.channelId, e.currentTarget.dataset.guildId);
 
-        trans.transitionTo($targ.data("channel-id"), $targ.data("guild-id"));
+        this.messageModule.sendMessage(e.currentTarget.dataset.channelId, { content : e.currentTarget.dataset.content });
 
-        DiscordModules.MessageActions.sendMessage($targ.data("channel-id"), { content : $targ.data("content") });
+        if(lastServer && lastChannel) this.transitionModule.transitionTo(lastChannel.id, lastServer.id);
 
-        if(lastServer != undefined && lastChannel != undefined) trans.transitionTo(lastChannel.id, lastServer.id);
-
-        document.querySelector(".messages.scroller").scrollTop = lastScroll;
+        document.getElementsByClassName("messages scroller")[0].scrollTop = lastScroll;
 
     }
-
-	onLibLoaded() {
-
-        this.settings = PluginUtilities.loadSettings("ShareButton", this.defaultSettings);
-
-        Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
-
-	}
 	
     stop() {
 
-        $(document).off("contextmenu.ShareButton");
+        document.removeEventListener("contextmenu", this.contextEvent);
 
         if(this.popoutObserver != undefined) this.popoutObserver.disconnect();
 

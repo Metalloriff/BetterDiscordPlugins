@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.1.14";
+NeatoLib.version = "0.1.15";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1413,12 +1413,14 @@ NeatoLib.ContextMenu.createSubMenu = function(label, items, options = {}) {
 
     if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
 
-    if(options.callback) element.addEventListener("click", options.callback);
+    if(options.callback) element.addEventListener("click", e => {
+        if(e.target == element) options.callback(e);
+    });
 
     element.addEventListener("mouseenter", () => {
         if(element.getElementsByTagName("div")[0]) return element.getElementsByTagName("div")[0].style.display = "inline-block";
         let menu = document.createElement("div");
-        menu.style.left = this.get().style.left;
+        menu.style.left = element.parentElement.getBoundingClientRect().left + "px";
         menu.style.top = element.getBoundingClientRect().top + "px";
         menu.classList.add(this.classes.contextMenu, document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
         for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
@@ -1434,7 +1436,7 @@ NeatoLib.ContextMenu.createSubMenu = function(label, items, options = {}) {
 };
 
 NeatoLib.ContextMenu.get = function() {
-    return Array.filter(document.getElementsByClassName(NeatoLib.Modules.get("contextMenu").contextMenu), x => x.style.display != "none")[0];
+    return Array.filter(document.getElementsByClassName(this.classes.contextMenu), x => x.style.display != "none")[0];
 };
 
 NeatoLib.ContextMenu.close = function() {

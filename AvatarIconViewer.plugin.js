@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.5.14"; }
+    getVersion() { return "0.5.15"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -54,7 +54,7 @@ class AvatarIconViewer {
 
 		let context = NeatoLib.ContextMenu.get(), viewLabel, copyLabel;
 		
-		if(!context && !e.target.classList.contains("maskProfile-1ObLFT") && !e.target.classList.contains("guildIconImage-3qTk45")) return;
+		if(!context && !e.target.classList.contains("maskProfile-1ObLFT") && !e.target.classList.contains("guildIconImage-3qTk45") && !e.target.classList.contains("clickable")) return;
 
 		this.url = "";
 
@@ -68,9 +68,11 @@ class AvatarIconViewer {
 			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length > 0 ? dmElement.getElementsByClassName("avatar-small")[0].style.backgroundImage : null;
 
 			if(e.target.classList.contains("mention")) this.url = NeatoLib.Modules.get("queryUsers").queryUsers(e.target.innerText.substring(1, e.target.innerText.length))[0].user.getAvatarURL();
+			else if(e.target.classList.contains("image-33JSyf")) this.url = e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf("\"") + 1, e.target.style.backgroundImage.lastIndexOf("\""));
 			else if(messageGroupProps && (e.target.classList.contains("user-name") || e.target.classList.contains("avatar-large") || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
 			else if(genericProps) this.url = genericProps.user.getAvatarURL();
 			else if(avatarBackground) this.url = avatarBackground.substring(avatarBackground.indexOf("\"") + 1, avatarBackground.lastIndexOf("\""));
+			else if(resultProp) this.url = resultProp.getAvatarURL();
 			else return null;
 
 			viewLabel = "View Avatar";
@@ -121,9 +123,14 @@ class AvatarIconViewer {
 			if(viewLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
 			if(copyLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
 
-		} else if(e.target.classList.contains("maskProfile-1ObLFT")){
+		} else if(e.target.classList.contains("maskProfile-1ObLFT") || e.target.classList.contains("clickable")){
 
-			this.url = e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf("\"") + 1, e.target.style.backgroundImage.lastIndexOf("\""));
+			let targ = e.target.classList.contains("clickable") ? NeatoLib.DOM.searchForParentElementByClassName(e.target, "avatar-large") : e.target;
+
+			if(!targ.style.backgroundImage) targ = targ.parentElement.getElementsByClassName("image-33JSyf maskProfile-1ObLFT mask-3OgeRz")[0];
+			if(targ.style.backgroundImage) this.url = targ.style.backgroundImage.substring(targ.style.backgroundImage.indexOf("\"") + 1, targ.style.backgroundImage.lastIndexOf("\""));
+			else return;
+
 			formatURL();
 
 			NeatoLib.ContextMenu.create([

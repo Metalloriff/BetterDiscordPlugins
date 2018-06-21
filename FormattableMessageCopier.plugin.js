@@ -43,13 +43,13 @@ class FormattableMessageCopier {
                     .split("$time").join(time)
                     .split("$username").join("Metalloriff")
                     .split("$usertag").join("Metalloriff#2891")
-                    .split("$jumplink").join("https://discordapp.com/channels/serverid/channelid?jump=messageid")
+                    .split("$jumplink").join("https://discordapp.com/channels/serverid/channelid/messageid")
                     .split("$message").join(exampleMessages1.join("\n"))
                 + "\n" + this.settings.groupFormat
                     .split("$time").join(time)
                     .split("$username").join("Some Kid Named Nate")
                     .split("$usertag").join("Some Kid Named Nate#0000")
-                    .split("$jumplink").join("https://discordapp.com/channels/serverid/channelid?jump=messageid")
+                    .split("$jumplink").join("https://discordapp.com/channels/serverid/channelid/messageid")
                     .split("$message").join(exampleMessages2.join("\n")))
                 .split("$newline").join("\n")
                 .split("$tab").join("    ");
@@ -167,7 +167,7 @@ class FormattableMessageCopier {
 	
     getName() { return "Formattable Message Copier"; }
     getDescription() { return "Allows you to select messages in a chat to copy them in a customizable format. Double click the top of a message group to select it, then shift click to the next point to select all message groups between, or ctrl click another message group to append a single group to the selection."; }
-    getVersion() { return "0.1.3"; }
+    getVersion() { return "0.1.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -381,7 +381,7 @@ class FormattableMessageCopier {
                 .split("$time").join(time)
                 .split("$username").join(props.messages[0].author.username)
                 .split("$usertag").join(props.messages[0].author.tag)
-                .split("$jumplink").join(props.channel.guild_id ? `<https://discordapp.com/channels/${props.channel.guild_id}/${props.channel.id}?jump=${props.messages[0].id}>` : "")
+                .split("$jumplink").join(props.channel.guild_id ? `<https://discordapp.com/channels/${props.channel.guild_id}/${props.channel.id}/${props.messages[0].id}>` : "")
                 .split("$message").join(messages.join("\n"))
                 .split("$newline").join("\n")
                 .split("$tab").join("\t")

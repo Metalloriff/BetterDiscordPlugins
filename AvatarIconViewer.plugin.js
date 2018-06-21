@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
     getName() { return "User Avatar And Server Icon Viewer"; }
     getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.5.15"; }
+    getVersion() { return "0.5.16"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -72,7 +72,6 @@ class AvatarIconViewer {
 			else if(messageGroupProps && (e.target.classList.contains("user-name") || e.target.classList.contains("avatar-large") || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
 			else if(genericProps) this.url = genericProps.user.getAvatarURL();
 			else if(avatarBackground) this.url = avatarBackground.substring(avatarBackground.indexOf("\"") + 1, avatarBackground.lastIndexOf("\""));
-			else if(resultProp) this.url = resultProp.getAvatarURL();
 			else return null;
 
 			viewLabel = "View Avatar";
@@ -120,8 +119,10 @@ class AvatarIconViewer {
 
 			formatURL();
 
-			if(viewLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
-			if(copyLabel) (context.firstChild.nextSibling || context.firstChild).appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
+			let par = context.getElementsByClassName(NeatoLib.ContextMenu.classes.itemGroup)[1] || context.getElementsByClassName(NeatoLib.ContextMenu.classes.itemGroup)[0];
+
+			if(viewLabel) par.appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
+			if(copyLabel) par.appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
 
 		} else if(e.target.classList.contains("maskProfile-1ObLFT") || e.target.classList.contains("clickable")){
 

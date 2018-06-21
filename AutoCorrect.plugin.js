@@ -4,11 +4,20 @@ class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "1.1.4"; }
+    getVersion() { return "1.2.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+			"1.2.4" :
+			`
+				Fixed learned words.
+				Words ending with any non-alphanumeric character will no longer be automatically punctuated, instead of only words ending with punctuation.
+				Added a "prevent multiple spaces between words" setting.
+				Fixed auto-completes not completing when sending.
+				Fixed auto-emojis.
+				Fixed a bunch of little bugs, and probably created some.
+				Code blocks are no longer corrected.
+			`
 		};
 	}
 
@@ -45,7 +54,8 @@ class AutoCorrect {
 				{ title : "Automatically punctuate on send and on double space", value : "autoPunctuation", setValue : this.settings.autoPunctuation },
 				{ title : "Automatically correct spelling errors", value : "autoCorrect", setValue : this.settings.autoCorrect },
 				{ title : "Ignore messages beginning with a space", value : "ignoreEmptyStart", setValue : this.settings.ignoreEmptyStart },
-				{ title : "Attach corrector to every text field (set this to false for just the chatbox)", value : "attachEverywhere", setValue : this.settings.attachEverywhere }
+				{ title : "Attach corrector to every text field (set this to false for just the chatbox)", value : "attachEverywhere", setValue : this.settings.attachEverywhere },
+				{ title : "Prevent multiple spaces between words", value : "preventDoubleSpaces", setValue : this.settings.preventDoubleSpaces }
 			], choice => {
 				this.settings[choice.value] = !this.settings[choice.value];
 				this.saveSettings();
@@ -149,17 +159,21 @@ class AutoCorrect {
 
 			}
 
-		} else this.spellChecker.setLearnedWords(new Set(this.settings.learnedWords));
+		} else this.updateLearned();
 
 		NeatoLib.Settings.save(this);
 		
 	}
 
+	updateLearned() {
+		this.spellChecker.setLearnedWords(new Set(this.settings.learnedWords));
+	}
+
 	onLibLoaded() {
-		
-		//if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
 		NeatoLib.Updates.check(this);
+
+		if(!NeatoLib.hasRequiredLibVersion(this, "0.2.15")) return;
 		
 		this.settings = NeatoLib.Settings.load(this, {
 			displayUpdateNotes : true,
@@ -181,7 +195,8 @@ class AutoCorrect {
 			],
 			useDevilsChecker : false,
 			learnedWords : [],
-			attachEverywhere : false
+			attachEverywhere : false,
+			preventDoubleSpaces : false
 		});
 		
 		this.classes = NeatoLib.getClasses(["contextMenu"]);
@@ -193,6 +208,264 @@ class AutoCorrect {
 			for(let i = 0; i < keys.length; i++) this.emoteNames.push(keys[i]);
 		}
 
+		this.keyDownEvent = e => {
+
+			let chatbox = e.currentTarget;
+
+			if(this.settings.useDevilsChecker && !this.devilsChecker) return;
+
+			if(!chatbox.value) this.lastCorrectedWord = -1;
+
+			if(this.settings.ignoreEmptyStart && chatbox.value[0] == " ") return;
+
+			let sending = e.which == 13 && !e.shiftKey, ignoredPrefixesSplit = Array.filter(this.settings.ignoredPrefixes.split(" "), prefix => prefix);
+
+			for(let i = 0; i < ignoredPrefixesSplit.length; i++) if(chatbox.value.startsWith(ignoredPrefixesSplit[i])) return;
+
+            if(e.which == 32 || sending) {
+
+				let lines = chatbox.value.split("\n"), isInCode = false;
+
+				for(let ln = 0; ln < lines.length; ln++) {
+
+					let words, wordsWithoutSpaces, lastWordIDX, beforeLastWord, lastWord;
+
+					let updateVars = () => {
+						words = lines[ln].split(" ");
+						wordsWithoutSpaces = Array.filter(words, word => word != "");
+						lastWordIDX = words.lastIndexOf(wordsWithoutSpaces[wordsWithoutSpaces.length - 1]);
+						beforeLastWord = wordsWithoutSpaces[wordsWithoutSpaces.length - 2];
+						lastWord = words[lastWordIDX];
+					};
+
+					updateVars();
+
+					if(isInCode) {
+						if(lines[ln].indexOf("```") != -1) isInCode = false;
+						continue;
+					} else if(lines[ln].indexOf("```") != -1) {
+						isInCode = true;
+						continue;
+					}
+
+					let isEmoteOrLink = word => word[0] == ":" || this.emoteNames.includes(word) || word.split("\n")[word.split("\n").length - 1].startsWith("http");
+
+					if(words[words.length - 1] != "" && sending) words.push("");
+
+					if(lastWord == undefined || chatbox.selectionStart != chatbox.value.length || (this.lastCorrectedWord == lastWordIDX && this.settings.dontCorrectTwice) || lastWord[0] == "#" || lastWord[0] == "@") {
+						if(sending) this.lastCorrectedWord = -1;
+						continue;
+					}
+
+					if(sending) e.preventDefault();
+
+					let trySendMessage = () => {
+
+						if(beforeLastWord) beforeLastWord = beforeLastWord.trim();
+
+						let beforeLastWordIDX = 2, lastSpacelessWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX + 1];
+
+						while(beforeLastWord != undefined && lastSpacelessWord && isEmoteOrLink(lastSpacelessWord)) {
+							beforeLastWordIDX++;
+							beforeLastWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX];
+							lastSpacelessWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX + 1];
+						}
+
+						if(this.settings.autoCapitalization && !isEmoteOrLink(lastSpacelessWord)) {
+
+							words[0] = words[0].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
+
+							if(words[words.length - 1] == "i") words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
+
+							if(beforeLastWord && ".!?".indexOf(beforeLastWord[beforeLastWord.length - 1]) != -1 && !beforeLastWord.endsWith("...")) {
+								if(sending) words[words.length - beforeLastWordIDX] = words[words.length - beforeLastWordIDX].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
+								else words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
+							}
+
+						}
+
+						let autoPunctuated = false;
+
+						if(this.settings.autoPunctuation && !isEmoteOrLink(lastSpacelessWord)) {
+
+							if(words[words.length - 1] == "" && !lastSpacelessWord[lastSpacelessWord.length - 1].match(/[^a-zA-Z0-9 ]/)) {
+								if(!this.settings.preventDoubleSpaces || e.which == 13) {
+									words[words.length - beforeLastWordIDX] += ".";
+									autoPunctuated = true;
+								}
+							}
+
+						}
+
+						let newValue = words.join(" ");
+						
+						if(!autoPunctuated && !isEmoteOrLink(lastSpacelessWord) && !(this.settings.preventDoubleSpaces && newValue.endsWith(" "))) newValue += " ";
+
+						lines[ln] = newValue;
+						newValue = lines.join("\n");
+
+						if(chatbox.value != newValue) {
+							if(sending) {
+								this.lastCorrectedWord = -1;
+								newValue = newValue.trim();
+							}
+							chatbox.select();
+							document.execCommand("insertText", false, newValue);
+						}
+
+						if(e.which == 13 && typeof NeatoLib.ReactData.getEvents(chatbox).onKeyPress == "function" && ln + 1 == lines.length) {
+							setTimeout(() => {
+								NeatoLib.ReactData.getEvents(chatbox).onKeyPress({ which : 13, preventDefault : function(){} });
+							}, 0);
+						}
+
+					};
+
+					if(isEmoteOrLink(lastWord)) {
+						trySendMessage();
+						continue;
+					}
+
+					let wasReplaced;
+
+					for(let i = 0; i < this.settings.overrideReplacers.length; i++) {
+
+						let replacer = this.settings.overrideReplacers[i];
+
+						if(lastWord == replacer.word) {
+							
+							e.preventDefault();
+
+							if(sending) words.splice(words.length - 2, 2);
+							else words.splice(words.length - 1, 1);
+
+							let split = replacer.replacement.split(" ");
+							for(let ii = 0; ii < split.length; ii++) if(split[ii].trim() != "") words.push(split[ii]);
+							if(sending) words.push("");
+
+							trySendMessage();
+
+							this.lastCorrectedWord = lastWordIDX;
+
+							wasReplaced = true;
+							break;
+
+						}
+
+					}
+
+					if(wasReplaced) continue;
+
+					let correctMisspelling = misspelled => {
+
+						if(!misspelled) {
+							trySendMessage();
+							return;
+						}
+
+						this.lastCorrectedWord = lastWordIDX;
+
+						let attemptCorrect = corrections => {
+
+							if(corrections.length == 0) {
+								trySendMessage();
+								return;
+							}
+
+							chatbox.selectionStart = chatbox.value.lastIndexOf(lastWord);
+							chatbox.selectionEnd = chatbox.value.length;
+		
+							lines[ln] = lines[ln].substring(0, lines[ln].lastIndexOf(lastWord)) + corrections[0];
+							if(sending) lines[ln] += " ";
+							updateVars();
+
+							trySendMessage();
+
+						};
+
+						if(this.settings.useDevilsChecker) attemptCorrect(this.devilsChecker.getSimilarWords(lastWord.toLowerCase().trim()));
+						else this.spellChecker.getCorrections(lastWord).then(attemptCorrect);
+
+					};
+
+					if(this.settings.autoCorrect) {
+						if(this.settings.useDevilsChecker) correctMisspelling(this.devilsChecker.isWordNotInDictionary(lastWord));
+						else this.spellChecker.isMisspelled(lastWord).then(correctMisspelling);
+					} else trySendMessage();
+					
+					e.preventDefault();
+
+				}
+
+            }
+
+		};
+
+		this.contextMenuEvent = e => {
+
+			let chatbox = e.currentTarget;
+
+			setTimeout(() => {
+
+				let itemGroup = document.getElementsByClassName(this.classes.itemGroup)[0];
+
+				itemGroup.insertAdjacentElement("afterbegin",
+					NeatoLib.ContextMenu.createToggle("Auto Correct", this.settings.autoCorrect, nv => {
+						this.settings.autoCorrect = nv;
+						this.saveSettings();
+					})
+				);
+
+				itemGroup.insertAdjacentElement("afterbegin",
+					NeatoLib.ContextMenu.createToggle("Auto Capitalize", this.settings.autoCapitalization, nv => {
+						this.settings.autoCapitalization = nv;
+						this.saveSettings();
+					})
+				);
+
+				itemGroup.insertAdjacentElement("afterbegin",
+					NeatoLib.ContextMenu.createToggle("Auto Punctuate", this.settings.autoPunctuation, nv => {
+						this.settings.autoPunctuation = nv;
+						this.saveSettings();
+					})
+				);
+
+				let selectedWords = chatbox.value.substring(chatbox.selectionStart, chatbox.selectionEnd).trim().toLowerCase().split(" ");
+				
+				if(selectedWords.length == 1 && selectedWords[0] != "") {
+
+					itemGroup.insertAdjacentElement("afterbegin",
+
+						this.settings.learnedWords.includes(selectedWords[0]) ?
+
+						NeatoLib.ContextMenu.createItem("Forget Word", () => {
+							this.settings.learnedWords.splice(this.settings.learnedWords.indexOf(selectedWords[0]), 1);
+							this.saveSettings();
+							this.updateLearned();
+							NeatoLib.ContextMenu.close();
+						}) :
+
+						NeatoLib.ContextMenu.createItem("Learn Word", () => {
+							this.settings.learnedWords.push(selectedWords[0]);
+							this.saveSettings();
+							this.updateLearned();
+							NeatoLib.ContextMenu.close();
+						})
+
+					);
+
+				}
+
+				let oldLearnButton = document.getElementsByClassName(this.classes.itemGroup)[1].firstChild;
+
+				if(oldLearnButton.firstChild.innerText.includes("Dictionary")) oldLearnButton.outerHTML = "";
+
+				itemGroup.parentElement.style.top = (parseInt(itemGroup.parentElement.style.top) - 50) + "px";
+
+			}, 0);
+
+		};
+
 		this.initialized = true;
 
 		this.switch();
@@ -200,6 +473,8 @@ class AutoCorrect {
 		this.switchEvent = () => this.switch();
 		
 		NeatoLib.Events.attach("switch", this.switchEvent);
+		
+		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 		
 		NeatoLib.Events.onPluginLoaded(this);
 
@@ -230,243 +505,31 @@ class AutoCorrect {
 		
 		this.lastCorrectedWord = -1;
 
-		let areas = $("textarea, input");
-		areas.off("keydown.autocorrect");
-		areas.off("contextmenu.autocorrect");
+		let allFields = Array.from(document.getElementsByTagName("textarea")).concat(Array.from(document.getElementsByTagName("input")));
 
-        let $chatbox = $(this.settings.attachEverywhere ? "textarea, input" : ".chat textarea");
+		for(let i = 0; i < allFields.length; i++) {
+			allFields[i].removeEventListener("keydown", this.keyDownEvent);
+			allFields[i].removeEventListener("contextmenu", this.contextMenuEvent);
+		}
 
-        $chatbox.on("keydown.autocorrect", e => {
-
-			let chatbox = e.currentTarget;
-
-			if(this.settings.useDevilsChecker && this.devilsChecker == undefined) return;
-
-			if(chatbox.value == "") this.lastCorrectedWord = -1;
-
-			if(this.settings.ignoreEmptyStart && chatbox.value[0] == " ") return;
-
-			let sending = e.which == 13 && !e.shiftKey, ignoredPrefixesSplit = Array.filter(this.settings.ignoredPrefixes.split(" "), prefix => prefix != "");
-
-			for(let i = 0; i < ignoredPrefixesSplit.length; i++) if(chatbox.value.startsWith(ignoredPrefixesSplit[i])) return;
-
-            if(e.which == 32 || sending) {
-
-				let words, wordsWithoutSpaces, lastWordIDX, beforeLastWord, lastWord;
-
-				let updateVars = () => {
-					words = chatbox.value.split(" ");
-					wordsWithoutSpaces = Array.filter(words, word => word != "");
-					lastWordIDX = words.lastIndexOf(wordsWithoutSpaces[wordsWithoutSpaces.length - 1]);
-					beforeLastWord = wordsWithoutSpaces[wordsWithoutSpaces.length - 2];
-					lastWord = words[lastWordIDX];
-				};
-
-				updateVars();
-
-				let isEmoteOrLink = word => word[0] == ":" && word[word.length - 1] == ":" || this.emoteNames.includes(word) || word.startsWith("http");
-
-				if(words[words.length - 1] != "" && sending) words.push("");
-
-				if(lastWord == undefined || chatbox.selectionStart != chatbox.value.length || (this.lastCorrectedWord == lastWordIDX && this.settings.dontCorrectTwice) || lastWord[0] == "#" || lastWord[0] == "@") {
-					if(sending) this.lastCorrectedWord = -1;
-					return;
-				}
-
-				if(sending) e.preventDefault();
-
-				let trySendMessage = () => {
-
-					if(beforeLastWord) beforeLastWord = beforeLastWord.trim();
-
-					let beforeLastWordIDX = 2, lastSpacelessWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX + 1];
-
-					while(beforeLastWord != undefined && lastSpacelessWord && isEmoteOrLink(lastSpacelessWord)) {
-						beforeLastWordIDX++;
-						beforeLastWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX];
-						lastSpacelessWord = wordsWithoutSpaces[wordsWithoutSpaces.length - beforeLastWordIDX + 1];
-					}
-
-					if(this.settings.autoCapitalization && !isEmoteOrLink(lastSpacelessWord)) {
-
-						words[0] = words[0].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
-
-						if(words[words.length - 1] == "i") words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
-
-						if(beforeLastWord && ".!?".indexOf(beforeLastWord[beforeLastWord.length - 1]) != -1 && !beforeLastWord.endsWith("...")) {
-							if(sending) words[words.length - beforeLastWordIDX] = words[words.length - beforeLastWordIDX].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
-							else words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
-						}
-
-					}
-
-					let autoPunctuated = false;
-
-					if(this.settings.autoPunctuation && !isEmoteOrLink(lastSpacelessWord)) {
-
-						if(words[words.length - 1] == "" && ".!?".indexOf(lastSpacelessWord[lastSpacelessWord.length - 1]) == -1) {
-							words[words.length - beforeLastWordIDX] += ".";
-							autoPunctuated = true;
-						}
-
-					}
-
-					let newValue = words.join(" ");
-					
-					if(!autoPunctuated) newValue += " ";
-
-					if(chatbox.value != newValue) {
-						if(sending) this.lastCorrectedWord = -1;
-						chatbox.select();
-						document.execCommand("insertText", false, newValue);
-					}
-
-					if(e.which == 13) NeatoLib.ReactData.getProps(chatbox).onKeyPress({ which : 13, preventDefault : function(){} });
-
-				};
-
-				if(isEmoteOrLink(lastWord)) {
-					trySendMessage();
-					return;
-				}
-
-				for(let i = 0; i < this.settings.overrideReplacers.length; i++) {
-
-					let replacer = this.settings.overrideReplacers[i];
-
-					if(lastWord == replacer.word) {
-						
-						e.preventDefault();
-
-						if(sending) words.splice(words.length - 2, 2);
-						else words.splice(words.length - 1, 1);
-
-						let split = replacer.replacement.split(" ");
-						for(let ii = 0; ii < split.length; ii++) if(split[ii].trim() != "") words.push(split[ii]);
-						if(sending) words.push("");
-
-						trySendMessage();
-
-						this.lastCorrectedWord = lastWordIDX;
-
-						return;
-
-					}
-
-				}
-
-				let correctMisspelling = misspelled => {
-
-                    if(!misspelled) {
-						trySendMessage();
-						return;
-					}
-
-					this.lastCorrectedWord = lastWordIDX;
-
-					let attemptCorrect = corrections => {
-
-						if(corrections.length == 0) return;
-
-                        chatbox.selectionStart = chatbox.value.lastIndexOf(lastWord);
-						chatbox.selectionEnd = chatbox.value.length;
-	
-						if(this.settings.useDevilsChecker) this.devilsChecker.replaceWord(chatbox, lastWord, corrections[0]);
-						this.spellChecker.replaceWithCorrection(corrections[0]);
-
-						setTimeout(() => {
-							words = chatbox.value.split(" ");
-							trySendMessage();
-						}, 0);
-
-                    };
-
-					if(this.settings.useDevilsChecker) attemptCorrect(this.devilsChecker.getSimilarWords(lastWord.toLowerCase().trim()));
-					else this.spellChecker.getCorrections(lastWord).then(attemptCorrect);
-
-                };
-
-				if(this.settings.autoCorrect) {
-					if(this.settings.useDevilsChecker) correctMisspelling(this.devilsChecker.isWordNotInDictionary(lastWord));
-					else this.spellChecker.isMisspelled(lastWord).then(correctMisspelling);
-				} else trySendMessage();
-				
-				e.preventDefault();
-
-            }
-
-		});
+		let fields = this.settings ? allFields : [NeatoLib.Chatbox.get()];
 		
-		$chatbox.on("contextmenu.autocorrect", e => {
-
-			let chatbox = e.currentTarget;
-
-			setTimeout(() => {
-
-				let itemGroup = document.getElementsByClassName(this.classes.itemGroup)[0];
-
-				itemGroup.insertAdjacentElement("afterbegin",
-					new PluginContextMenu.ToggleItem("Auto Correct", this.settings.autoCorrect, { onChange : newValue => {
-						this.settings.autoCorrect = newValue;
-						this.saveSettings();
-					}}).element[0]
-				);
-
-				itemGroup.insertAdjacentElement("afterbegin",
-					new PluginContextMenu.ToggleItem("Auto Capitalize", this.settings.autoCapitalization, { onChange : newValue => {
-						this.settings.autoCapitalization = newValue;
-						this.saveSettings();
-					}}).element[0]
-				);
-
-				itemGroup.insertAdjacentElement("afterbegin",
-					new PluginContextMenu.ToggleItem("Auto Punctuate", this.settings.autoPunctuation, { onChange : newValue => {
-						this.settings.autoPunctuation = newValue;
-						this.saveSettings();
-					}}).element[0]
-				);
-
-				let selectedWords = chatbox.value.substring(chatbox.selectionStart, chatbox.selectionEnd).trim().toLowerCase().split(" ");
-				
-				if(selectedWords.length == 1 && selectedWords[0] != "") {
-
-					itemGroup.insertAdjacentElement("afterbegin",
-
-						this.settings.learnedWords.includes(selectedWords[0]) ? 
-
-						new PluginContextMenu.TextItem("Forget Word", { callback : () => {
-							this.settings.learnedWords.splice(this.settings.learnedWords.indexOf(selectedWords[0]), 1);
-							this.saveSettings();
-							NeatoLib.ContextMenu.close();
-						}}).element[0] :
-
-						new PluginContextMenu.TextItem("Learn Word", { callback : () => {
-							this.settings.learnedWords.push(selectedWords[0]);
-							this.saveSettings();
-							NeatoLib.ContextMenu.close();
-						}}).element[0]
-
-					);
-
-				}
-
-				let oldLearnButton = document.getElementsByClassName(this.classes.itemGroup)[1].firstChild;
-
-				if(oldLearnButton.firstChild.innerText.includes("Dictionary")) oldLearnButton.outerHTML = "";
-
-				itemGroup.parentElement.style.top = (parseInt(itemGroup.parentElement.style.top) - 50) + "px";
-
-			}, 0);
-
-		});
+		for(let i = 0; i < fields.length; i++) {
+			if(!fields[i]) continue;
+			fields[i].addEventListener("keydown", this.keyDownEvent);
+			fields[i].addEventListener("contextmenu", this.contextMenuEvent);
+		}
 
 	}
 	
     stop() {
 
-		let areas = $("textarea, input");
-		areas.off("keydown.autocorrect");
-		areas.off("contextmenu.autocorrect");
+		let allFields = Array.from(document.getElementsByTagName("textarea")).concat(Array.from(document.getElementsByTagName("input")));
+
+		for(let i = 0; i < allFields.length; i++) {
+			allFields[i].removeEventListener("keydown", this.keyDownEvent);
+			allFields[i].removeEventListener("contextmenu", this.contextMenuEvent);
+		}
 
 		if(this.chatObserver) this.chatObserver.disconnect();
 

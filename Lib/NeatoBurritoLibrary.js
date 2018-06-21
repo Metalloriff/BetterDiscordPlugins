@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.1.15";
+NeatoLib.version = "0.2.15";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1383,7 +1383,7 @@ NeatoLib.ContextMenu.createGroup = function(items, options = {}) {
 
 };
 
-NeatoLib.ContextMenu.createItem = function(label, callback = undefined, options = {}) {
+NeatoLib.ContextMenu.createItem = function(label, callback, options = {}) {
 
     let element = document.createElement("div");
 
@@ -1393,7 +1393,9 @@ NeatoLib.ContextMenu.createItem = function(label, callback = undefined, options 
 
     if(options.color) element.firstChild.style.color = options.color;
 
-    if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
+    if(options.hint) NeatoLib.Tooltip.attach(options.hint, element);
+
+    if(options.description) element.innerHTML += `<div class="${this.classes.hint}">${options.description}</div>`;
 
     if(callback) element.addEventListener("click", callback);
 
@@ -1435,6 +1437,37 @@ NeatoLib.ContextMenu.createSubMenu = function(label, items, options = {}) {
 
 };
 
+NeatoLib.ContextMenu.createToggle = function(label, value, callback, options = {}) {
+
+    let element = document.createElement("div");
+
+    element.classList.add(this.classes.item, this.classes.itemToggle);
+
+    element.innerHTML = `
+        <div class="${this.classes.label}">${label}</div>
+        <div class="checkbox">
+            <div class="checkbox-inner">
+                <input type="checkbox">
+                <span></span>
+            </div>
+        </div>
+    `;
+
+    let checkbox = element.getElementsByTagName("input")[0];
+    
+    checkbox.checked = value;
+
+    if(options.color) element.style.color = options.color;
+
+    if(callback) element.addEventListener("click", () => {
+        checkbox.checked = !checkbox.checked;
+        callback(checkbox.checked);
+    });
+
+    return element;
+
+};
+
 NeatoLib.ContextMenu.get = function() {
     return Array.filter(document.getElementsByClassName(this.classes.contextMenu), x => x.style.display != "none")[0];
 };
@@ -1452,6 +1485,8 @@ NeatoLib.Tooltip.attach = function(content, element, options = {}) {
 
     const { side = "top", color = undefined, onShow = undefined, onHide = undefined } = options;
 
+    let domChecker;
+
     element.tooltip = {
         tooltip : undefined,
         node : element,
@@ -1461,6 +1496,7 @@ NeatoLib.Tooltip.attach = function(content, element, options = {}) {
                 tooltip.classList.add("tooltip", "tooltip-" + side, "tooltip-black");
                 tooltip.innerText = content;
                 tooltip.style.pointerEvents = "none";
+                tooltip.style.zIndex = 15000;
                 if(color) tooltip.style.backgroundColor = color;
                 document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
                 element.tooltip.tooltip = tooltip;
@@ -1488,12 +1524,19 @@ NeatoLib.Tooltip.attach = function(content, element, options = {}) {
                     }
                 }
                 if(typeof onShow == "function") onShow(element.tooltip);
+                domChecker = setInterval(() => {
+                    if(!document.contains(element)) {
+                        tooltip.remove();
+                        clearInterval(domChecker);
+                    }
+                }, 200);
             },
             mouseleave : () => {
                 if(element.tooltip.tooltip) {
                     element.tooltip.tooltip.remove();
                     if(typeof onHide == "function") onHide(element.tooltip);
                 }
+                clearInterval(domChecker);
             }
         },
         detach : () => {

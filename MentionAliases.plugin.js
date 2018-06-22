@@ -2,32 +2,9 @@
 
 class MentionAliases {
 	
-	constructor() {
-		this.initialized = false;
-		this.aliases = {};
-		this.usersInServer = [];
-		this.groups = [];
-		this.displayTags = true;
-		this.displayButton = true;
-		this.displayOnPopout = true;
-		this.defaultSettings = { displayUpdateNotes : true };
-		this.settings = this.defaultSettings;
-		this.messageObserver = null;
-		this.popoutObserver = null;
-		this.userModule;
-		this.memberModule;
-		this.guildModule;
-	}
-	
-	get themeType(){
-		if(document.getElementsByClassName("theme-dark").length > 0) return "dark";
-		return "light";
-	}
-	
-	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.7.15"; }
+    getVersion() { return "0.8.15"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -63,23 +40,33 @@ class MentionAliases {
 				Fixed a few really dumb bugs.
 				Fixed @owner... again.
 				Added a "display alias field on user popouts" setting.
+			`,
+			"0.8.14" :
+			`
+				Rewrote the plugin entirely, fixing a bunch of bugs and improving performance.
+				Added server owner tags.
+				Fixed the aliases menu.
+				Clicking out of the aliases menu will now close it.
+				Tags now display in voice channels.
+				Tags now display next to user join messages
 			`
 		};
 	}
 
     load() {}
 	
-	getSettingsPanel(){
+	getSettingsPanel() {
 
 		setTimeout(() => {
 
 			Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("ma-toggles", "Settings", [
-				{ title : "Display alias tags next to users", value : "displayTags", setValue : this.displayTags },
-				{ title : "Display alias list button (you can still open the list with Ctrl + Shift + @)", value : "displayButton", setValue : this.displayButton },
-				{ title : "Display alias field on user popouts", value : "displayOnPopout", setValue : this.displayOnPopout }
+				{ title : "Display alias tags next to users", value : "displayTags", setValue : this.settings.displayTags },
+				{ title : "Display alias list button (you can still open the list with Ctrl + Shift + @)", value : "displayButton", setValue : this.settings.displayButton },
+				{ title : "Display alias field on user popouts", value : "displayOnPopout", setValue : this.settings.displayOnPopout },
+				{ title : "Display server owner tags", value : "displayOwnerTags", setValue : this.settings.displayOwnerTags }
 			], choice => {
-				this[choice.value] = !this[choice.value];
-				this.save();
+				this.settings[choice.value] = !this.settings[choice.value];
+				this.saveSettings();
 			}), this.getName());
 			
 			Metalloriff.Settings.pushChangelogElements(this);
@@ -91,45 +78,75 @@ class MentionAliases {
 	}
 
     start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(lib == undefined) {
+			lib = document.createElement("script");
+			lib.setAttribute("id", "NeatoBurritoLibrary");
+			lib.setAttribute("type", "text/javascript");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        else lib.addEventListener("load", libLoadedEvent);
+		
+	}
+
+	saveSettings() {
+		NeatoLib.Settings.save(this);
 	}
 	
-	save(){
-		PluginUtilities.saveData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayOnPopout : this.displayOnPopout, settings : this.settings, groups : this.groups });
+	save() {
+		NeatoLib.Data.save("MentionAliases", "data", {
+			aliases : this.aliases,
+			groups : this.groups
+		});
 	}
 	
-	initialize(){
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/MentionAliases.plugin.js");
-		this.userModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getUser"]);
-		this.memberModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getMembers"]);
-		this.guildModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getGuild"]);
-		var data = PluginUtilities.loadData("MentionAliases", "data", { aliases : this.aliases, displayTags : this.displayTags, displayButton : this.displayButton, displayOnPopout : this.displayOnPopout, settings : this.defaultSettings, groups : this.groups });
+	onLibLoaded() {
+
+		if(!NeatoLib.hasRequiredLibVersion(this, "0.3.15")) return;
+
+		NeatoLib.Updates.check(this);
+
+		this.classes = Metalloriff.getClasses(["contextMenu", "members", "member", "userPopout", "userInfoSection", "body", "mask", "channelTextArea", "nameTag", "inner", "headerNormal", "footer", "modal"], false);
+
+		this.userModule = NeatoLib.Modules.get("getUser");
+		this.memberModule = NeatoLib.Modules.get("getMember");
+		this.guildModule = NeatoLib.Modules.get("getGuild");
+
+		this.settings = NeatoLib.Settings.load(this, {
+			displayUpdateNotes : true,
+			displayTags : true,
+			displayButton : true,
+			displayOnPopout : true,
+			displayOwnerTags : true
+		});
+
+		let data = NeatoLib.Data.load("MentionAliases", "data", {
+			aliases : {},
+			groups : []
+		});
+
 		this.aliases = data.aliases;
 		this.groups = data.groups;
-		var updatedAliases = {};
+
+		if(data.displayTags) this.settings.displayTags = data.displayTags;
+		if(data.displayButton) this.settings.displayButton = data.displayButton;
+		if(data.displayOnPopout) this.settings.displayOnPopout = data.displayOnPopout;
+		
 		if(this.aliases.length != undefined){
-			for(var i = 0; i < this.aliases.length; i++){
-				updatedAliases[this.aliases[i][0]] = this.aliases[i][1];
-			}
+			let updatedAliases = {};
+			for(let i = 0; i < this.aliases.length; i++) updatedAliases[this.aliases[i][0]] = this.aliases[i][1];
 			this.aliases = updatedAliases;
 		}
-		this.displayTags = data.displayTags;
-		this.displayButton = data.displayButton;
-		this.displayOnPopout = data.displayOnPopout;
-		this.settings = data.settings;
-		this.initialized = true;
-		$(".theme-" + this.themeType).last().on("DOMNodeInserted.MentionAliases", e => { this.onPopout(e); });
-		this.onSwitch();
-		BdApi.injectCSS("MentionAliases", `
+
+		this.style = NeatoLib.injectCSS(`
 
 			.username-1cB_5E, .members-1bid1J .botTag-1OwMgs + .members-1bid1J .botTag-1OwMgs { font-size: 15px; }
 			.memberInner-3XUq9K { width: 160px; }
@@ -169,6 +186,9 @@ class MentionAliases {
 				position: absolute;
 				left: 45%;
 				bottom: 8%;
+				background-color: #2f3136;
+				border-radius: 5px;
+				color: white;
 			}
 
 			.ma-alias-list {
@@ -196,468 +216,549 @@ class MentionAliases {
 			}
 		
 		`);
-		$(window).on("resize.MentionAliases", () => this.onWindowResize());
-		$(document).on("keydown.MentionAliases", e => this.onKeyDown(e));
-		$(document).on("contextmenu.MentionAliases", e => {
-			let $targ = $(e.target), element = $targ.parents(".member-3W1lQa")[0] || $targ.parents(".message-group")[0];
+
+		this.windowResizeEvent = () => this.onWindowResize();
+
+		this.keydownEvent = e => {
+
+			if(e.key == "Escape" && document.getElementsByClassName("ma-alias-menu").length){
+				document.getElementsByClassName("ma-alias-menu")[0].remove();
+				return;
+			}
+
+			if(e.ctrlKey && e.shiftKey && e.key == "@") {
+				this.toggleAliasList();
+			}
+
+		};
+
+		this.contextEvent = e => {
+			let element = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group");
 			if(element) this.onUserContext(element);
-		})
-		this.popoutObserver = new MutationObserver(e => {
-			if(!this.displayOnPopout) return;
-			if(e[0].addedNodes.length > 0 && e[0].addedNodes[0].getElementsByClassName("userPopout-3XzG_A").length > 0){
-				if(this.aliases == undefined)
-					this.aliases = {};
-				var popout = $(".userPopout-3XzG_A"), userID = "";
-				if(popout.length && popout[0].getElementsByClassName("discriminator").length > 0)
-					userID = ReactUtilities.getOwnerInstance(popout[0]).props.user.id;
-				if(popout.length && userID != "" && !$("#ma-aliasfield").length){
-					$(`<div class="body-3iLsc4"><div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Alias</div><div class="note-3kmerW note-3HfJZ5"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 22px;"></textarea></div></div>`).insertAfter($(popout.find(".body-3iLsc4").last()));
-					var field = $("#ma-aliasfield");
-					if(field.length){
-						field.on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
-						field.on("focusout", () => { this.updateAlias(userID, field[0].value); });
-						if(this.aliases[userID] != undefined){ field[0].value = this.aliases[userID]; }
+		};
+
+		this.chatboxEvent = e => {
+
+			let chatbox = e.target;
+
+			if((e.which == 13 || e.which == 32) && chatbox.value) {
+				
+				let origVal = chatbox.value, val = chatbox.value, valIgnoreCase = chatbox.value.trim().toLowerCase();
+
+				for(let uid in this.aliases) {
+					if(valIgnoreCase.indexOf(this.aliases[uid].toLowerCase()) != -1 && this.usersInServer.indexOf(uid) != -1) {
+						val = val.replace(new RegExp("@" + this.aliases[uid], "ig"), "@" + this.userModule.getUser(uid).tag);
 					}
 				}
+
+				if(valIgnoreCase.indexOf("@owner") != -1) {
+					if(this.selectedGuild && this.selectedGuild.ownerId) val = val.replace(new RegExp("@owner", "ig"), "@" + this.userModule.getUser(this.selectedGuild.ownerId).tag);
+				}
+
+				for(let i = 0; i < this.groups.length; i++) {
+
+					let group = this.groups[i];
+
+					if(valIgnoreCase.indexOf("@" + group.name.toLowerCase()) != -1) {
+						let users = Array.from(group.users, uid => this.userModule.getUser(uid)), list = [];
+						for(let u = 0; u < users.length; u++) if(users[u] && this.usersInServer.indexOf(users[u].id) != -1) list.push("@" + users[u].tag);
+						val = val.replace(new RegExp("@" + group.name, "ig"), list.join(" "));
+					}
+
+				}
+
+				if(origVal != val) NeatoLib.Chatbox.setText(val);
+
 			}
+
+		};
+
+		this.clickEvent = e => {
+			if(!document.getElementsByClassName("ma-alias-menu")[0].contains(e.target)) this.toggleAliasList();
+		};
+		
+		window.addEventListener("resize", this.windowResizeEvent);
+		document.addEventListener("keydown", this.keydownEvent);
+		document.addEventListener("contextmenu", this.contextEvent);
+
+		this.appObserver = new MutationObserver(m => {
+
+			if(m[0].addedNodes.length && m[0].addedNodes[0] instanceof Element) {
+
+				if(this.settings.displayOnPopout) {
+
+					let popout = m[0].addedNodes[0].getElementsByClassName(this.classes.userPopout)[0], uid;
+
+					if(popout && popout.getElementsByClassName("discriminator").length) uid = NeatoLib.ReactData.getProp(popout, "user.id");
+
+					if(uid && !document.getElementById("ma-aliasfield")) {
+
+						NeatoLib.DOM.insertHTMLBefore(popout.getElementsByClassName(this.classes.footer)[0], `
+						<div class="body-3iLsc4">
+							<div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Alias</div>
+							<div class="note-3kmerW note-3HfJZ5">
+								<textarea id="ma-aliasfield" placeholder="No alias defined, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 22px;">${this.aliases[uid] || ""}</textarea>
+							</div>
+						</div>`);
+
+						let field = document.getElementById("ma-aliasfield");
+
+						field.addEventListener("input", () => field.value = field.value.split(" ").join("-"));
+						field.addEventListener("focusout", () => this.updateAlias(uid, field.value));
+
+					}
+
+				}
+				
+			}
+
+			for(let i = 0; i < m.length; i++) {
+
+				if(m[i].addedNodes.length && m[i].addedNodes[0] instanceof Element) {
+
+					if(m[i].addedNodes[0].classList.contains(this.classes.modal)) {
+
+						let popout = m[i].addedNodes[0].getElementsByClassName(this.classes.inner)[0], uid;
+				
+						if(popout && popout.getElementsByClassName("discriminator").length) uid = NeatoLib.ReactData.getProp(popout.getElementsByClassName("discriminator")[0], "user.id");
+						else return;
+				
+						if(uid && !document.getElementById("ma-aliasfield")) {
+				
+							NeatoLib.DOM.insertHTMLAtIndex(1, `
+								<div class="userInfoSection-2acyCx"><div class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Alias</div><div class="note-3kmerW note-QfFU8y"><textarea id="ma-aliasfield" placeholder="No alias defined, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;">${this.aliases[uid] || ""}</textarea></div></div>
+							`, popout.getElementsByClassName("scroller-2FKFPG")[0]);
+				
+							let field = document.getElementById("ma-aliasfield");
+				
+							field.oninput = () => field.value = field.value.split(" ").join("-");
+							field.onblur = () => this.updateAlias(uid, field.value);
+				
+						}
+
+					}
+
+					if(!this.settings.displayTags) continue;
+
+					if(m[i].addedNodes[0].classList.contains(this.classes.member)) this.updateMember(m[i].addedNodes[0]);
+
+					if(m[i].addedNodes[0].classList.contains("private")) this.updateMemberDM(m[i].addedNodes[0]);
+
+					if(m[i].addedNodes[0].classList.contains("draggable-1KoBzC")) this.updateVoiceChat(m[i].addedNodes[0]);
+
+				}
+
+			}
+
 		});
-		this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
-	}
-
-	onLibLoaded() {
+		this.appObserver.observe(document.getElementById("app-mount"), { childList : true, subtree : true });
 
 		if(this.settings.displayUpdateNotes == true) Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
 
-		this.classes = Metalloriff.getClasses(["contextMenu"]);
+		this.switchEvent = () => {
+			
+			if(!this.ready) return;
 
-	}
+			this.selectedGuild = NeatoLib.getSelectedServer();
+
+			if(document.getElementsByClassName("ma-alias-menu").length) document.getElementsByClassName("ma-alias-menu")[0].remove();
 	
-	updateAlias(userID, newAlias){
-		if(newAlias == "" && this.aliases[userID] != undefined){ delete this.aliases[userID]; }
-		if(newAlias != ""){ this.aliases[userID] = newAlias; }
-		this.save();
-		this.updateMessages();
-		this.scanMembers();
-	}
-	
-	scanMembers(){
-		var server = PluginUtilities.getCurrentServer();
-		if(server == undefined)
-			this.usersInServer = [];
-		else{
-			this.usersInServer = Array.from(this.memberModule.getMembers(server.id), x => x.userId);
-			return;
-		}
-		var dmAvatars = $(".member > .avatar-small, .messages .avatar-large");
-		dmAvatars.each(i => {
-			if(dmAvatars[i].style.backgroundImage != undefined && dmAvatars[i].style.backgroundImage != ""){
-				var id = dmAvatars[i].style.backgroundImage.match(/\d+/)[0];
-				if(id != undefined && !this.usersInServer.includes(id))
-					this.usersInServer.push(id);
+			this.attach();
+			this.scanMembers();
+
+			if(this.settings.displayTags) this.updateAllTags();
+
+			if(this.settings.displayButton) {
+				if(!document.getElementById("ma-aliases-button") && NeatoLib.Chatbox.get()) {
+					document.getElementsByClassName(this.classes.channelTextArea)[0].insertAdjacentHTML("beforeend", `<div id="ma-aliases-button" class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`);
+					document.getElementById("ma-aliases-button").onclick = () => this.toggleAliasList();
+				}
+				this.onWindowResize();
+			} else {
+				if(document.getElementById("ma-aliases-button")) document.getElementById("ma-aliases-button").remove();
+				NeatoLib.Chatbox.get().style.width = "";
 			}
-		});
+			
+		};
+
+		NeatoLib.Events.attach("switch", this.switchEvent);
+		
+		this.messageEvent = () => this.updateMessages();
+
+		NeatoLib.Events.attach("message", this.messageEvent);
+
+		NeatoLib.Events.onPluginLoaded(this);
+
+		this.switchEvent();
+		
 	}
 
-	onWindowResize(){
-		var chatbox = document.getElementsByClassName("inner-zqa7da")[0];
-		if(chatbox != undefined){
+	updateAllTags() {
+
+		let tags = document.getElementsByClassName("ma-usertag");
+		for(let i = 0; i < tags.length; i++) tags[i].remove();
+
+		let members = document.getElementsByClassName(this.classes.member);
+		for(let i = 0; i < members.length; i++) this.updateMember(members[i]);
+
+		let dms = document.getElementsByClassName("private");
+		for(let i = 0; i < dms.length; i++) this.updateMemberDM(dms[i]);
+
+		let vc = document.getElementsByClassName("draggable-1KoBzC");
+		for(let i = 0; i < vc.length; i++) this.updateVoiceChat(vc[i]);
+
+		this.updateMessages();
+
+	}
+	
+	updateAlias(uid, a) {
+
+		if(!a && this.aliases[uid]) delete this.aliases[uid];
+		if(a) this.aliases[uid] = a;
+
+		this.save();
+		this.scanMembers();
+		if(this.settings.displayTags) this.updateAllTags();
+		
+	}
+	
+	scanMembers() {
+
+		if(this.selectedGuild) return this.usersInServer = Array.from(this.memberModule.getMembers(this.selectedGuild.id), u => u.userId);
+		else this.usersInServer = [];
+
+		let dmAvatars = Array.from(document.getElementsByClassName("avatar-large")).concat(Array.from(document.getElementsByClassName(this.classes.mask)));
+
+		for(let i = 0; i < dmAvatars.length; i++) {
+			let uid = NeatoLib.ReactData.getProp(dmAvatars[i], "user.id");
+			if(uid && this.usersInServer.indexOf(uid) == -1) this.usersInServer.push(uid);
+		}
+		
+	}
+
+	onWindowResize() {
+
+		let chatbox = NeatoLib.Chatbox.get();
+
+		if(chatbox) {
+			chatbox = chatbox.parentElement;
 			chatbox.style.width = "";
 			chatbox.style.width = (chatbox.getBoundingClientRect().width - 40) + "px";
-		}else{
-			setTimeout(() => {
-				this.onWindowResize();
-			}, 1000);
-		}
-		if(document.getElementsByClassName("ma-alias-menu").length > 0){ document.getElementsByClassName("ma-alias-menu")[0].style.left = (document.getElementsByClassName("ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
-	}
-	
-	onSwitch(){
-		if(!this.initialized)
-			return;
-		$(".ma-alias-menu").remove();
+		} else setTimeout(() => this.onWindowResize(), 1000);
 
-		this.attach();
-		this.scanMembers();
-
-		var channelList = $(document.getElementsByClassName("scroller-2FKFPG members-1998pB"));
-		if(channelList.length){
-			channelList.off("DOMNodeInserted.MentionAliases");
-			if(this.displayTags){
-				channelList.on("DOMNodeInserted.MentionAliases", e => {
-					this.updateMember($(e.target));
-				});
-				var members = document.getElementsByClassName("member-3W1lQa");
-				for(var i = 0; i < members.length; i++)
-					this.updateMember($(members[i]));
-			}
-		}
-
-		let messagesScroller = document.getElementsByClassName("messages scroller")[0]
-		if(messagesScroller != undefined){
-			this.messageObserver = new MutationObserver(() => { this.updateMessages(); this.scanMembers(); });
-			this.messageObserver.observe(messagesScroller, { childList : true });
-		}else if(this.messageObserver != null)
-			this.messageObserver.disconnect();
+		if(document.getElementsByClassName("ma-alias-menu").length) document.getElementsByClassName("ma-alias-menu")[0].style.left = (document.getElementById("ma-aliases-button").getBoundingClientRect().left - 460) + "px";
 		
-		var dmList = $(".private-channels .scroller-2FKFPG");
-		if(dmList.length){
-			dmList.off("DOMNodeInserted.MentionAliases");
-			if(this.displayTags){
-				dmList.on("DOMNodeInserted.MentionAliases", e => {
-					this.updateMemberDM(e.target);
-				});
-				var dms = $(".channel.private");
-				for(var i = 0; i < dms.length; i++)
-					this.updateMemberDM(dms[i]);
-			}
-		}
-
-		this.updateMessages();
-
-		if(this.displayButton){
-			if(!$(".ma-aliases-button").length){
-				$(`<div class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`).insertAfter(".inner-zqa7da");
-				$(".ma-aliases-button").on("click", () => { this.toggleAliasList(); });
-			}
-			this.onWindowResize();
-		}else{
-			$(".ma-aliases-button").remove();
-			$(".inner-zqa7da")[0].style.width = "";
-		}
-	}
-
-	onKeyDown(e) {
-		if(e.key == "Escape" && $(".ma-alias-menu").length){
-			$(".ma-alias-menu").remove();
-			return;
-		}
-		if(e.ctrlKey && e.shiftKey && e.key == "@") {
-			this.toggleAliasList();
-		}
 	}
 
 	toggleAliasList(aliases) {
-		if($(".ma-alias-menu").length){
-			$(".ma-alias-menu").remove();
-			return;
-		}
-		let label = aliases == undefined ? "Defined User Aliases" : "Users In Group";
-		let temp = {};
-		if(aliases == undefined) aliases = this.aliases;
-		else {
-			for(let i = 0; i < aliases.length; i++) temp[aliases[i]] = this.getUser(aliases[i]).username;
-			aliases = temp;
-		}
-		$(".app").last().append(`
 
-		<div class="popout popout-bottom-right no-arrow no-shadow ma-alias-menu">
-			<div class="messages-popout-wrap themed-popout recent-mentions-popout" style="height: 600px;width: 500px;">
-				<div class="header" style="padding-bottom: 12px;">
-					<div class="title" style="text-align: center;transform: translateY(6px);">${label}</div>
-					<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: absolute;top: 5px;">
-						<div class="closeButton-2Rx3ov" onclick="$('.ma-alias-menu').remove();"></div>
+		document.removeEventListener("click", this.clickEvent);
+		if(document.getElementsByClassName("ma-alias-menu").length) return document.getElementsByClassName("ma-alias-menu")[0].remove();
+
+		let label = aliases ? "Users In Group" : "Defined User Aliases";
+
+		if(aliases) {
+			let t = {};
+			for(let i = 0; i < aliases.length; i++) temp[aliases[i]] = this.userModule.getUser(aliases[i]).username;
+			aliases = t;
+		} else aliases = this.aliases;
+
+		document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+
+			<div class="ma-alias-menu">
+				<div style="height: 600px;width: 500px;">
+					<div class="header" style="padding-bottom: 12px;">
+						<div class="title" style="text-align: center;transform: translateY(6px);">${label}</div>
+						<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: absolute;top: 5px;">
+							<div class="closeButton-2Rx3ov" onclick="$('.ma-alias-menu').remove();"></div>
+						</div>
 					</div>
-				</div>
-				<div class="scroller-wrap dark">
-					<div class="messages-popout scroller ma-alias-list">
-						<div class="ma-no-aliases-defined-label">No user aliases defined. View a user's profile to define an alias.</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		`);
-		if($(".ma-aliases-button").length){ $(".ma-alias-menu")[0].style.left = ($(".ma-aliases-button")[0].getBoundingClientRect().left - 460) + "px"; }
-		else {
-			var menu = $(".ma-alias-menu")[0], menuRect = menu.getBoundingClientRect();
-			menu.style.left =  (($(document).width() - menuRect.width) / 2) + "px";
-			menu.style.top = (($(document).height() - menuRect.height) / 2) + "px";
-		}
-		var sortedKeys = Object.keys(aliases).sort((x, y) => {
-			if(aliases[x].toLowerCase() < aliases[y].toLowerCase()){ return -1; }
-			if(aliases[x].toLowerCase() > aliases[y].toLowerCase()){ return 1; }
-			return 0;
-		}), populate = (i) => {
-			var list = $(".ma-alias-list"), user = this.getUser(i), alias = aliases[i];
-			if(user == undefined){
-				user = {
-					getAvatarURL : () => { return ""; },
-					tag : "User not found"
-				};
-			}
-			if(alias == undefined){ alias = "@owner"; }
-			$(".ma-no-aliases-defined-label").remove();
-			list.append(`
-			
-			<div class="message-group hide-overflow">
-				<div class="avatar-large stop-animation" style="background-image: url('` + user.getAvatarURL() + `');"></div>
-				<div class="comment" style="line-height: 40px;">
-					<div class="message first">
-						<div class="body">
-							<h2 class="old-h2"><span class="username-wrapper"><input class="ma-alias-list-field" maxlength="30" value="` + alias + `"></input><span class="ma-alias-list-field ma-span" style="display:none;"></span></span><span class="highlight-separator"> - </span><span class="timestamp ma-alias-menu-user-tag">` + user.tag + `</span></h2>
+					<div class="scroller-wrap dark">
+						<div class="scroller ma-alias-list">
+							<div class="ma-no-aliases-defined-label">No user aliases defined. View a user's profile to define an alias.</div>
 						</div>
 					</div>
 				</div>
-				<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: relative;">
-					<div class="closeButton-2Rx3ov"></div>
-				</div>
 			</div>
+		
+		`);
+
+		if(document.getElementById("ma-aliases-button")) document.getElementsByClassName("ma-alias-menu")[0].style.left = (document.getElementById("ma-aliases-button").getBoundingClientRect().left - 460) + "px";
+		else {
+			let m = document.getElementsByClassName("ma-alias-menu")[0], rect = m.getBoundingClientRect();
+			m.style.left = ((window.innerWidth - rect.width) / 2) + "px";
+			m.style.top = ((window.innerHeight - rect.height) / 2) + "px";
+		}
+
+		let keys = Object.keys(aliases).sort((x, y) => {
+			if(aliases[x].toLowerCase() < aliases[y].toLowerCase()) return -1;
+			if(aliases[x].toLowerCase() > aliases[y].toLowerCase()) return 1;
+			return 0;
+		}), noAliasesDefinedLabel = document.getElementsByClassName("ma-no-aliases-defined-label")[0], list = document.getElementsByClassName("ma-alias-list")[0];
+
+		let populate = uid => {
+
+			let user = this.userModule.getUser(uid), alias = aliases[uid];
+
+			if(!user) user = { getAvatarURL : () => "", tag : "User not found in cache" };
+
+			if(!alias) alias = "@owner";
+
+			if(noAliasesDefinedLabel) noAliasesDefinedLabel.remove();
+
+			list.insertAdjacentHTML("beforeend", `
+			
+				<div class="message-group hide-overflow">
+					<div class="avatar-large stop-animation" style="background-image: url(${user.getAvatarURL()});"></div>
+					<div class="comment" style="line-height: 40px;">
+						<div class="message first">
+							<div class="body">
+								<h2 class="old-h2"><span class="username-wrapper"><input class="ma-alias-list-field" maxlength="30" value="${alias}"></input><span class="ma-alias-list-field ma-span" style="display:none;"></span></span><span class="highlight-separator"> - </span><span class="timestamp ma-alias-menu-user-tag">${user.tag}</span></h2>
+							</div>
+						</div>
+					</div>
+					<div class="actionButtons-LKmOj2 ma-action-buttons" style="position: relative;">
+						<div class="closeButton-2Rx3ov"></div>
+					</div>
+				</div>
 			
 			`);
-			list.find(".closeButton-2Rx3ov").last().on("click", e => {
-				$(e.target).parents(".message-group").remove();
-				this.updateAlias(i, "");
-				PluginUtilities.showToast("Alias removed!", { type : "success" });
-			});
-			if(!this.usersInServer.includes(i)){ list.find(".message-group").last()[0].classList.add("ma-not-in-server"); }
-			list.find(".message-group").last().on("click", e => {
-				var chatbox = $("textarea")[0], chatboxValue = chatbox.value;
-				chatbox.focus();
-				chatbox.select();
-				document.execCommand("insertText", false, chatboxValue + " @" + this.getUser($(e.currentTarget).find(".ma-alias-list-field").data("user-id")).tag);
-			});
-			var updateFieldSize = (e) => {
-				var span = $(e.parentElement).find("span");
-				span.text(e.value);
-				if(span.width() > 20){ e.style.width = span.width() + "px"; }
-				else{ e.style.width = "20px"; }
-			}, field = list.find(".ma-alias-list-field:not(.ma-span)").last();
-			field.on("input", e => { updateFieldSize(e.target); });
-			field.data("user-id", i);
-			field.on("focusout", e => { this.updateAlias($(e.target).data("user-id"), e.target.value); })
-			updateFieldSize(field[0]);	
+
+			list.lastElementChild.getElementsByClassName("closeButton-2Rx3ov")[0].onclick = e => {
+				NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group").remove();
+				this.updateAlias(uid, null);
+				NeatoLib.showToast("Alias removed", "success");
+			};
+
+			if(this.usersInServer.indexOf(uid) == -1) list.lastElementChild.classList.add("ma-not-in-server");
+
+			list.lastElementChild.onclick = () => NeatoLib.Chatbox.setText(NeatoLib.Chatbox.get().value + " @" + user.tag);
+
+			let field = list.lastElementChild.getElementsByTagName("input")[0];
+
+			let updateFieldSize = () => {
+				let span = field.parentElement.getElementsByTagName("span")[0];
+				span.innerText = field.value;
+				if(span.offsetWidth > 20) field.style.width = span.offsetWidth + "px";
+				else field.style.width = "20px";
+			};
+
+			field.oninput = updateFieldSize;
+			field.onblur = () => this.updateAlias(uid, field.value);
+
 		};
-		var currentServer = PluginUtilities.getCurrentServer();
-		if(currentServer != undefined && currentServer.ownerId != undefined){ populate(currentServer.ownerId); }
-		var sortedInServer = Array.filter(sortedKeys, x => this.usersInServer.includes(x)),
-		sortedNotInServer = Array.filter(sortedKeys, x => !this.usersInServer.includes(x));
-		for(var idx in sortedInServer){ populate(sortedInServer[idx]); }
-		for(var idx in sortedNotInServer){ populate(sortedNotInServer[idx]); }
-	}
-	
-	updateMember(added){
-		if(added.length && added.find(".image-33JSyf").length){
-			var id = ReactUtilities.getOwnerInstance(added[0]).props.user.id,
-				alias = this.aliases[id],
-				color = added.find(".nameTag-m8r81H")[0].style.color;
-			added.find(".ma-usertag").remove();
-			if(alias != undefined){
-				$(`<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter(added.find(".username-1cB_5E"));
-				setTimeout(() => { added.find(".ma-usertag")[0].style.backgroundColor = color; }, 0);
-			}
-		}
-	}
-	
-	updateMemberDM(added){
-		if(added.className == "channel-name"){ added = $(added).parents(".channel.private")[0]; }
 
-		if(added.className != "channel private" && added.className != "channel selected private"){ return; }
+		if(this.selectedGuild && this.selectedGuild.ownerId) populate(this.selectedGuild.ownerId);
+
+		let sortedInServer = Array.filter(keys, uid => this.usersInServer.indexOf(uid) != -1), sortedNotInServer = Array.filter(keys, uid => this.usersInServer.indexOf(uid) == -1);
+
+		for(let i = 0; i < sortedInServer.length; i++) populate(sortedInServer[i]);
+		for(let i = 0; i < sortedNotInServer.length; i++) populate(sortedNotInServer[i]);
+
+		setTimeout(() => document.addEventListener("click", this.clickEvent), 0);
 		
-		var user = ReactUtilities.getOwnerInstance(added)._reactInternalFiber.return.memoizedState.user, alias = undefined;
-
-		if(user != undefined){ alias = this.aliases[user.id]; }
-		else{ return; }
-		
-		$(added).find(".ma-usertag").remove();
-		
-		if(alias != undefined){ $(`<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter($(added).find(".channel-name")); }
 	}
 	
-	updateMessages(){
-		if(!this.displayTags || this.aliases == undefined)
-			return;
-		var messages = $(".message-group");
-		for(var i = 0; i < messages.length; i++){
-			if(messages[i] != null){
-				var react = ReactUtilities.getReactInstance(messages[i]);
-				if(react == undefined){ continue; }
-				var id = "", msgs = react.return.memoizedProps.messages;
-				if(messages != null && msgs != null && msgs.length > 0)
-					id = msgs[0].author.id;
-				var alias = this.aliases[id], username = $(messages[i]).find(".user-name");
-				$(messages[i]).find(".ma-usertag").remove();
-				if(id != "" && alias != null && username.length && alias != ""){
-					$(`<span style="background-color: ` + username[0].style["color"] + `" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">` + alias + `</span>`).insertAfter(username);
-				}
-			}
-		}
+	updateMember(added) {
+
+		if(!added || added.getElementsByClassName("ma-usertag").length) return;
+
+		let uid = NeatoLib.ReactData.getProp(added, "user.id");
+
+		if(!uid) return;
+
+		let alias = this.aliases[uid], nameTag = added.getElementsByClassName(this.classes.nameTag)[0], color = nameTag.style.color, existingTag = added.getElementsByClassName("ma-usertag")[0];
+
+		if(existingTag) existingTag.remove();
+
+		if(alias) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="background-color: ${color}">${alias}</span>`);
+		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !nameTag.getElementsByClassName("ma-ownertag").length) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="background-color: ${color}">Owner</span>`);
+		
 	}
 	
-	onPopout(){
-		if(this.aliases == undefined)
-			this.aliases = {};
-		var td = $(".theme-" + this.themeType).last(), popout = td.find(".inner-1JeGVc"), userID = "";
-		if(popout.length && popout.find(".discriminator").length)
-			userID = ZeresLibrary.ReactUtilities.getReactInstance(popout[0]).child.memoizedProps.user.id;
-		if(popout.length && userID != "" && !$("#ma-aliasfield").length){
-			$(`<div class="userInfoSection-2acyCx"><div class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Alias</div><div class="note-3kmerW note-QfFU8y"><textarea id="ma-aliasfield" placeholder="No alias specified, click to add one" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;"></textarea></div></div>`).insertAfter($(popout.find(".scroller-2FKFPG").find(".userInfoSection-2acyCx")[0]));
-			var field = $("#ma-aliasfield");
-			if(field.length){
-				field.on("input", e => { e.currentTarget.value = e.currentTarget.value.split(" ").join("-"); });
-				field.on("focusout", () => { this.updateAlias(userID, field[0].value); });
-				if(this.aliases[userID] != undefined){ field[0].value = this.aliases[userID]; }
-			}
+	updateMemberDM(added) {
+
+		if(!added || added.getElementsByClassName("ma-usertag").length) return;
+
+		let uid = NeatoLib.ReactData.getProp(added.getElementsByClassName("avatar-small")[0], "user.id"), alias;
+
+		if(uid) alias = this.aliases[uid];
+		else return;
+
+		let existingTag = added.getElementsByClassName("ma-usertag")[0];
+		if(existingTag) existingTag.remove();
+
+		if(alias) {
+			let tag = document.createElement("span");
+			tag.className = "botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag";
+			tag.innerText = alias;
+			added.firstChild.insertBefore(tag, added.getElementsByTagName("button")[0]);
 		}
+		
 	}
 
-	onUserContext(userElement) {
+	updateVoiceChat(added) {
 
-		let menu = new PluginContextMenu.Menu(), user = userElement.classList.contains("message-group") ? ReactUtilities.getOwnerInstance(userElement).props.messages[0].author : ReactUtilities.getOwnerInstance(userElement).props.user;
+		if(!added || added.getElementsByClassName("ma-usertag").length) return;
 
-		menu.addItems(new PluginContextMenu.TextItem("Set Alias", { callback : () => {
+		let uid = NeatoLib.ReactData.getProp(added, "user.id"), alias;
 
-			let prompt = Metalloriff.UI.createTextPrompt("ma-define-alias-prompt", "Define alias", (alias, prompt) => {
+		if(uid) alias = this.aliases[uid];
+		else return;
+
+		let existingTag = added.getElementsByClassName("ma-usertag")[0];
+		if(existingTag) existingTag.remove();
+
+		let par = added.getElementsByClassName("userDefault-1qtQob")[0];
+
+		if(alias) par.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="vertical-align:middle;">${alias}</span>`);
+		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !added.getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="vertical-align:middle;">Owner</span>`);
+
+	}
+	
+	updateMessages() {
+
+		let groups = document.getElementsByClassName("message-group");
+
+		for(let i = 0; i < groups.length; i++) {
+
+			let uid = NeatoLib.ReactData.getProp(groups[i], "messages.0.author.id");
+
+			if(!uid) continue;
+
+			let alias = this.aliases[uid], username = groups[i].getElementsByClassName("user-name")[0], existingTag = groups[i].getElementsByClassName("ma-usertag")[0];
+
+			if(existingTag) existingTag.remove();
+
+			let par = groups[i].getElementsByClassName("username-wrapper")[0] || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
+			if(par) {
+				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">${alias}</span>`);
+				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag">Server Owner</span>`);
+			}
+
+		}
+		
+	}
+
+	onUserContext(ue) {
+
+		if(!NeatoLib.ContextMenu.get()) return;
+
+		let menu = [], user = NeatoLib.ReactData.getProp(ue, "messages.0.author") || NeatoLib.ReactData.getProps(ue).user;
+
+		if(!user) return;
+
+		menu.push(NeatoLib.ContextMenu.createItem("Set Alias", () => {
+			let prompt = NeatoLib.UI.createTextPrompt("ma-define-alias-prompt", "Define alias", (alias, prompt) => {
 				this.updateAlias(user.id, alias);
-				PluginUtilities.showToast("Alias set!", { type : "success" });
+				NeatoLib.showToast("Alias set", "success");
 				prompt.close();
 			}, this.aliases[user.id], { secondOptionText : "Remove", secondOptionCallback : prompt => {
-				this.updateAlias(user.id, "");
-				PluginUtilities.showToast("Alias removed!", { type : "success" });
+				this.updateAlias(user.id, null);
+				NeatoLib.showToast("Alias removed", "error");
 				prompt.close();
 			}});
+		}));
 
-			prompt.getElementsByTagName("input")[0].addEventListener("input", e => e.target.value = e.target.value.split(" ").join("-"));
-
-			document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
-
-		}}));
-
-		let groupsMenu = new PluginContextMenu.Menu(), groups = new PluginContextMenu.ItemGroup();
+		let groupsMenu = [], groupsSubMenu = [];
 
 		for(let i = 0; i < this.groups.length; i++) {
 
-			let options = new PluginContextMenu.Menu(), groupName = this.groups[i].name.split("-").join(" ");
+			let options = [], groupName = this.groups[i].name.split("-").join(" ");
 
-			if(this.groups[i].users.includes(user.id)) options.addItems(new PluginContextMenu.TextItem("Remove User From Group", { callback : () => {
+			if(this.groups[i].users.indexOf(user.id) != -1) options.push(NeatoLib.ContextMenu.createItem("Remove User", () => {
 				this.groups[i].users.splice(this.groups[i].users.indexOf(user.id), 1);
 				this.save();
-				PluginUtilities.showToast(`User removed from ${groupName}.`, { type : "success" });
-				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
-			}}));
-			else options.addItems(new PluginContextMenu.TextItem("Add User To Group", { callback : () => {
+				NeatoLib.showToast("User removed from " + groupName, "error");
+				NeatoLib.ContextMenu.close();
+			}));
+			else options.push(NeatoLib.ContextMenu.createItem("Add User", () => {
 				this.groups[i].users.push(user.id);
 				this.save();
-				PluginUtilities.showToast(`User added to ${groupName}.`, { type : "success" });
-				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
-			}}));
+				NeatoLib.showToast("User added to " + groupName, "success");
+				NeatoLib.ContextMenu.close();
+			}));
 
-			options.addItems(new PluginContextMenu.TextItem("View Users", { callback : () => {
-				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+			options.push(NeatoLib.ContextMenu.createItem("View Users", () => {
 				this.toggleAliasList(this.groups[i].users);
-			}})).addItems(new PluginContextMenu.TextItem("Delete Group", { callback : () => {
-				document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
-				Metalloriff.UI.createPrompt("ma-delete-group-prompt", "Delete group?", `Are you sure you want to delete "${groupName}"?`, () => {
+				NeatoLib.ContextMenu.close();
+			}));
+
+			options.push(NeatoLib.ContextMenu.createItem("Delete Group", () => {
+				NeatoLib.UI.createPrompt("ma-delete-group-prompt", "Delete group?", "Are you sure you want to delete " + groupName + "?", prompt => {
 					this.groups.splice(i, 1);
 					this.save();
-					PluginUtilities.showToast("Group deleted!", { type : "success" });
+					NeatoLib.showToast("Group deleted", "error");
 					prompt.close();
 				});
-			}}));
+				NeatoLib.ContextMenu.close();
+			}));
 
-			groups.addItems(new PluginContextMenu.SubMenuItem(groupName, options));
+			groupsSubMenu.push(NeatoLib.ContextMenu.createSubMenu(groupName, options));
 
 		}
 
-		groupsMenu.addItems(groups).addItems(new PluginContextMenu.TextItem("Create Group", { callback : () => {
+		if(!groupsSubMenu.length) groupsSubMenu.push(NeatoLib.ContextMenu.createItem("No Groups Found", null, { color : "rgba(255, 255, 255, 0.25)" }));
 
-			let prompt = Metalloriff.UI.createTextPrompt("ma-create-group-prompt", "Create alias group", (name, prompt) => {
-				if(this.groups.findIndex(x => x.name == name) == -1) {
-					this.groups.push({ name : name, users : [] });
-					this.save();
-					PluginUtilities.showToast("Group created!", { type : "success" });
-					prompt.close();
-				} else PluginUtilities.showToast("A group with this name already exists!", { type : "error" });
-			}, "", { confirmText : "Create" });
+		groupsMenu.push(NeatoLib.ContextMenu.createGroup(groupsSubMenu));
 
-			prompt.getElementsByTagName("input")[0].addEventListener("input", e => e.target.value = e.target.value.split(" ").join("-"));
+		groupsMenu.push(NeatoLib.ContextMenu.createGroup([
+			NeatoLib.ContextMenu.createItem("Create Group", () => {
+				let prompt = NeatoLib.UI.createTextPrompt("ma-create-group-prompt", "Create alias group", (name, prompt) => {
+					if(this.groups.findIndex(g => g.name == name) == -1) {
+						this.groups.push({ name : name, users : [] });
+						this.save();
+						NeatoLib.showToast("Group created", "success");
+						prompt.close();
+					} else NeatoLib.showToast("A group with this name already exists", "error");
+				}, "", { confirmText : "Create" });
+				prompt.getElementsByTagName("input")[0].addEventListener("input", e => e.target.value = e.target.value.split(" ").join("-"));
+				NeatoLib.ContextMenu.close();
+			}),
+			NeatoLib.ContextMenu.createItem("Plugin Settings", () => NeatoLib.Settings.showPluginSettings(this.getName()))
+		]));
 
-			document.getElementsByClassName(this.classes.contextMenu)[0].style.display = "none";
+		menu.push(NeatoLib.ContextMenu.createSubMenu("Groups", groupsMenu));
 
-		}}));
-
-		menu.addItems(new PluginContextMenu.SubMenuItem("Groups", groupsMenu));
-
-		menu.addItems(new PluginContextMenu.TextItem("Settings", { callback : () => Metalloriff.Settings.showPluginSettings(this.getName()) }));
-
-		document.getElementsByClassName(this.classes.itemGroup)[1].insertAdjacentElement("beforeend", new PluginContextMenu.SubMenuItem("Mention Aliases", menu).element[0]);
+		(NeatoLib.ContextMenu.get().children[1] || NeatoLib.ContextMenu.get().firstChild).appendChild(NeatoLib.ContextMenu.createSubMenu("Mention Aliases", menu));
 
 	}
 	
-	attach(){
-		let chatboxJQ = $(".chat textarea");
-		if(chatboxJQ.length){
-			let chatbox = chatboxJQ[0];
-			chatboxJQ.off("keydown.MentionAliases");
-			chatboxJQ.on("keydown.MentionAliases", e => {
-				if((e.which == 13 || e.which == 32) && chatbox.value){
-					let originalChatboxValue = chatbox.value, chatboxValue = chatbox.value, chatBoxValueIgnoreCase = chatboxValue.trim().toLowerCase();
-					for(let id in this.aliases){
-						let alias = this.aliases[id];
-						if(chatBoxValueIgnoreCase.includes(alias.toLowerCase()) && (this.usersInServer.includes(id))){
-							let userTag = this.getUser(id).tag, chatboxValueWithoutMentions = chatBoxValueIgnoreCase.split("@" + userTag.toLowerCase()).join("");
-							while(chatboxValueWithoutMentions.split(" ").includes("@" + alias.toLowerCase())){
-								chatboxValue = chatboxValue.replace(new RegExp("@" + alias, "ig"), "@" + userTag);
-								chatboxValueWithoutMentions = chatboxValueWithoutMentions.split("@" + alias.toLowerCase()).join("");
-							}
-						}
-					}
-					if(chatBoxValueIgnoreCase.includes("@owner")){
-						let guild = PluginUtilities.getCurrentServer(), owner = undefined;
-						if(guild != undefined){
-							owner = this.getUser(guild.ownerId);
-							if(chatBoxValueIgnoreCase.split(" ").includes("@owner")){
-								chatboxValue = chatboxValue.replace(new RegExp("@owner", "ig"), "@" + owner.tag);
-							}
-						}
-					}
-					for(let i = 0; i < this.groups.length; i++) {
-						let group = this.groups[i];
-						if(chatBoxValueIgnoreCase.split(" ").includes("@" + group.name.toLowerCase())) {
-							let users = Array.from(group.users, x => this.getUser(x)), mentionList = new Array();
-							for(let ii = 0; ii < users.length; ii++) if(users[ii] != undefined && this.usersInServer.includes(users[ii].id)) mentionList.push("@" + users[ii].tag);
-							chatboxValue = chatboxValue.replace(new RegExp("@" + group.name, "ig"), mentionList.join(" "));
-						}
-					}
-					if(originalChatboxValue != chatboxValue){
-						chatbox.focus();
-						chatbox.select();
-						document.execCommand("insertText", false, chatboxValue);
-					}
-				}
-			});
-		}
+	attach() {
+
+		let chatbox = NeatoLib.Chatbox.get();
+
+		if(!chatbox) return;
+
+		chatbox.removeEventListener("keydown", this.chatboxEvent);
+		chatbox.addEventListener("keydown", this.chatboxEvent);
+
 	}
 	
     stop() {
-		BdApi.clearCSS("MentionAliases");
-		var chatbox = $(".chat textarea");
-		if(chatbox) chatbox.off("keydown.MentionAliases");
-		$(".scroller-2FKFPG.members-1998pB").off("DOMNodeInserted.MentionAliases");
-		$(".private-channels > div.scrollerWrap-2lJEkd scrollerThemed-2oenus themeGhostHairline-DBD-2d scrollerFade-1Ijw5y > div").off("DOMNodeInserted.MentionAliases");
-		$(".theme-" + this.themeType).last().off("DOMNodeInserted.MentionAliases");
-		$(".ma-aliases-button").remove();
-		$(".ma-alias-menu").remove();
-		$(".inner-zqa7da")[0].style.width = "";
-		$(window).off("resize.MentionAliases");
-		$(document).off("keydown.MentionAliases");
-		$(document).off("contextmenu.MentionAliases");
-		if(this.messageObserver != null) this.messageObserver.disconnect();
-		if(this.popoutObserver != null) this.popoutObserver.disconnect();
-	}
-	
-	getUser(id){
-		return this.userModule.getUser(id);
+
+		if(this.style) this.style.destroy();
+
+		let chatbox = NeatoLib.Chatbox.get();
+
+		if(chatbox) {
+			chatbox.removeEventListener("keydown", this.chatboxEvent);
+			chatbox.style.width = "";
+		}
+
+		if(this.appObserver) this.appObserver.disconnect();
+
+		if(document.getElementById("ma-aliases-button")) document.getElementById("ma-aliases-button").remove();
+		if(document.getElementsByClassName("ma-alias-menu").length) document.getElementsByClassName("ma-alias-menu")[0].remove();
+
+		window.removeEventListener("resize", this.windowResizeEvent);
+		document.removeEventListener("keydown", this.keydownEvent);
+		document.removeEventListener("contextmenu", this.contextEvent);
+		document.removeEventListener("click", this.clickEvent);
+		
+		NeatoLib.Events.detach("switch", this.switchEvent);
+		NeatoLib.Events.detach("message", this.messageEvent);
+
 	}
 	
 }

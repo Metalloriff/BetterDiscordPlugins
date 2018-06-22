@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.2.15";
+NeatoLib.version = "0.3.15";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1001,6 +1001,13 @@ NeatoLib.Chatbox.setText = function(newText) {
     document.execCommand("insertText", false, newText);
 };
 
+NeatoLib.Chatbox.appendText = function(text) {
+    let chatbox = NeatoLib.Chatbox.get();
+    if(!chatbox) return;
+    chatbox.select();
+    document.execCommand("insertText", false, chatbox.value + text);
+};
+
 NeatoLib.Modules = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
 NeatoLib.Modules.req = webpackJsonp.push([[], { "__extra_id__" : (m, e, r) => m.exports = r }, [["__extra_id__"]]]);
@@ -1244,7 +1251,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
         if(added.classList.contains("messages-wrapper") || added.getElementsByClassName("messages-wrapper")[0] != undefined) call("switch");
 
-        if(added.classList.contains("message") && !added.classList.contains("message-sending")) call("message");
+        if((added.classList.contains("message") && !added.classList.contains("message-sending")) || added.classList.contains("message-group")) call("message");
 
     }
 
@@ -1604,6 +1611,35 @@ NeatoLib.DOM.sortChildren = function(element, sortFunc) {
     });
 
     for(let i = 0; i < children.length; i++) element.appendChild(children[i]);
+
+};
+
+NeatoLib.DOM.insertHTMLBefore = function(element, html) {
+
+    let e = document.createElement("div");
+
+    element.parentElement.insertBefore(e, element);
+
+    e.outerHTML = html;
+
+    return e;
+
+};
+
+NeatoLib.DOM.insertAtIndex = function(idx, element, parent) {
+    if(idx >= parent.children.length) parent.appendChild(element);
+    else parent.insertBefore(element, parent.children[idx]);
+};
+
+NeatoLib.DOM.insertHTMLAtIndex = function(idx, html, parent) {
+
+    let e = document.createElement("div");
+
+    this.insertAtIndex(idx, e, parent);
+
+    e.outerHTML = html;
+
+    return e;
 
 };
 

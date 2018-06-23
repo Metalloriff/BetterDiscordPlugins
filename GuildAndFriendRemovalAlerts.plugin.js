@@ -4,7 +4,7 @@ class GuildAndFriendRemovalAlerts {
 	
     getName() { return "Guild And Friend Removal Alerts"; }
     getDescription() { return "Alerts you when a guild or friend is removed."; }
-    getVersion() { return "0.2.6"; }
+    getVersion() { return "0.2.7"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -81,7 +81,7 @@ class GuildAndFriendRemovalAlerts {
 			lib = document.createElement("script");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
 			document.head.appendChild(lib);
 		}
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
@@ -213,7 +213,7 @@ class GuildAndFriendRemovalAlerts {
 
 				if(!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
 				<div id="ra-alertwindow">
-					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
+					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="this.parentElement.remove();"></div>
 					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
 				</div>`);
 
@@ -228,9 +228,14 @@ class GuildAndFriendRemovalAlerts {
 							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
 							<div class="ra-label ra-description">${guild.owner ? "Owner: " + guild.owner : "Owner unknown"}</div>
 						</div>
-						<span class="ra-x-button" style="margin-bottom: 9%;" onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();">X</span>
+						<span class="ra-x-button" style="margin-bottom: 9%;">X</span>
 					</header>
 				</div>`);
+
+				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
+					if(modal.children.length <= 1) modal.parentElement.remove();
+					else e.currentTarget.remove();
+				}
 				
 				if(this.settings.windowsNotifications) new Notification(guild.name, { silent : true, body : "Server removed", icon : guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg" });
 
@@ -281,7 +286,9 @@ class GuildAndFriendRemovalAlerts {
 					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
 				</div>`);
 
-				document.getElementById("ra-modal").insertAdjacentHTML("beforeend", `
+				let modal = document.getElementById("ra-modal");
+
+				modal.insertAdjacentHTML("beforeend", `
 				<div class="ra-serveritem">
 					<header class="ra-serveritem-inner">
 						<div class="ra-icon"><img src="${friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
@@ -289,9 +296,14 @@ class GuildAndFriendRemovalAlerts {
 							<span class="ra-label">${friend.tag}</span>
 							<div class="ra-label ra-description">Friend was removed.</div>
 						</div>
-						<span class="ra-x-button" onclick="this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();">X</span>
+						<span class="ra-x-button">X</span>
 					</header>
 				</div>`);
+
+				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
+					if(modal.children.length <= 1) modal.parentElement.remove();
+					else e.currentTarget.remove();
+				}
 			
 				if(this.settings.windowsNotifications) new Notification(friend.tag, { silent : true, body : "Friend removed", icon : friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg" });
 

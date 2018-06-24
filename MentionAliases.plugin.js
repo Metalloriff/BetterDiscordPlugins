@@ -1,10 +1,10 @@
-//META{"name":"MentionAliases"}*//
+//META{"name":"MentionAliases","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/MentionAliases.plugin.js"}*//
 
 class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.15"; }
+    getVersion() { return "0.8.16"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -49,6 +49,12 @@ class MentionAliases {
 				Clicking out of the aliases menu will now close it.
 				Tags now display in voice channels.
 				Tags now display next to user join messages
+			`,
+			"0.8.16" :
+			`
+				The alias text color will change to black if the background is bright.
+				Toggling display alias tags will no longer require you to switch servers to take affect.
+				Fixed pings getting confused.
 			`
 		};
 	}
@@ -87,17 +93,19 @@ class MentionAliases {
 		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(lib == undefined) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 		
 	}
 
 	saveSettings() {
+		this.updateAllTags();
 		NeatoLib.Settings.save(this);
 	}
 	
@@ -110,7 +118,7 @@ class MentionAliases {
 	
 	onLibLoaded() {
 
-		if(!NeatoLib.hasRequiredLibVersion(this, "0.3.15")) return;
+		if(!NeatoLib.hasRequiredLibVersion(this, "0.4.16")) return;
 
 		NeatoLib.Updates.check(this);
 
@@ -247,12 +255,12 @@ class MentionAliases {
 
 				for(let uid in this.aliases) {
 					if(valIgnoreCase.indexOf(this.aliases[uid].toLowerCase()) != -1 && this.usersInServer.indexOf(uid) != -1) {
-						val = val.replace(new RegExp("@" + this.aliases[uid], "ig"), "@" + this.userModule.getUser(uid).tag);
+						val = val.replace(new RegExp("@" + this.aliases[uid] + "($| )", "ig"), "@" + this.userModule.getUser(uid).tag);
 					}
 				}
 
 				if(valIgnoreCase.indexOf("@owner") != -1) {
-					if(this.selectedGuild && this.selectedGuild.ownerId) val = val.replace(new RegExp("@owner", "ig"), "@" + this.userModule.getUser(this.selectedGuild.ownerId).tag);
+					if(this.selectedGuild && this.selectedGuild.ownerId) val = val.replace(new RegExp("@owner($| )", "ig"), "@" + this.userModule.getUser(this.selectedGuild.ownerId).tag);
 				}
 
 				for(let i = 0; i < this.groups.length; i++) {
@@ -262,7 +270,7 @@ class MentionAliases {
 					if(valIgnoreCase.indexOf("@" + group.name.toLowerCase()) != -1) {
 						let users = Array.from(group.users, uid => this.userModule.getUser(uid)), list = [];
 						for(let u = 0; u < users.length; u++) if(users[u] && this.usersInServer.indexOf(users[u].id) != -1) list.push("@" + users[u].tag);
-						val = val.replace(new RegExp("@" + group.name, "ig"), list.join(" "));
+						val = val.replace(new RegExp("@" + group.name + "($| )", "ig"), list.join(" "));
 					}
 
 				}
@@ -359,7 +367,7 @@ class MentionAliases {
 			
 			if(!this.ready) return;
 
-			this.selectedGuild = NeatoLib.getSelectedServer();
+			this.selectedGuild = NeatoLib.getSelectedGuild();
 
 			if(document.getElementsByClassName("ma-alias-menu").length) document.getElementsByClassName("ma-alias-menu")[0].remove();
 	
@@ -397,6 +405,8 @@ class MentionAliases {
 
 		let tags = document.getElementsByClassName("ma-usertag");
 		for(let i = 0; i < tags.length; i++) tags[i].remove();
+
+		if(!this.settings.displayTags) return;
 
 		let members = document.getElementsByClassName(this.classes.member);
 		for(let i = 0; i < members.length; i++) this.updateMember(members[i]);
@@ -571,8 +581,8 @@ class MentionAliases {
 
 		if(existingTag) existingTag.remove();
 
-		if(alias) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="background-color: ${color}">${alias}</span>`);
-		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !nameTag.getElementsByClassName("ma-ownertag").length) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="background-color: ${color}">Owner</span>`);
+		if(alias) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">${alias}</span>`);
+		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !nameTag.getElementsByClassName("ma-ownertag").length) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">Owner</span>`);
 		
 	}
 	
@@ -632,8 +642,8 @@ class MentionAliases {
 
 			let par = groups[i].getElementsByClassName("username-wrapper")[0] || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
 			if(par) {
-				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">${alias}</span>`);
-				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag">Server Owner</span>`);
+				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">${alias}</span>`);
+				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag">Server Owner</span>`);
 			}
 
 		}

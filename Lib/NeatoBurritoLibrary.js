@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.3.15";
+NeatoLib.version = "0.4.15";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1207,6 +1207,12 @@ NeatoLib.Events.onPluginLoaded = function(plugin) {
 
     plugin.ready = true;
 
+    if(plugin.forceLoadTimeout) {
+        clearTimeout(plugin.forceLoadTimeout);
+        plugin.forceLoadTimeout = null;
+        delete plugin.forceLoadTimeout;
+    }
+
 };
 
 NeatoLib.Events.classes = {
@@ -1565,6 +1571,12 @@ NeatoLib.Colors = {};
 
 NeatoLib.Colors.hexToRGB = function(hex, format = "R, G, B") {
     return format.replace("R", parseInt(hex.substring(1, 7).substring(0, 2), 16)).replace("G", parseInt(hex.substring(1, 7).substring(2, 4), 16)).replace("B", parseInt(parseInt(hex.substring(1, 7).substring(4, 6), 16)));
+};
+
+NeatoLib.Colors.getBrightness = function(color) {
+    if(!color) return 0;
+    let c = Array.from(color.split(","), n => parseInt(n.replace(/[^0-9]/g, "")));
+    return Math.sqrt(c[0] * c[0] * 0.241 + c[1] * c[1] * 0.691 + c[2] * c[2] * 0.068) / 255;
 };
 
 NeatoLib.DOM = {};

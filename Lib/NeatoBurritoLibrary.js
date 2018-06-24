@@ -1038,6 +1038,14 @@ NeatoLib.Modules.getById = function(id) {
     return this.find(x => x._dispatchToken == "ID_" + id);
 };
 
+NeatoLib.Modules.Stores = {};
+
+NeatoLib.Modules.Stores.Guilds = NeatoLib.Modules.get(["getGuild", "getGuilds"]);
+NeatoLib.Modules.Stores.Channels = NeatoLib.Modules.get(["getChannel", "getChannels"]);
+NeatoLib.Modules.Stores.SelectedChannels = NeatoLib.Modules.get(["getChannelId", "getVoiceChannelId"]);
+NeatoLib.Modules.Stores.Users = NeatoLib.Modules.get(["getUser", "getUsers"]);
+NeatoLib.Modules.Stores.Members = NeatoLib.Modules.get(["getMember", "getMembers"]);
+
 NeatoLib.Updates = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
 NeatoLib.Updates.requestUpdateCheck = function(pluginName, url) {
@@ -1754,7 +1762,7 @@ NeatoLib.getClasses = function(classes, returnAll = true) {
 
 NeatoLib.getSelectedServer = function() {
     let selected = document.getElementsByClassName("guild selected");
-    return selected ? NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.getSelectedServerId()) : null;
+    return selected ? NeatoLib.Modules.Stores.Guilds.getGuild(NeatoLib.getSelectedServerId()) : null;
 };
 
 NeatoLib.getSelectedGuild = NeatoLib.getSelectedServer;
@@ -1767,11 +1775,11 @@ NeatoLib.getSelectedServerId = function() {
 NeatoLib.getSelectedGuildId = NeatoLib.getSelectedServerId;
 
 NeatoLib.getSelectedTextChannel = function() {
-    return NeatoLib.Modules.get("getChannel").getChannel(NeatoLib.Modules.get("getChannelId").getChannelId());
+    return NeatoLib.Modules.Stores.Channels.getChannel(NeatoLib.Modules.Stores.SelectedChannels.getChannelId());
 };
 
 NeatoLib.getSelectedVoiceChannel = function() {
-    return NeatoLib.Modules.get("getChannel").getChannel(NeatoLib.Modules.get("getVoiceChannelId").getVoiceChannelId());
+    return NeatoLib.Modules.Stores.Channels.getChannel(NeatoLib.Modules.Stores.SelectedChannels.getVoiceChannelId());
 };
 
 NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName, replace = false) {

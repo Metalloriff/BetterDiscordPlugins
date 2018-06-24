@@ -1757,10 +1757,14 @@ NeatoLib.getSelectedServer = function() {
     return selected ? NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.getSelectedServerId()) : null;
 };
 
+NeatoLib.getSelectedGuild = NeatoLib.getSelectedServer;
+
 NeatoLib.getSelectedServerId = function() {
     let selected = document.getElementsByClassName("guild selected");
     return selected.length ? (selected[0].getElementsByTagName("a")[0].href.match(/\d+/) || [])[0] : null;
 };
+
+NeatoLib.getSelectedGuildId = NeatoLib.getSelectedServerId;
 
 NeatoLib.getSelectedTextChannel = function() {
     return NeatoLib.Modules.get("getChannel").getChannel(NeatoLib.Modules.get("getChannelId").getChannelId());

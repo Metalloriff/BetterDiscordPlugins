@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.4.15";
+NeatoLib.version = "0.4.16";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1753,7 +1753,13 @@ NeatoLib.getClasses = function(classes, returnAll = true) {
 };
 
 NeatoLib.getSelectedServer = function() {
-    return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getGuildId").getGuildId());
+    let selected = document.getElementsByClassName("guild selected");
+    return selected ? NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.getSelectedServerId()) : null;
+};
+
+NeatoLib.getSelectedServerId = function() {
+    let selected = document.getElementsByClassName("guild selected");
+    return selected.length ? (selected[0].getElementsByTagName("a")[0].href.match(/\d+/) || [])[0] : null;
 };
 
 NeatoLib.getSelectedTextChannel = function() {

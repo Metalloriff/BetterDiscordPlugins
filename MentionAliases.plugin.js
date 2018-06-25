@@ -4,7 +4,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.16"; }
+    getVersion() { return "0.8.17"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -91,7 +91,7 @@ class MentionAliases {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
 			lib.id = "NeatoBurritoLibrary";
 			lib.type = "text/javascript";
@@ -346,13 +346,15 @@ class MentionAliases {
 
 					}
 
-					if(!this.settings.displayTags) continue;
+					if(this.settings.displayTags) {
 
-					if(m[i].addedNodes[0].classList.contains(this.classes.member)) this.updateMember(m[i].addedNodes[0]);
+						if(m[i].addedNodes[0].classList.contains(this.classes.member)) this.updateMember(m[i].addedNodes[0]);
 
-					if(m[i].addedNodes[0].classList.contains("private")) this.updateMemberDM(m[i].addedNodes[0]);
+						if(m[i].addedNodes[0].classList.contains("private")) this.updateMemberDM(m[i].addedNodes[0]);
 
-					if(m[i].addedNodes[0].classList.contains("draggable-1KoBzC")) this.updateVoiceChat(m[i].addedNodes[0]);
+						if(m[i].addedNodes[0].classList.contains("draggable-1KoBzC")) this.updateVoiceChat(m[i].addedNodes[0]);
+
+					}
 
 				}
 
@@ -404,7 +406,7 @@ class MentionAliases {
 	updateAllTags() {
 
 		let tags = document.getElementsByClassName("ma-usertag");
-		for(let i = 0; i < tags.length; i++) tags[i].remove();
+		for(let i = tags.length - 1; i > -1; i--) tags[i].remove();
 
 		if(!this.settings.displayTags) return;
 
@@ -595,9 +597,6 @@ class MentionAliases {
 		if(uid) alias = this.aliases[uid];
 		else return;
 
-		let existingTag = added.getElementsByClassName("ma-usertag")[0];
-		if(existingTag) existingTag.remove();
-
 		if(alias) {
 			let tag = document.createElement("span");
 			tag.className = "botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag";
@@ -616,9 +615,6 @@ class MentionAliases {
 		if(uid) alias = this.aliases[uid];
 		else return;
 
-		let existingTag = added.getElementsByClassName("ma-usertag")[0];
-		if(existingTag) existingTag.remove();
-
 		let par = added.getElementsByClassName("userDefault-1qtQob")[0];
 
 		if(alias) par.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="vertical-align:middle;">${alias}</span>`);
@@ -627,6 +623,8 @@ class MentionAliases {
 	}
 	
 	updateMessages() {
+
+		if(!this.settings.displayTags) return;
 
 		let groups = document.getElementsByClassName("message-group");
 

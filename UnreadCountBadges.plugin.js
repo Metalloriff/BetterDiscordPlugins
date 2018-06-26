@@ -4,7 +4,7 @@ class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.1.1"; }
+    getVersion() { return "0.1.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -12,7 +12,11 @@ class UnreadCountBadges {
             `
                 Redid the way the plugin counts unreads. The upsides of this, is that the counts will have no limit now, will be more accurate, and will not require the channel/server to be loaded. The downside is that it will only show unread messages since the plugin was started.
                 Fixed messages not being marked as read until you switch channels/servers.
-            `
+			`,
+			"0.1.2":
+			`
+				The last update was a lie, it was far from more accurate. Fixed that.
+			`
 		};
 	}
 
@@ -228,10 +232,8 @@ class UnreadCountBadges {
         let guilds = !guild ? this.guildModule.getGuilds() : undefined, selectedGuild = NeatoLib.getSelectedGuild();
 
         let updateUnreadFor = id => {
-            
-            let guildUnread = this.unreads[id];
 
-            if(!guildUnread) return;
+            if(!this.unreads[id]) return;
 
             if(selectedGuild && selectedGuild.id == id) {
 
@@ -243,18 +245,16 @@ class UnreadCountBadges {
 
                     if(!props) continue;
 
-                    let channelUnreadCount = guildUnread[props.channel.id];
-
-                    if(channelUnreadCount > 0 && this.unreadModule.getUnreadCount(props.channel.id) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, props.channel.id) || !this.settings.ignoreMutedGuilds)) {
-                        guildUnread.total -= channelUnreadCount;
-                        if(guildUnread.total < 0) guildUnread.total = 0;
-                        channelUnreadCount = 0;
+                    if(this.unreads[id][props.channel.id] > 0 && this.unreadModule.getUnreadCount(props.channel.id) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, props.channel.id) || !this.settings.ignoreMutedGuilds)) {
+                        this.unreads[id].total -= this.unreads[id][props.channel.id];
+                        if(this.unreads[id].total < 0) this.unreads[id].total = 0;
+						this.unreads[id][props.channel.id] = 0;
                     }
 
-                    if(channelUnreadCount > 0) {
+                    if(this.unreads[id][props.channel.id] > 0) {
 
-                        if(this.channelBadges[props.channel.id]) this.channelBadges[props.channel.id].firstChild.innerText = channelUnreadCount;
-                        else this.channelBadges[props.channel.id] = channels[i].getElementsByClassName("flex-1xMQg5")[0].appendChild(this.createChannelBadge(channelUnreadCount));
+                        if(this.channelBadges[props.channel.id]) this.channelBadges[props.channel.id].firstChild.innerText = this.unreads[id][props.channel.id];
+                        else this.channelBadges[props.channel.id] = channels[i].getElementsByClassName("flex-1xMQg5")[0].appendChild(this.createChannelBadge(this.unreads[id][props.channel.id]));
 
                     } else if(this.channelBadges[props.channel.id]) {
 
@@ -267,10 +267,10 @@ class UnreadCountBadges {
 
             }
 
-            if(guildUnread.total > 0) {
+            if(this.unreads[id].total > 0) {
 
-                if(this.badges[id] != undefined) this.badges[id].innerText = guildUnread.total;
-                else this.badges[id] = document.querySelector("[style*='" + id + "']").parentElement.appendChild(this.createBadge(guildUnread.total));
+                if(this.badges[id] != undefined) this.badges[id].innerText = this.unreads[id].total;
+                else this.badges[id] = document.querySelector("[style*='" + id + "']").parentElement.appendChild(this.createBadge(this.unreads[id].total));
 
             } else if(this.badges[id]) {
 

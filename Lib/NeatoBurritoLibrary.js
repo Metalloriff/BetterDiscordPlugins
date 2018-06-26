@@ -711,7 +711,7 @@ NeatoLib.UI.createPrompt = function(id, title, description, yesCallback, noCallb
     document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
     
     <div id="neato-prompt-${id}" style="z-index:10000;">
-        <div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
+        <div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
         <div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
             <div class="inner-1JeGVc">
                 <div class="modal-3HD5ck sizeSmall-Sf4iOi">
@@ -734,7 +734,7 @@ NeatoLib.UI.createPrompt = function(id, title, description, yesCallback, noCallb
     `);
 
     let prompt = document.getElementById("neato-prompt-" + id),
-    backdrop = prompt.getElementsByClassName("backdrop-1ocfXc")[0],
+    backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
     yesButton = prompt.getElementsByClassName("prompt-yes")[0],
     noButton = prompt.getElementsByClassName("prompt-no")[0];
 
@@ -759,7 +759,7 @@ NeatoLib.UI.createTextPrompt = function(id, title, callback, value = "", options
     document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
 			
     <div id="neato-text-prompt-${id}" style="z-index:10000;">
-        <div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
+        <div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
         <div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
             <div class="inner-1JeGVc">
                 <div class="modal-3HD5ck sizeSmall-Sf4iOi">
@@ -784,7 +784,7 @@ NeatoLib.UI.createTextPrompt = function(id, title, callback, value = "", options
     `);
     
     let prompt = document.getElementById("neato-text-prompt-" + id),
-    backdrop = prompt.getElementsByClassName("backdrop-1ocfXc")[0],
+    backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
     confirmButton = prompt.getElementsByClassName("prompt-confirm")[0],
     cancelButton = prompt.getElementsByClassName("prompt-cancel")[0],
     secondOption = prompt.getElementsByClassName("prompt-second-option")[0],
@@ -1045,6 +1045,7 @@ NeatoLib.Modules.Stores.Channels = NeatoLib.Modules.get(["getChannel", "getChann
 NeatoLib.Modules.Stores.SelectedChannels = NeatoLib.Modules.get(["getChannelId", "getVoiceChannelId"]);
 NeatoLib.Modules.Stores.Users = NeatoLib.Modules.get(["getUser", "getUsers"]);
 NeatoLib.Modules.Stores.Members = NeatoLib.Modules.get(["getMember", "getMembers"]);
+NeatoLib.Modules.Stores.Activities = NeatoLib.Modules.get(["getActivity", "getActivities"]);
 
 NeatoLib.Updates = {}; //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
@@ -1866,12 +1867,11 @@ NeatoLib.unpatchInternalFunctions = function(functionNames, pluginName) {
 };
 
 NeatoLib.getLocalUser = function() {
-    return NeatoLib.Modules.get("getCurrentUser").getCurrentUser();
+    return NeatoLib.Modules.Stores.Users.getCurrentUser();
 };
 
 NeatoLib.getLocalStatus = function() {
-    let className = document.getElementsByClassName("container-2Thooq")[0].getElementsByClassName("status")[0].className;
-    return className.substring(className.indexOf("-") + 1, className.length);
+	return NeatoLib.Modules.Stores.Activities.getStatus(NeatoLib.getLocalUser().id);
 };
 
 NeatoLib.browseForFile = function(callback, options = {}) {

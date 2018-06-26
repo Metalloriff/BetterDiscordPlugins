@@ -1,10 +1,10 @@
-//META{"name":"SaveTo"}*//
+//META{"name":"SaveTo","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SaveTo.plugin.js"}*//
 
 class SaveTo {
 	
     getName() { return "Save To"; }
     getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-    getVersion() { return "0.5.4"; }
+    getVersion() { return "0.5.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -32,7 +32,11 @@ class SaveTo {
             `
                 Fixed a bunch of bugs.
                 Emotes are now saved as the emote name instead of ID.
-            `
+			`,
+			"0.5.5" :
+			`
+				Fixed "Save File Here" and "Save and Open File" not working.
+			`
 		};
     }
 
@@ -198,15 +202,16 @@ class SaveTo {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -341,11 +346,11 @@ class SaveTo {
             r.push(NeatoLib.ContextMenu.createItem("Open Folder", () => {
                 window.open("file:///" + this.data.folders[i].path);
             }));
-            r.push(NeatoLib.ContextMenu.createItem("Save File Here", e => {
-                e.target.parentElement.click();
+            r.push(NeatoLib.ContextMenu.createItem("Save File Here", () => {
+                NeatoLib.downloadFile(url, this.data.folders[i].path, fileName);
             }));
             r.push(NeatoLib.ContextMenu.createItem("Save and Open File", () => {
-                NeatoLib.downloadFile(url, path, fileName, p => window.open("file:///" + p));
+                NeatoLib.downloadFile(url, this.data.folders[i].path, fileName, p => window.open("file:///" + p));
             }));
             return r;
         };
@@ -378,7 +383,7 @@ class SaveTo {
             NeatoLib.ContextMenu.createItem("Plugin Settings", () => { NeatoLib.Settings.showPluginSettings(this.getName()); NeatoLib.ContextMenu.close(); })
         ]));
 
-        NeatoLib.ContextMenu.get().insertAdjacentElement(this.settings.dropdownOnTop ? "afterbegin" : "beforeend", NeatoLib.ContextMenu.createGroup([NeatoLib.ContextMenu.createSubMenu(saveLabel, menu)]));
+        if(NeatoLib.ContextMenu.get()) NeatoLib.ContextMenu.get().insertAdjacentElement(this.settings.dropdownOnTop ? "afterbegin" : "beforeend", NeatoLib.ContextMenu.createGroup([NeatoLib.ContextMenu.createSubMenu(saveLabel, menu)]));
 
     }
 

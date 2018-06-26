@@ -1,13 +1,13 @@
-//META{"name":"AvatarIconViewer"}*//
+//META{"name":"AvatarIconViewer","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
 
 class AvatarIconViewer {
 	
-    getName() { return "User Avatar And Server Icon Viewer"; }
-    getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-    getVersion() { return "0.5.16"; }
-    getAuthor() { return "Metalloriff"; }
+	getName() { return "User Avatar And Server Icon Viewer"; }
+	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
+	getVersion() { return "0.5.17"; }
+	getAuthor() { return "Metalloriff"; }
 
-    load() {}
+	load() {}
 
     start() {
 
@@ -17,23 +17,26 @@ class AvatarIconViewer {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
 		else lib.addEventListener("load", libLoadedEvent);
-		
+
 	}
 	
 	onLibLoaded() {
 
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.3")) return;
 
-		NeatoLib.Updates.check(this);
+		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js");
+
+		this.classes = NeatoLib.getClasses(["maskProfile", "guildIconImage", "member", "reactor"], false);
 
 		this.contextEvent = e => this.onContextMenu(e);
 
@@ -54,16 +57,16 @@ class AvatarIconViewer {
 
 		let context = NeatoLib.ContextMenu.get(), viewLabel, copyLabel;
 		
-		if(!context && !e.target.classList.contains("maskProfile-1ObLFT") && !e.target.classList.contains("guildIconImage-3qTk45") && !e.target.classList.contains("clickable")) return;
+		if(!context && !e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains("clickable")) return;
 
 		this.url = "";
 
-		if(e.target.classList.contains("guildIconImage-3qTk45")) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
+		if(e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
 
 		let getAvatar = () => {
 
 			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group")),
-			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "member-3W1lQa") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "reactor-3UBcOI")),
+			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.reactor)),
 			dmElement = NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "private"),
 			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length > 0 ? dmElement.getElementsByClassName("avatar-small")[0].style.backgroundImage : null;
 
@@ -85,7 +88,7 @@ class AvatarIconViewer {
 		
 		getServerIcon = () => {
 
-			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains("guildIconImage-3qTk45")) return null;
+			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) return null;
 
 			let iconBackground = e.target.style.backgroundImage;
 
@@ -124,11 +127,11 @@ class AvatarIconViewer {
 			if(viewLabel) par.appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
 			if(copyLabel) par.appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
 
-		} else if(e.target.classList.contains("maskProfile-1ObLFT") || e.target.classList.contains("clickable")){
+		} else if(e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) || e.target.classList.contains("clickable")){
 
 			let targ = e.target.classList.contains("clickable") ? NeatoLib.DOM.searchForParentElementByClassName(e.target, "avatar-large") : e.target;
 
-			if(!targ.style.backgroundImage) targ = targ.parentElement.getElementsByClassName("image-33JSyf maskProfile-1ObLFT mask-3OgeRz")[0];
+			if(!targ.style.backgroundImage) targ = targ.parentElement.getElementsByClassName(this.classes.maskProfile.split(" ")[0])[0];
 			if(targ.style.backgroundImage) this.url = targ.style.backgroundImage.substring(targ.style.backgroundImage.indexOf("\"") + 1, targ.style.backgroundImage.lastIndexOf("\""));
 			else return;
 
@@ -157,7 +160,7 @@ class AvatarIconViewer {
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend",
 			`<div id="aiv-preview-window" style="z-index: 5000">
-				<div id="aiv-preview-backdrop" class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
+				<div id="aiv-preview-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px); top: 0; left: 0; bottom: 0; right: 0; position: fixed;"></div>
 				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
 					<div class="inner-1JeGVc">
 						<div>
@@ -202,7 +205,7 @@ class AvatarIconViewer {
 		window.open(this.url);
 	}
 	
-    stop() {
+	stop() {
 		document.removeEventListener("contextmenu", this.contextEvent);
 		document.removeEventListener("keyup", this.keyUpEvent);
 	}

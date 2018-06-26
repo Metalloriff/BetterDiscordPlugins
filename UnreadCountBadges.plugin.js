@@ -1,14 +1,18 @@
-//META{"name":"UnreadCountBadges"}*//
+//META{"name":"UnreadCountBadges","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UnreadCountBadges.plugin.js"}*//
 
 class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+            "0.1.1":
+            `
+                Redid the way the plugin counts unreads. The upsides of this, is that the counts will have no limit now, will be more accurate, and will not require the channel/server to be loaded. The downside is that it will only show unread messages since the plugin was started.
+                Fixed messages not being marked as read until you switch channels/servers.
+            `
 		};
 	}
 
@@ -22,15 +26,16 @@ class UnreadCountBadges {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -136,7 +141,7 @@ class UnreadCountBadges {
 		
 		NeatoLib.Updates.check(this);
 		
-        //if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+        if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
         
         this.guildModule = NeatoLib.Modules.get(["getGuild", "getGuilds"]);
         this.unreadModule = NeatoLib.Modules.get("getUnreadCount");
@@ -146,6 +151,14 @@ class UnreadCountBadges {
 
         this.badges = {};
         this.channelBadges = {};
+        this.unreads = {};
+
+        this.checkForBottom = () => {
+            let guild = NeatoLib.getSelectedGuildId();
+            if(this.scrollModule.isAtBottom(guild)) {
+                this.updateBadges(guild);
+            }
+        };
 
         this.applySettings();
 
@@ -158,21 +171,31 @@ class UnreadCountBadges {
 
             this.updateBadges();
 
-            let scroller = document.getElementsByClassName("messages scroller")[0], guild = NeatoLib.getSelectedServer();
-            if(scroller && guild) scroller.addEventListener("scroll", () => {
-                if(this.scrollModule.isAtBottom(guild.id)) {
-                    this.updateBadges(guild.id);
-                }
-            });
+            let scroller = document.getElementsByClassName("messages scroller")[0], guild = NeatoLib.getSelectedGuild();
+            if(scroller && guild) scroller.addEventListener("scroll", this.checkForBottom);
 
         };
+
+        this.checkForBottomUpdate = setInterval(this.checkForBottom, 500);
 
         NeatoLib.Events.attach("switch", this.switchEvent);
 
         NeatoLib.patchInternalFunction("handleMessage", data => {
+
             if(data.type == "MESSAGE_CREATE" && data.message) {
+
+                if(!this.unreads[data.message.guild_id]) this.unreads[data.message.guild_id] = { total : 0 };
+
+                if(!this.muteModule.isGuildOrCategoryOrChannelMuted(data.message.guild_id, data.message.channel_id) || !this.settings.ignoreMutedGuilds) this.unreads[data.message.guild_id].total++;
+
+                if(!this.unreads[data.message.guild_id][data.message.channel_id]) this.unreads[data.message.guild_id][data.message.channel_id] = 0;
+
+                this.unreads[data.message.guild_id][data.message.channel_id]++;
+
                 this.updateBadges(data.message.guild_id);
+
             }
+
         }, this.getName());
 		
 		NeatoLib.Events.onPluginLoaded(this);
@@ -202,11 +225,13 @@ class UnreadCountBadges {
 
     updateBadges(guild) {
 
-        let guilds = !guild ? this.guildModule.getGuilds() : undefined, selectedGuild = NeatoLib.getSelectedServer();
+        let guilds = !guild ? this.guildModule.getGuilds() : undefined, selectedGuild = NeatoLib.getSelectedGuild();
 
         let updateUnreadFor = id => {
             
-            let unreadCount = this.getGuildUnreadCounts(id);
+            let guildUnread = this.unreads[id];
+
+            if(!guildUnread) return;
 
             if(selectedGuild && selectedGuild.id == id) {
 
@@ -218,7 +243,13 @@ class UnreadCountBadges {
 
                     if(!props) continue;
 
-                    let channelUnreadCount = this.unreadModule.getUnreadCount(props.channel.id);
+                    let channelUnreadCount = guildUnread[props.channel.id];
+
+                    if(channelUnreadCount > 0 && this.unreadModule.getUnreadCount(props.channel.id) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, props.channel.id) || !this.settings.ignoreMutedGuilds)) {
+                        guildUnread.total -= channelUnreadCount;
+                        if(guildUnread.total < 0) guildUnread.total = 0;
+                        channelUnreadCount = 0;
+                    }
 
                     if(channelUnreadCount > 0) {
 
@@ -236,10 +267,10 @@ class UnreadCountBadges {
 
             }
 
-            if(unreadCount > 0) {
+            if(guildUnread.total > 0) {
 
-                if(this.badges[id] != undefined) this.badges[id].innerText = unreadCount;
-                else this.badges[id] = document.querySelector("[style*='" + id + "']").parentElement.appendChild(this.createBadge(unreadCount));
+                if(this.badges[id] != undefined) this.badges[id].innerText = guildUnread.total;
+                else this.badges[id] = document.querySelector("[style*='" + id + "']").parentElement.appendChild(this.createBadge(guildUnread.total));
 
             } else if(this.badges[id]) {
 
@@ -257,24 +288,7 @@ class UnreadCountBadges {
 
         if(guild) return updateUnreadFor(guild);
 
-        for(let id in guilds) updateUnreadFor(id);
-
-    }
-
-    getGuildUnreadCounts(guildId) {
-
-        let channels = this.channelModule.getChannels();
-
-        let unread = 0;
-
-        for(let id in channels) {
-            if(this.muteModule.isGuildOrCategoryOrChannelMuted(guildId, id) && this.settings.ignoreMutedGuilds) continue;
-            if(channels[id].guild_id == guildId) {
-                unread += this.unreadModule.getUnreadCount(id);
-            }
-        }
-
-        return unread;
+        if(guilds) for(let id in guilds) updateUnreadFor(id);
 
     }
 
@@ -314,6 +328,8 @@ class UnreadCountBadges {
         for(let id in this.channelBadges) this.channelBadges[id].remove();
 
         NeatoLib.unpatchInternalFunction("handleMessage", this.getName());
+
+        clearInterval(this.checkForBottomUpdate);
 
 	}
 	

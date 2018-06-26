@@ -2,12 +2,12 @@
 
 class GuildAndFriendRemovalAlerts {
 	
-    getName() { return "Guild And Friend Removal Alerts"; }
-    getDescription() { return "Alerts you when a guild or friend is removed."; }
-    getVersion() { return "0.2.7"; }
-    getAuthor() { return "Metalloriff"; }
+	getName() { return "Guild And Friend Removal Alerts"; }
+	getDescription() { return "Alerts you when a guild or friend is removed."; }
+	getVersion() { return "0.2.8"; }
+	getAuthor() { return "Metalloriff"; }
 
-    load() {}
+	load() {}
 	
 	getSettingsPanel() {
 
@@ -69,23 +69,24 @@ class GuildAndFriendRemovalAlerts {
 		});
 	}
 
-    start() {
+	start() {
 
-        let libLoadedEvent = () => {
-            try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-        };
+		let libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
-        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 	
@@ -213,12 +214,12 @@ class GuildAndFriendRemovalAlerts {
 
 				if(!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
 				<div id="ra-alertwindow">
-					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="this.parentElement.remove();"></div>
+					<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="this.parentElement.remove();"></div>
 					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
 				</div>`);
 
 				let modal = document.getElementById("ra-modal");
-				 
+				
 				modal.insertAdjacentHTML("beforeend", `
 				<div class="ra-serveritem">
 					<header class="ra-serveritem-inner">
@@ -282,7 +283,7 @@ class GuildAndFriendRemovalAlerts {
 
 				if(!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
 				<div id="ra-alertwindow">
-					<div class="backdrop-1ocfXc" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
+					<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
 					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
 				</div>`);
 
@@ -321,7 +322,7 @@ class GuildAndFriendRemovalAlerts {
 		
 	}
 	
-    stop() {
+	stop() {
 
 		if(this.guildsObserver) this.guildsObserver.disconnect();
 

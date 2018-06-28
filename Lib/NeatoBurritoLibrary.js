@@ -1030,6 +1030,24 @@ NeatoLib.Modules.find = function(filter) {
 
 };
 
+NeatoLib.Modules.findIndex = function(filter) {
+    
+    for(let i in this.req.c) {
+
+        if(this.req.c.hasOwnProperty(i)) {
+            let m = this.req.c[i].exports;
+            if(m && m.__esModule && m.default && filter(m.default)) return i;
+            if(m && filter(m)) return i;
+        }
+
+    }
+
+    console.warn("No module found with this filter!", filter);
+
+    return null;
+
+};
+
 NeatoLib.Modules.get = function(props) {
     return typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
 };
@@ -1781,6 +1799,28 @@ NeatoLib.getSelectedTextChannel = function() {
 
 NeatoLib.getSelectedVoiceChannel = function() {
     return NeatoLib.Modules.Stores.Channels.getChannel(NeatoLib.Modules.Stores.SelectedChannels.getVoiceChannelId());
+};
+
+NeatoLib.monkeyPatchInternal = function(module, funcName, newFunc) {
+
+	let unpatched = module[funcName];
+
+	module[funcName] = function() {
+		let d = {
+			module : this,
+			args : arguments,
+			unpatch : () => module[funcName] = unpatched,
+			unpatched : unpatched,
+			callDefault : () => d.unpatched.apply(d.module, d.args),
+			callDefaultWithArgs : function() { d.unpatched.apply(d.module, arguments); }
+		};
+		return newFunc(d);
+	};
+
+	module[funcName].unpatch = () => module[funcName] = unpatched;
+
+	return module[funcName];
+
 };
 
 NeatoLib.patchInternalFunction = function(functionName, newFunction, pluginName, replace = false) {

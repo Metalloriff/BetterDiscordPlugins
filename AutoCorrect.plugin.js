@@ -1,10 +1,10 @@
-//META{"name":"AutoCorrect"}*//
+//META{"name":"AutoCorrect","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AutoCorrect.plugin.js"}*//
 
 class AutoCorrect {
 	
     getName() { return "AutoCorrect"; }
     getDescription() { return "Automatically replaces misspelled words with the first correction, with optional automatic capitalization and punctuation. Requires either Windows 8 or above, Mac, or DevilBro's SpellCheck plugin."; }
-    getVersion() { return "1.2.4"; }
+    getVersion() { return "1.3.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -17,6 +17,13 @@ class AutoCorrect {
 				Fixed auto-emojis.
 				Fixed a bunch of little bugs, and probably created some.
 				Code blocks are no longer corrected.
+			`,
+			"1.3.4" :
+			`
+				Fixed the plugin failing to load for the first time if attach to all fields was disabled.
+				Fixed newlines putting random spaces.
+				Fixed the inability to put spaces in code blocks.
+				Added a "minimum auto-punctuate word count" setting.
 			`
 		};
 	}
@@ -27,19 +34,20 @@ class AutoCorrect {
 
         let libLoadedEvent = () => {
             try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -127,6 +135,11 @@ class AutoCorrect {
 				this.saveSettings();
 			}), this.getName());
 
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Auto-punctuation: minimum word count", this.settings.autoPunctuationMin, e => {
+				this.settings.autoPunctuationMin = e.target.value;
+				this.saveSettings();
+			}), this.getName(), { tooltip : "If this is above 0, this many or more words will be required before auto-punctuating" });
+
 			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
@@ -196,7 +209,8 @@ class AutoCorrect {
 			useDevilsChecker : false,
 			learnedWords : [],
 			attachEverywhere : false,
-			preventDoubleSpaces : false
+			preventDoubleSpaces : false,
+			autoPunctuationMin : 0
 		});
 		
 		this.classes = NeatoLib.getClasses(["contextMenu"]);
@@ -222,11 +236,16 @@ class AutoCorrect {
 
 			for(let i = 0; i < ignoredPrefixesSplit.length; i++) if(chatbox.value.startsWith(ignoredPrefixesSplit[i])) return;
 
-            if(e.which == 32 || sending) {
+            if(e.which == 32 || e.which == 13) {
 
-				let lines = chatbox.value.split("\n"), isInCode = false;
+				let lines = chatbox.value.split("\n"), isInCode = false, selectedLine = chatbox.value.substring(0, chatbox.selectionStart).match(/\n/g);
+
+				if(selectedLine) selectedLine = selectedLine.length;
+				else selectedLine = 0;
 
 				for(let ln = 0; ln < lines.length; ln++) {
+
+					if(selectedLine != ln) continue;
 
 					let words, wordsWithoutSpaces, lastWordIDX, beforeLastWord, lastWord;
 
@@ -273,11 +292,11 @@ class AutoCorrect {
 
 						if(this.settings.autoCapitalization && !isEmoteOrLink(lastSpacelessWord)) {
 
-							words[0] = words[0].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
+							if(!lines[ln - 1] || ".!?".indexOf(lines[ln - 1]) != -1 && !lines[ln - 1].endsWith("...")) words[0] = words[0].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
 
 							if(words[words.length - 1] == "i") words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
 
-							if(beforeLastWord && ".!?".indexOf(beforeLastWord[beforeLastWord.length - 1]) != -1 && !beforeLastWord.endsWith("...")) {
+							if(beforeLastWord && ".!?".indexOf(beforeLastWord[beforeLastWord.length - 1]) != -1 && !beforeLastWord.endsWith("...") || lines[ln - 1] && ".!?".indexOf(lines[ln - 1]) != -1 && !lines[ln - 1].endsWith("...")) {
 								if(sending) words[words.length - beforeLastWordIDX] = words[words.length - beforeLastWordIDX].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
 								else words[words.length - 1] = words[words.length - 1].replace(/(?:^|\s)\S/g, letter => letter.toUpperCase());
 							}
@@ -286,7 +305,7 @@ class AutoCorrect {
 
 						let autoPunctuated = false;
 
-						if(this.settings.autoPunctuation && !isEmoteOrLink(lastSpacelessWord)) {
+						if(this.settings.autoPunctuation && !isEmoteOrLink(lastSpacelessWord) && (!this.settings.autoPunctuationMin || words.length > this.settings.autoPunctuationMin)) {
 
 							if(words[words.length - 1] == "" && !lastSpacelessWord[lastSpacelessWord.length - 1].match(/[^a-zA-Z0-9 ]/)) {
 								if(!this.settings.preventDoubleSpaces || e.which == 13) {
@@ -299,7 +318,7 @@ class AutoCorrect {
 
 						let newValue = words.join(" ");
 						
-						if(!autoPunctuated && !isEmoteOrLink(lastSpacelessWord) && !(this.settings.preventDoubleSpaces && newValue.endsWith(" "))) newValue += " ";
+						if(!autoPunctuated && !isEmoteOrLink(lastSpacelessWord) && !(this.settings.preventDoubleSpaces && newValue.endsWith(" "))) newValue += e.shiftKey && e.which == 13 ? "\n" : " ";
 
 						lines[ln] = newValue;
 						newValue = lines.join("\n");
@@ -313,7 +332,7 @@ class AutoCorrect {
 							document.execCommand("insertText", false, newValue);
 						}
 
-						if(e.which == 13 && typeof NeatoLib.ReactData.getEvents(chatbox).onKeyPress == "function" && ln + 1 == lines.length) {
+						if(sending && typeof NeatoLib.ReactData.getEvents(chatbox).onKeyPress == "function" && ln + 1 == lines.length) {
 							setTimeout(() => {
 								NeatoLib.ReactData.getEvents(chatbox).onKeyPress({ which : 13, preventDefault : function(){} });
 							}, 0);
@@ -497,7 +516,10 @@ class AutoCorrect {
 			}
 		});
 
-		this.chatObserver.observe(this.settings.attachEverywhere ? document : document.getElementsByClassName("messages scroller")[0], { childList : true, subtree : true });
+		(async () => {
+			while(!document.getElementsByClassName("messages scroller").length) await new Promise(p => setTimeout(p, 500));
+			this.chatObserver.observe(this.settings.attachEverywhere ? document : document.getElementsByClassName("messages scroller")[0], { childList : true, subtree : true });
+		})();
 
 	}
 	

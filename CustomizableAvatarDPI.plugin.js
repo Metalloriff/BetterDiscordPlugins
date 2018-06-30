@@ -1,138 +1,111 @@
-//META{"name":"CustomizableAvatarDPI"}*//
+//META{"name":"CustomizableAvatarDPI","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/CustomizableAvatarDPI.plugin.js"}*//
 
 class CustomizableAvatarDPI {
 	
-	constructor() {
-        this.initialized = false;
-		this.defaultSettings = {
-            popoutAvatarSize : 1024,
-            largeAvatarSize : 128,
-            smallAvatarSize : 128
-        };
-        this.settings;
-	}
-	
-    getName() { return "Customizable Avatar DPI"; }
-    getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-    getVersion() { return "0.0.4"; }
-    getAuthor() { return "Metalloriff"; }
+	getName() { return "Customizable Avatar DPI"; }
+	getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
+	getVersion() { return "1.0.4"; }
+	getAuthor() { return "Metalloriff"; }
 
-    load() {}
+	load() {}
 
-    start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+	start() {
+
+		let libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(!lib) {
+			lib = document.createElement("script");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
+
+	}
+
+	getSettingsPanel() {
+
+		setTimeout(() => {
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Small avatar size", this.settings.smallAvatarSize, e => {
+				this.settings.smallAvatarSize = e.target.value;
+				this.saveSettings();
+			}), this.getName(), { tooltip : "Member list, DM list, etc" });
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Large avatar size", this.settings.largeAvatarSize, e => {
+				this.settings.largeAvatarSize = e.target.value;
+				this.saveSettings();
+			}), this.getName(), { tooltip : "Chat avatars" });
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Popout avatar size", this.settings.popoutAvatarSize, e => {
+				this.settings.popoutAvatarSize = e.target.value;
+				this.saveSettings();
+			}), this.getName(), { tooltip : "User popouts" });
+			
+			NeatoLib.Settings.pushChangelogElements(this);
+
+		}, 0);
+
+		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
+		
 	}
 	
-	getSettingsPanel(){
-		if(!$(".plugin-settings").length)
-			setTimeout(e => { this.getSettingsPanel(e); }, 100);
-		else
-			this.createSettingsPanel();
-	}
+	onLibLoaded(){
 
-	createSettingsPanel(){
-		var panel = $(".plugin-settings");
-		if(panel.length){
-            panel.append(`
-                <style>
-                    .cadpi-label { padding-top: 30px; }
-                    .cadpi-label-label {
-                        color: white;
-                        font-size: 20px;
-                        display: inline;
-                    }
-                    .cadpi-hint {
-                        opacity: 0.5;
-                        display: none;
-                    }
-                    .cadpi-label:hover > .cadpi-hint { display: inline !important; }
-                </style>
+		NeatoLib.Updates.check(this);
 
-				<h style="color: rgb(255, 255, 255); font-size: 30px; font-weight: bold;">Customizable Avatar DPI by Metalloriff</h>
-				<br><br>
-            
-                <div class="cadpi-label">
-                <p class="cadpi-label-label">Small avatar size:</p>
-                <p class="cadpi-label-label cadpi-hint">Member list, DM list, etc.</p>
-                </div>
+		this.settings = NeatoLib.Settings.load(this, {
+			popoutAvatarSize : 1024,
+			largeAvatarSize : 128,
+			smallAvatarSize : 128,
+			displayUpdateNotes : true
+		});
+		
+		this.appObserver = new MutationObserver(m => {
 
-				<input id="cadpi-small" value="` + this.settings.smallAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+			for(let i = 0; i < m.length; i++) {
 
-                <div class="cadpi-label">
-				    <p class="cadpi-label-label">Large avatar size:</p>
-                    <p class="cadpi-label-label cadpi-hint">Chat avatars.</p>
-                </div>
+				if(!m[i].addedNodes.length) continue;
 
-				<input id="cadpi-large" value="` + this.settings.largeAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+				for(let a = 0; a < m[i].addedNodes.length; a++) {
 
-                <div class="cadpi-label">
-				    <p class="cadpi-label-label">Popout avatar size:</p>
-                    <p class="cadpi-label-label cadpi-hint">User popouts, user profiles.</p>
-                </div>
+					let added = m[i].addedNodes[a];
 
-				<input id="cadpi-popout" value="` + this.settings.popoutAvatarSize + `" type="number" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
+					if(!(added instanceof Element)) continue;
 
-				<div style="text-align: center;">
-				<br>
-				<button id="cadpi-reset-button" style="display: inline-block; margin-right: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Reset</div>
-				</button>
-				<button id="cadpi-save-button" style="display: inline-block; margin-left: 25px;" type="button" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN">
-					<div class="contents-4L4hQM">Save</div>
-				</button>
-				</div>
-			`);
-			$("#cadpi-reset-button").on("click", () => {
-                this.settings = this.defaultSettings;
-                $("#cadpi-small")[0].value = "128";
-                $("#cadpi-large")[0].value = "128";
-                $("#cadpi-popout")[0].value = "1024";
-			});
-			$("#cadpi-save-button").on("click", () => {
-                this.settings = {
-                    smallAvatarSize : $("#cadpi-small")[0].value,
-                    largeAvatarSize : $("#cadpi-large")[0].value,
-                    popoutAvatarSize : $("#cadpi-popout")[0].value
-                }
-                PluginUtilities.saveSettings("CustomizableAvatarDPI", this.settings);
-			});
-		}else
-			this.getSettingsPanel();
+					let large = added.classList.contains("avatar-large") ? [added] : added.getElementsByClassName("avatar-large");
+
+					for(let i = 0; i < large.length; i++) if(large[i].style && large[i].style.backgroundImage) large[i].style.backgroundImage = large[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.largeAvatarSize;
+
+					let popout = added.classList.contains("popout-2fzvxG") ? [added] : added.getElementsByClassName("popout-2fzvxG");
+
+					for(let i = 0; i < popout.length; i++) if(popout[i].style && popout[i].style.backgroundImage) popout[i].style.backgroundImage = popout[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.popoutAvatarSize;
+
+					let small = added.classList.contains("avatar-small") || added.classList.contains("small-5Os1Bb") || added.classList.contains("avatarContainer-72bSfM") ? [added] : Array.from(added.getElementsByClassName("avatar-small")).concat(Array.from(added.getElementsByClassName("small-5Os1Bb"))).concat(Array.from(added.getElementsByClassName("avatarContainer-72bSfM")));
+
+					for(let i = 0; i < small.length; i++) if(small[i].style && small[i].style.backgroundImage) small[i].style.backgroundImage = small[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.smallAvatarSize;
+
+				}
+
+			}
+
+		});
+
+		this.appObserver.observe(document.getElementById("app-mount"), { childList : true, subtree : true });
+
+		NeatoLib.Events.onPluginLoaded(this);
+		
 	}
 	
-	initialize(){
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/CustomizableAvatarDPI.plugin.js");
-        this.settings = PluginUtilities.loadSettings("CustomizableAvatarDPI", this.defaultSettings);
-        this.initialized = true;
+	stop() {
+		this.appObserver.disconnect();
 	}
-
-    observer(e) {
-        if(!this.initialized)
-            return;
-        var nodes = $(e.addedNodes),
-            largeAvatars = nodes.find(".avatar-large"),
-            popoutAvatars = nodes.find(".image-33JSyf.maskProfile-MeBve8.mask-2vyqAW"),
-            smallAvatars = nodes.find(".avatar-small:not(a), .avatar-1BXaQj.small-TEeAkX > .mask-2vyqAW, .avatarContainer-303pFz.margin-reset > div");
-        largeAvatars.each(i => 
-            largeAvatars[i].style.backgroundImage = largeAvatars[i].style.backgroundImage.substring(0, largeAvatars[i].style.backgroundImage.indexOf("?size=")) + "?size=" + this.settings.largeAvatarSize
-        );
-        popoutAvatars.each(i => 
-            popoutAvatars[i].style.backgroundImage = popoutAvatars[i].style.backgroundImage.substring(0, popoutAvatars[i].style.backgroundImage.indexOf("?size=")) + "?size=" + this.settings.popoutAvatarSize
-        );
-        smallAvatars.each(i => 
-            smallAvatars[i].style.backgroundImage = smallAvatars[i].style.backgroundImage.substring(0, smallAvatars[i].style.backgroundImage.indexOf("?size=")) + "?size=" + this.settings.smallAvatarSize
-        );
-    }
-	
-    stop() {}
 	
 }

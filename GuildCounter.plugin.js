@@ -1,43 +1,59 @@
-//META{"name":"GuildCounter"}*//
+//META{"name":"GuildCounter","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildCounter.plugin.js"}*//
 
 class GuildCounter {
 	
     getName() { return "Guild Counter"; }
     getDescription() { return "Displays a guild counter below the online friend counter."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "1.0.1"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 
     start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(!lib) {
+			lib = document.createElement("script");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
+
 	}
 	
-	initialize(){
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/GuildCounter.plugin.js");
+	onLibLoaded(){
+
+		NeatoLib.Updates.check(this);
+
+		this.count = () => {
+
+			let existing = document.getElementById("gc-counter"), count = Object.keys(NeatoLib.Modules.get("getGuilds").getGuilds()).length;
+	
+			if(existing) existing.innerText = count + " guilds";
+			else this.guildsScroller.insertBefore(NeatoLib.DOM.createElement({ id : "gc-counter", className : "friends-online", innerText : count + " guilds" }), this.guildsScroller.getElementsByClassName("dms")[0]);
+
+		};
+
+		(this.guildsScroller = document.getElementsByClassName("guilds scroller")[0]).addEventListener("DOMNodeInserted", this.count);
+
 		this.count();
-		$(".guilds-wrapper > div.scroller-wrap > div").on("DOMNodeInserted.GuildCounter", e => { this.count(e); });
-	}
-	
-	count(){
-		var label = $("#sc-counter"), count = Object.keys(ZeresLibrary.InternalUtilities.WebpackModules.findByUniqueProperties(["getGuilds"]).getGuilds()).length;
-		if(label.length)
-			label[0].innerText = count + " Guilds";
-		else
-			label = $(`<div id="sc-counter" class="friends-online">` + count + ` Guilds</div>`).insertAfter(".friends-online");
+
+		NeatoLib.Events.onPluginLoaded(this);
+
 	}
 	
     stop() {
-		$(".guilds-wrapper > div.scroller-wrap > div").off("DOMNodeInserted.GuildCounter");
+		this.guildsScroller.removeEventListener("DOMNodeInserted", this.count);
+		document.getElementById("gc-counter").remove();
 	}
 	
 }

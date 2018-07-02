@@ -2,7 +2,7 @@ var NeatoLib = {};
 
 var Metalloriff = NeatoLib;
 
-NeatoLib.version = "0.4.16";
+NeatoLib.version = "0.4.17";
 
 NeatoLib.parseVersion = function(version) {
 
@@ -1040,6 +1040,44 @@ NeatoLib.Modules.find = function(filter) {
 
 };
 
+NeatoLib.Modules.findAll = function(filter) {
+
+	let found = [];
+	
+	for(let i in this.req.c) {
+
+		if(this.req.c.hasOwnProperty(i)) {
+			let m = this.req.c[i].exports;
+			if(m && m.__esModule && m.default && filter(m.default)) found.push(m.default);
+			else if(m && filter(m)) found.push(m);
+		}
+
+	}
+
+	return found;
+
+};
+
+NeatoLib.Modules.findAllByPropertyName = function(propName, filter) {
+
+	if(!filter) filter = m => m[propName];
+
+	let found = [];
+	
+	for(let i in this.req.c) {
+
+		if(this.req.c.hasOwnProperty(i)) {
+			let m = this.req.c[i].exports;
+			if(m && m.__esModule && m.default && filter(m.default)) found.push(m.default[propName]);
+			else if(m && filter(m)) found.push(m[propName]);
+		}
+
+	}
+
+	return found;
+
+};
+
 NeatoLib.Modules.findIndex = function(filter) {
 	
 	for(let i in this.req.c) {
@@ -1370,7 +1408,7 @@ NeatoLib.ReactData.getProp = function(element, propKey) {
 
 	return obj;
 
-}
+};
 
 NeatoLib.ContextMenu = {};
 
@@ -1789,7 +1827,7 @@ NeatoLib.getClasses = function(classes, returnAll = true) {
 
 NeatoLib.getSelectedServer = function() {
 	let selected = document.getElementsByClassName("guild selected");
-	return selected ? NeatoLib.Modules.Stores.Guilds.getGuild(NeatoLib.getSelectedServerId()) : null;
+	return selected.length ? NeatoLib.Modules.Stores.Guilds.getGuild(NeatoLib.getSelectedServerId()) : null;
 };
 
 NeatoLib.getSelectedGuild = NeatoLib.getSelectedServer;

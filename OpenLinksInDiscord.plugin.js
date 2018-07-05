@@ -1,10 +1,10 @@
-//META{"name":"OpenLinksInDiscord"}*//
+//META{"name":"OpenLinksInDiscord","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/OpenLinksInDiscord.plugin.js"}*//
 
 class OpenLinksInDiscord {
 	
     getName() { return "OpenLinksInDiscord"; }
     getDescription() { return "Opens links in a new window in Discord, instead of in your web browser. Hold shift to open links normally."; }
-    getVersion() { return "1.1.1"; }
+    getVersion() { return "1.1.2"; }
 	getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -13,19 +13,20 @@ class OpenLinksInDiscord {
 
         let libLoadedEvent = () => {
             try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -89,7 +90,7 @@ class OpenLinksInDiscord {
     
     onClickLink(e) {
 
-		let window = new this.electron.remote.BrowserWindow({ frame : true, resizeable : true, show : true });
+		let window = new this.electron.remote.BrowserWindow({ frame : true, resizeable : true, show : true, webPreferences : { nodeIntegration : false, nodeIntegrationInWorker : false }});
 
 		window.maximize();
 		window.setMenu(null);

@@ -958,7 +958,7 @@ NeatoLib.Keybinds.attachListener = function(id, key, event, options = {}) {
 			if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
 				let heldModifiers = 0;
 				for(let i = 0; i < key.modifiers.length; i++) if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
-				if(key.modifiers.length == heldModifiers) event(e);
+				if(key.modifiers.length == heldModifiers && window.activeNeatoKeyListeners[id].heldKeys.length == heldModifiers + 1) event(e);
 			}
 		},
 		keyup : e => {

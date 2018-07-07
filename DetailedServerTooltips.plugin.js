@@ -1,10 +1,10 @@
-//META{"name":"DetailedServerTooltips","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DetailedServerTooltips.plugin.js"}*//
+//META{"name":"DetailedServerTooltips","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DetailedServerTooltips.plugin.js"}*//
 
 class DetailedServerTooltips {
 	
     getName() { return "DetailedServerTooltips"; }
-    getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date and time joined, how many days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-    getVersion() { return "0.1.3"; }
+    getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
+    getVersion() { return "0.2.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -12,7 +12,13 @@ class DetailedServerTooltips {
             `
                 Fixed incompatibility with DevilBro's ServerFolders.
                 Added a creation date field.
-            `
+			`,
+			"0.2.3" :
+			`
+				Fixed tooltip color not changing with some themes.
+				Fixed the tooltip arrow being offsetted wrong when the tooltip was prevented from going off-screen.
+				Tooltip guild icons are now full res.
+			`
 		};
 	}
 
@@ -26,15 +32,16 @@ class DetailedServerTooltips {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -66,7 +73,7 @@ class DetailedServerTooltips {
                 NeatoLib.Settings.Elements.createNewTextField("Tooltip display delay (ms)", this.settings.displayDelay, e => {
                     this.settings.displayDelay = e.target.value;
                     this.saveSettings();
-                }, { type : "number" })
+                })
 
             ], this.getName());
 			
@@ -93,13 +100,13 @@ class DetailedServerTooltips {
                 width: 100%;
                 max-width: 225px;
                 text-align: center;
-                background-color: ${this.settings.tooltipColor};
+                background-color: ${this.settings.tooltipColor} !important;
                 color: white;
             }
 
             .dst-tooltip:after {
-                border-right-color: ${this.settings.tooltipColor};
-                top: 6.5% !important;
+                border-right-color: ${this.settings.tooltipColor} !important;
+                top: 25px !important;
             }
 
             .dst-tooltip-icon {
@@ -170,8 +177,11 @@ class DetailedServerTooltips {
                 tooltip = this.tooltip((e.target.parentElement.href.match(/\d+/) || [])[0], e.target);
                 if(!tooltip) return;
                 document.getElementsByClassName("tooltips")[0].insertAdjacentElement("beforeend", tooltip);
-                let bottomPos = parseFloat(tooltip.style.top) + tooltip.offsetHeight;
-                if(bottomPos > window.innerHeight) tooltip.style.top = (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight)) + "px";
+				let bottomPos = parseFloat(tooltip.style.top) + tooltip.offsetHeight;
+                if(bottomPos > window.innerHeight) {
+					tooltip.style.top = (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight)) + "px";
+					tooltip.insertAdjacentHTML("afterbegin", `<style>.dst-tooltip:after{top:calc(25px + ${parseFloat(tooltip.style.top) - (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight))}px) !important}</style>`);
+				}
             }, this.settings.displayDelay);
 
         };
@@ -251,7 +261,7 @@ class DetailedServerTooltips {
         let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);
 
         tooltip.innerHTML = `${guild.name}
-        <div class="dst-tooltip-icon" style="background-image: url(${guild.getIconURL()});"></div>
+        <div class="dst-tooltip-icon" style="background-image: url(${guild.getIconURL()}?size=2048);"></div>
         <div id="dst-tooltip-owner-label" class="dst-tooltip-label">Owner: ${owner ? owner.tag : "unknown"}</div>
         <div class="dst-tooltip-label">Created at: ${creationDate.toLocaleDateString()}, ${creationDate.toLocaleTimeString()} (${Math.round(Math.abs(creationDate.getTime() - new Date().getTime()) / 86400000)} days ago)</div>
         ${creationDate.toString() == guild.joinedAt.toString() ? "" : `<div class="dst-tooltip-label">Joined at: ${guild.joinedAt.toLocaleDateString()}, ${guild.joinedAt.toLocaleTimeString()} (${Math.round(Math.abs(guild.joinedAt.getTime() - new Date().getTime()) / 86400000)} days ago)</div>`}

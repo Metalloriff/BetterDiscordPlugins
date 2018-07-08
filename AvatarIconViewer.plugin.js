@@ -1,20 +1,20 @@
-//META{"name":"AvatarIconViewer","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
+//META{"name":"AvatarIconViewer","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
 
 class AvatarIconViewer {
 	
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.17"; }
+	getVersion() { return "0.5.18"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
 
-    start() {
+	start() {
 
-        let libLoadedEvent = () => {
-            try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-        };
+		let libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(!lib) {
@@ -25,7 +25,7 @@ class AvatarIconViewer {
 			document.head.appendChild(lib);
 		}
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
 		else lib.addEventListener("load", libLoadedEvent);
 
 	}
@@ -36,7 +36,7 @@ class AvatarIconViewer {
 
 		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js");
 
-		this.classes = NeatoLib.getClasses(["maskProfile", "guildIconImage", "member", "reactor"], false);
+		this.classes = NeatoLib.getClasses(["maskProfile", "guildIconImage", "member", "reactor", "iconSizeSmall", "listAvatar"], false);
 
 		this.contextEvent = e => this.onContextMenu(e);
 
@@ -63,18 +63,18 @@ class AvatarIconViewer {
 
 		if(e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
 
-		let getAvatar = () => {
+		const getAvatar = () => {
 
 			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group")),
 			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.reactor)),
 			dmElement = NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "private"),
-			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length > 0 ? dmElement.getElementsByClassName("avatar-small")[0].style.backgroundImage : null;
+			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length ? dmElement.getElementsByClassName("avatar-small")[1].style.backgroundImage : null;
 
 			if(e.target.classList.contains("mention")) this.url = NeatoLib.Modules.get("queryUsers").queryUsers(e.target.innerText.substring(1, e.target.innerText.length))[0].user.getAvatarURL();
-			else if(e.target.classList.contains("image-33JSyf")) this.url = e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf("\"") + 1, e.target.style.backgroundImage.lastIndexOf("\""));
+			else if(e.target.classList.contains("image-33JSyf")) this.url = e.target.style.backgroundImage.match(/".*"/)[0].replace(/"/g, "");
 			else if(messageGroupProps && (e.target.classList.contains("user-name") || e.target.classList.contains("avatar-large") || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
 			else if(genericProps) this.url = genericProps.user.getAvatarURL();
-			else if(avatarBackground) this.url = avatarBackground.substring(avatarBackground.indexOf("\"") + 1, avatarBackground.lastIndexOf("\""));
+			else if(avatarBackground) this.url = avatarBackground.match(/".*"/)[0].replace(/"/g, "");
 			else return null;
 
 			viewLabel = "View Avatar";
@@ -88,11 +88,11 @@ class AvatarIconViewer {
 		
 		getServerIcon = () => {
 
-			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) return null;
+			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains(this.classes.iconSizeSmall) && !e.target.classList.contains(this.classes.listAvatar)) return null;
 
 			let iconBackground = e.target.style.backgroundImage;
 
-			if(iconBackground) this.url = iconBackground.substring(iconBackground.indexOf("\"") + 1, iconBackground.lastIndexOf("\""));
+			if(iconBackground) this.url = iconBackground.match(/".*"/)[0].replace(/"/g, "");
 
 			viewLabel = "View Icon";
 			copyLabel = "Copy Icon Link";
@@ -118,7 +118,7 @@ class AvatarIconViewer {
 			this.url += "?size=2048";
 		};
 
-		if(context && (getAvatar() || getServerIcon() || getEmoji())) {
+		if(context && (getServerIcon() || getAvatar() || getEmoji())) {
 
 			formatURL();
 
@@ -132,7 +132,7 @@ class AvatarIconViewer {
 			let targ = e.target.classList.contains("clickable") ? NeatoLib.DOM.searchForParentElementByClassName(e.target, "avatar-large") : e.target;
 
 			if(!targ.style.backgroundImage) targ = targ.parentElement.getElementsByClassName(this.classes.maskProfile.split(" ")[0])[0];
-			if(targ.style.backgroundImage) this.url = targ.style.backgroundImage.substring(targ.style.backgroundImage.indexOf("\"") + 1, targ.style.backgroundImage.lastIndexOf("\""));
+			if(targ.style.backgroundImage) this.url = targ.style.backgroundImage.match(/".*"/)[0].replace(/"/g, "");
 			else return;
 
 			formatURL();

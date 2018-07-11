@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version : "0.4.17",
+	version : "0.4.18",
 
 	parseVersion : function(version) {
 
@@ -1813,10 +1813,10 @@ var NeatoLib = {
 
 	monkeyPatchInternal : function(module, funcName, newFunc) {
 
-		let unpatched = module[funcName];
+		const unpatched = module[funcName];
 
 		module[funcName] = function() {
-			let d = {
+			const d = {
 				module : this,
 				args : arguments,
 				unpatch : () => module[funcName] = unpatched,
@@ -1827,9 +1827,7 @@ var NeatoLib = {
 			return newFunc(d);
 		};
 
-		module[funcName].unpatch = () => module[funcName] = unpatched;
-
-		return module[funcName];
+		return () => module[funcName] = unpatched;
 
 	},
 

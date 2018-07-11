@@ -1,10 +1,10 @@
-//META{"name":"GuildAndFriendRemovalAlerts","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js"}*//
+//META{"name":"GuildAndFriendRemovalAlerts","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js"}*//
 
 class GuildAndFriendRemovalAlerts {
 	
 	getName() { return "Guild And Friend Removal Alerts"; }
 	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.2.8"; }
+	getVersion() { return "0.2.9"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -69,12 +69,12 @@ class GuildAndFriendRemovalAlerts {
 		});
 	}
 
-	start() {
+    start() {
 
-		let libLoadedEvent = () => {
-			try{ this.onLibLoaded(); }
-			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-		};
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
 		if(!lib) {
@@ -85,7 +85,7 @@ class GuildAndFriendRemovalAlerts {
 			document.head.appendChild(lib);
 		}
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
 		else lib.addEventListener("load", libLoadedEvent);
 
 	}
@@ -98,7 +98,7 @@ class GuildAndFriendRemovalAlerts {
 			guildNotifications: true,
 			friendNotifications: true,
 			windowsNotifications : true,
-			ignoredServers : ["280806472928198656"],
+			ignoredServers : "280806472928198656",
 			color : "#7289da"
 		});
 
@@ -208,7 +208,7 @@ class GuildAndFriendRemovalAlerts {
 
 			let guild = this.allGuilds[i];
 
-			if(this.settings.ignoredServers && this.settings.ignoredServers.split(" ").indexOf(guild.id) != -1) continue;
+			if(this.settings.ignoredServers && typeof this.settings.ignoredServers.split == "function" && this.settings.ignoredServers.split(" ").indexOf(guild.id) != -1) continue;
 
 			if(guildIds.indexOf(guild.id) == -1) {
 

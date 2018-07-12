@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.9.6"; }
+	getVersion() { return "1.9.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -908,14 +908,14 @@ class MessageLogger {
 
 		};
 
-		let cap = Math.clamp(messages.length - 1, 0, curCap);
+		const cap = Math.clamp(messages.length - 1, 0, curCap);
 		
-		if(this.settings.reverseOrder) for(let i = cap; i > -1; i--) populate(i);
+		if(this.settings.reverseOrder) for(let i = messages.length - 1; i > Math.clamp(messages.length - cap, -1, Infinity); i--) populate(i);
 		else for(let i = 0; i <= cap; i++) populate(i);
 
 		if(messages.length > curCap) {
 		
-			scroller.insertAdjacentHTML(this.settings.reverseOrder ? "afterbegin" : "beforeend", `
+			scroller.insertAdjacentHTML("beforeend", `
 			<div id="ml-load-more-button" class="message-group hide-overflow" style="cursor:pointer;">
 				<div class="comment" style="text-align:center;">
 					<div class="message">

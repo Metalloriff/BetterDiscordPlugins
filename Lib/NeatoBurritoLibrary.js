@@ -1105,7 +1105,9 @@ var NeatoLib = {
 		},
 
 		get : function(props) {
-			return typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
+			if(!this.cached) this.cached = {};
+			if(!this.cached[props]) this.cached[props] = typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
+			return this.cached[props];
 		},
 
 		getById : function(id) {
@@ -1816,18 +1818,17 @@ var NeatoLib = {
 		const unpatched = module[funcName];
 
 		module[funcName] = function() {
-			const d = {
+			return newFunc({
 				module : this,
 				args : arguments,
 				unpatch : () => module[funcName] = unpatched,
 				unpatched : unpatched,
-				callDefault : () => d.unpatched.apply(d.module, d.args),
-				callDefaultWithArgs : function() { d.unpatched.apply(d.module, arguments); }
-			};
-			return newFunc(d);
+				callDefault : () => unpatched.apply(this, arguments),
+				callDefaultWithArgs : function() { this.unpatched.apply(this.module, arguments); }
+			});
 		};
 
-		return () => module[funcName] = unpatched;
+		return module[funcName].unpatch = () => module[funcName] = unpatched;
 
 	},
 

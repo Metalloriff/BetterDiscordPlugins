@@ -967,11 +967,16 @@ var NeatoLib = {
 				},
 				keyup : e => {
 					if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) != -1) window.activeNeatoKeyListeners[id].heldKeys.splice(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code), 1);
+				},
+				windowFocusLoss : () => {
+					window.activeNeatoKeyListeners[id].heldKeys = [];
 				}
 			};
 
 			node.addEventListener("keydown", window.activeNeatoKeyListeners[id].keydown);
 			node.addEventListener("keyup", window.activeNeatoKeyListeners[id].keyup);
+
+			window.addEventListener("blur", window.activeNeatoKeyListeners[id].windowFocusLoss);
 
 			return window.activeNeatoKeyListeners[id];
 
@@ -988,6 +993,8 @@ var NeatoLib = {
 
 			node.removeEventListener("keydown", window.activeNeatoKeyListeners[id].keydown);
 			node.removeEventListener("keyup", window.activeNeatoKeyListeners[id].keyup);
+
+			window.removeEventListener("blur", window.activeNeatoKeyListeners[id].windowFocusLoss);
 
 			delete window.activeNeatoKeyListeners[id];
 

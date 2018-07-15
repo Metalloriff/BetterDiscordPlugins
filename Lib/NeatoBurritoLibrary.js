@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version : "0.4.18",
+	version : "0.4.19",
 
 	parseVersion : function(version) {
 
@@ -1615,6 +1615,12 @@ var NeatoLib = {
 
 	Colors : {
 
+		DiscordDefaults : {
+			red : "#f04747",
+			blue : "#7289da",
+			green : "#43b581"
+		},
+
 		hexToRGB : function(hex, format = "R, G, B") {
 			return format.replace("R", parseInt(hex.substring(1, 7).substring(0, 2), 16)).replace("G", parseInt(hex.substring(1, 7).substring(2, 4), 16)).replace("B", parseInt(parseInt(hex.substring(1, 7).substring(4, 6), 16)));
 		},
@@ -1705,50 +1711,75 @@ var NeatoLib = {
 
 	},
 
-	downloadFile : function(url, path, fileName, onCompleted) {
+	Thread : {
 
-		let fileSys = require("fs"), http = require("https");
-
-		if(!path.endsWith("/")) path += "/";
-
-		path += fileName;
-
-		if(path.lastIndexOf("?") != -1) path = path.substring(0, path.lastIndexOf("?"));
-
-		NeatoLib.showToast("Download started...");
-
-		if(fileSys.existsSync(path)) {
-
-			NeatoLib.showToast("File already exists, random characters will be appended to the file name!", "error");
-
-			let fileExtension = path.substring(path.lastIndexOf("."), path.length);
-
-			path = path.split(fileExtension).join(` ${Math.random().toString(36).substring(10)}${fileExtension}`);
-
+		sleep : function(timeout = 0) {
+			return new Promise(p => setTimeout(p, timeout));
 		}
 
-		let request = http.request(url, x => {
+	},
 
-			let data = [];
+	downloadFile : async function(url, path, filename, onCompleted) {
 
-			x.on("data", d => { data.push(d); });
+		const def = [url, path, filename, onCompleted];
 
-			x.on("end", () => {
+		let progressToast, id = path.replace(/[^a-z0-9]/g, "");
 
-				fileSys.writeFile(path, Buffer.concat(data), error => {
-					if(error) NeatoLib.showToast("Failed to save file! Error: " + error.message, "error");
-					else NeatoLib.showToast("File saved successfully!", "success");
+		const error = function(err) {
+			if(!err) return;
+			if(id) NeatoLib.showProgressToast(id, "Error saving " + filename + ". Click to retry.", 1, 1, { color : NeatoLib.Colors.DiscordDefaults.red, progressText : "ERROR", timeout : 5000  })
+					.addEventListener("click", function(e) {
+						NeatoLib.downloadFile(...def);
+						e.currentTarget.close();
+					});
+			throw err;
+		};
+
+		try{
+
+			const fs = require("fs"), protocol = require(url.match(/[http&https]+/)[0]);
+
+			if(!path.endsWith("/")) path += "/";
+
+			path = path.split("?")[0] + filename;
+
+			if(fs.existsSync(path)) {
+				NeatoLib.showToast(`"${filename}" already exists, random characters will be appended to the file name!`, "error");
+				const fileExtension = "." + path.split(".")[path.split(".").length - 1];
+				path = path.split(fileExtension).join(`${Math.random().toString(36).substring(10)}${fileExtension}`);
+			}
+
+			id = path.replace(/[^a-z0-9]/g, "");
+
+			const startingToast = NeatoLib.showToast(`[<span style="color:${NeatoLib.Colors.DiscordDefaults.blue}">${filename}</span>]: Preparing download...`);
+
+			const request = protocol.get(url, function(req) {
+
+				let data = [], progress = 0, length;
+				
+				startingToast.close();
+				if(length = req.headers["content-length"]) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, { timeout : 10000 });
+				else progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", 1, 1, { color : NeatoLib.Colors.DiscordDefaults.blue, progressText : "File size unknown", timeout : 10000 });
+	
+				req.on("data", function(dataChunk) {
+					data.push(dataChunk);
+					progress += dataChunk.length;
+					if(length) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, { timeout : 10000 });
 				});
 
-				if(onCompleted != undefined) onCompleted(path);
-
+				req.on("end", function() {
+					if(data.length == 0) return error("URL is invalid");
+					progressToast = NeatoLib.showProgressToast(id, "Finished downloading " + filename, progress, length, { timeout : 3000 });
+					fs.writeFile(path, Buffer.concat(data), error);
+					if(onCompleted) onCompleted(path, url);
+				});
+				
 			});
+			
+			request.on("error", error);
+			request.end();
 
-		});
-
-		request.on("error", error => { NeatoLib.showToast("Failed to save file! Error: " + error.message, "error"); });
-
-		request.end();
+		} catch(err) { error(err); }
 
 	},
 
@@ -1981,12 +2012,12 @@ var NeatoLib = {
 
 	},
 
-	showToast : function(text, type, options = {}) {
+	tryCreateToastContainer : function() {
 
-		if(document.getElementsByClassName("toasts")[0] == undefined) {
+		if(!document.getElementsByClassName("toasts").length) {
 			
-			let container = document.querySelector(".channels-3g2vYe + div, .channels-Ie2l6A + div"),
-			memberlist = container.getElementsByClassName("membersWrap-2h-GB4")[0],
+			const container = document.getElementsByClassName("chat")[0],
+			memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 			form = container ? container.getElementsByTagName("form")[0] : undefined,
 			left = container ? container.getBoundingClientRect().left : 310,
 			right = memberlist ? memberlist.getBoundingClientRect().left : 0,
@@ -1996,39 +2027,105 @@ var NeatoLib = {
 
 			toastWrapper.classList.add("toasts");
 
-			toastWrapper.style.setProperty("left", left + "px");
-			toastWrapper.style.setProperty("width", width + "px");
-			toastWrapper.style.setProperty("bottom", bottom + "px");
+			toastWrapper.style.left = left + "px";
+			toastWrapper.style.width = width + "px";
+			toastWrapper.style.bottom = bottom + "px";
 
 			document.getElementsByClassName("app")[0].appendChild(toastWrapper);
 
 		}
 
-		let toast = document.createElement("div");
+	},
+
+	showToast : function(text, type, options = {}) {
+
+		this.tryCreateToastContainer();
+
+		const toast = document.createElement("div");
 
 		toast.classList.add("toast");
 		if(typeof type == "string") toast.classList.add("toast-" + type);
 		if(options.icon) toast.classList.add("icon");
-		if(options.color) toast.style.backgroundColor = options.color;
+		if(options.color) toast.style.background = options.color;
 
-		let destroy = () => {
+		const destroy = toast.close = function() {
 			toast.classList.add("closing");
-			setTimeout(() => {
+			setTimeout(function() {
 				toast.remove();
-				if(document.getElementsByClassName("toast")[0] == undefined) document.getElementsByClassName("toasts")[0].remove();
+				if(!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
 		};
 
 		if(options.onClick) toast.addEventListener("click", options.onClick);
 		if(options.destroyOnClick) toast.addEventListener("click", destroy);
 
-		toast.innerText = text;
+		toast.innerHTML = text;
 
 		document.getElementsByClassName("toasts")[0].appendChild(toast);
 
 		setTimeout(destroy, options.timeout || 3000);
 
 		return toast;
+
+	},
+
+	showProgressToast : function(id, label, val, max, options = {}) {
+
+		let bar;
+
+		const destroy = function() {
+			clearTimeout(bar.destroyTimeout);
+			bar.classList.add("closing");
+			setTimeout(function() {
+				bar.remove();
+				if(!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
+			}, 300);
+		};
+
+		const updateBar = function(){
+
+			bar.getElementsByClassName("toast-prog-bar-label")[0].innerHTML = label;
+
+			const prog = bar.getElementsByClassName("toast-prog-bar-progress")[0];
+			if(options.progressText) prog.innerHTML = options.progressText;
+			else if(!isNaN(parseInt((val / max) * 100))) prog.innerText = parseInt((val / max) * 100) + "%";
+			else prog.innerText = "ERROR";
+			prog.style.width = ((val / max) * 500) + "px";
+
+			if(options.color) prog.style.background = options.color;
+			else prog.style.background = NeatoLib.Colors.DiscordDefaults.green;
+
+			clearTimeout(bar.destroyTimeout);
+			bar.destroyTimeout = setTimeout(destroy, options.timeout || 1500);
+
+		};
+
+		if(bar = document.getElementById("neato-toast-prog-bar-" + id)) {
+			updateBar();
+			return bar;
+		}
+
+		this.tryCreateToastContainer();
+
+		document.getElementsByClassName("toasts")[0].insertAdjacentHTML("beforeend",
+		`<div id="neato-toast-prog-bar-${id}" class="toast has-prog-bar">
+			<div class="toast-prog-bar-label">${label}</div>
+			<div class="toast-prog-bar-background">
+				<div class="toast-prog-bar-progress" style="width:0">0%</div>
+			</div>
+		</div>`);
+
+		bar = document.getElementById("neato-toast-prog-bar-" + id);
+		bar.close = destroy;
+
+		if(options.backgroundColor) bar.style.backgroundColor = options.backgroundColor;
+
+		if(options.onClick) bar.addEventListener("click", options.onClick);
+		if(options.destroyOnClick) bar.addEventListener("click", destroy);
+		
+		updateBar();
+
+		return bar;
 
 	},
 
@@ -2087,7 +2184,7 @@ var NeatoLib = {
 
 		return new Date(parseInt(toBinary(id).padStart(64).substring(0, 42), 2) + epoch);
 
-	}
+	},
 
 };
 
@@ -2161,3 +2258,40 @@ NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
 
 NeatoLib.getSelectedServer = NeatoLib.getSelectedGuild;
 NeatoLib.getSelectedServerId = NeatoLib.getSelectedGuildId;
+
+if(window.neatoStyles) window.neatoStyles.destroy();
+
+window.neatoStyles = NeatoLib.injectCSS(`
+
+	.toast.has-prog-bar {
+		padding-top: 30px;
+	}
+
+	.toast-prog-bar-label {
+		position: absolute;
+		top: 8px;
+	}
+
+	.toast-prog-bar-background {
+		height: 25px;
+		width: 500px;
+		border-radius: 5px;
+		background: rgba(0,0,0,0.3);
+		text-align: center;
+		line-height: 25px;
+	}
+
+	.toast-prog-bar-progress {
+		height: 25px;
+		border-radius: 5px;
+		background: green;
+		text-align: center;
+		line-height: 25px;
+		position: relative;
+		top: 0;
+		padding: 0;
+		transition: all 0.3s;
+		overflow: hidden;
+	}
+	
+`);

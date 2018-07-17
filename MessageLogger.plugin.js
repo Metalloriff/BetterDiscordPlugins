@@ -4,39 +4,10 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.11.7"; }
+	getVersion() { return "1.12.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			"1.6.6" :
-			`
-				Updated everything to only depend on my lib.
-				Added settings to reconfigure the keybinds.
-				Re-added the message context menu.
-			`,
-			"1.7.6" :
-			`
-				Fixed both keybinds opening the filtered log.
-				Fixed the guild context menu not showing. Thanks, Discord.
-				Bulk deletes (purges, bans, etc.) are now logged.
-				Clicking a notification (toast) will now take you to the log of that type.
-				Added a context menu to images in the log.
-			`,
-			"1.8.6" :
-			`
-				Bulk deletes are now separated from deleted messages.
-				Hotkeys will now close the window if open.
-				You can now save and load backups with Ctrl + S and Ctrl + O. Also includes sent messages.
-			`,
-			"1.9.6" :
-			`
-				Improved the performance and load time of the log.
-				Added a "log loaded message cap" setting. This number will be the cap of how many messages will be displayed before showing a "load more" button.
-				Added a "display dates with timestamps" setting.
-				Fixed the settings number fields.
-				Ignore muted servers and channels are now separate settings.
-				Added an "open log here" option to servers and channels.
-			`,
 			"1.10.7" :
 			`
 				You can now blacklist/whitelist channels.
@@ -58,6 +29,16 @@ class MessageLogger {
 				Deleted and edited messages will now be deleted/edited as they do orginally, when the plugin is unloaded.
 				Fixed only one image per message showing in the log.
 				Added a "show amount of new deleted messages when entering a channel" setting, along with edited messages.
+			`,
+			"1.12.7" :
+			`
+				Fixed unread deleted/edited messages never being read.
+				Deleted images and mentions are now grayed out unless hovered, making it obvious that they are deleted.
+				Fixed bot messages being logged regardless of settings.
+				Fixed the logger filling entirely upon clicking "load more". All I have to say about this bug, is please refer to this meme: <a href="https://i.imgur.com/x5bXdOq.png">https://i.imgur.com/x5bXdOq.png</a>
+				You can now blacklist/whitelist DMs.
+				Fixed muted channels always logging.
+				Editing an edited message now sets to the correct message.
 			`
 		};
 	}
@@ -390,8 +371,16 @@ class MessageLogger {
 				margin-bottom: 10px;
 			}
 
-			#app-mount .markup.ml-deleted {
-				color: #f04747;
+			#app-mount .message.ml-deleted .markup {
+				color: ${NeatoLib.Colors.DiscordDefaults.red};
+			}
+
+			.message.ml-deleted img, .message.ml-deleted .mention {
+				transition: filter 0.3s;
+			}
+
+			.message.ml-deleted:not(:hover) img, .message.ml-deleted:not(:hover) .mention {
+				filter: grayscale(100%);
 			}
 
 			#app-mount .message-text > .markup.ml-edited, #app-mount .markup > .ml-edited:not(:last-child) {
@@ -435,7 +424,11 @@ class MessageLogger {
 
 			if(e.target.parentElement.classList.contains("message-text")) return this.onMessageContext();
 
-			const channel = NeatoLib.ReactData.getProp(e.target, "channel");
+			let channel = NeatoLib.ReactData.getProp(e.target, "channel");
+			if(!channel) {
+				const privateChannel = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private");
+				if(privateChannel) channel = NeatoLib.Modules.get("getChannel").getChannel(privateChannel.firstChild.href.match(/\d+/)[0]);
+			}
 			if(channel) return this.onChannelContext(channel);
 
 		});
@@ -536,7 +529,8 @@ class MessageLogger {
 
 			if(!dispatch) return e.callDefault();
 
-			if(dispatch.type.indexOf("EDIT") != -1) console.log(dispatch, dispatch.type);
+			this.updateMessages();
+			setTimeout(() => this.updateMessages(), 500);
 
 			if(dispatch.type != "MESSAGE_CREATE" && dispatch.type != "MESSAGE_DELETE" && dispatch.type != "MESSAGE_DELETE_BULK" && dispatch.type != "MESSAGE_UPDATE") return e.callDefault();
 
@@ -546,17 +540,23 @@ class MessageLogger {
 
 			if(!channel) return e.callDefault();
 
+			let guildIsMutedReturn = false, channelIsMutedReturn;
+
 			if(guild) {
-				if(this.settings.ignoreMutedGuilds && this.muteModule.isMuted(guild.id)) return e.callDefault();
-				if(this.settings.ignoreMutedChannels && this.muteModule.isChannelMuted(channel.id) || this.settings.ignoreMutedChannels && channel.parent_id && this.muteModule.isChannelMuted(channel.parent_id)) return e.callDefault();
+				guildIsMutedReturn = this.settings.ignoreMutedGuilds && this.muteModule.isMuted(guild.id);
+				channelIsMutedReturn = this.settings.ignoreMutedChannels && (this.muteModule.isChannelMuted(guild.id, channel.id) || channel.parent_id && this.muteModule.isChannelMuted(channel.parent_id));
 			}
 
-			if(channel.type == 0) {
-				if(this.settings.type == "whitelist" && (!this.settings.list.includes(channel.guild_id) && !this.settings.list.includes(channel.id))) return e.callDefault();
-				if(this.settings.type == "blacklist" && (this.settings.list.includes(channel.guild_id) || this.settings.list.includes(channel.id))) return e.callDefault();
-			}
+			let listed = (guild && this.settings.list.includes(guild.id)) || this.settings.list.includes(channel.id);
+			if(this.settings.type == "whitelist" && listed && (!channelIsMutedReturn || this.settings.list.includes(channel.id))) listed = true;
+			else if(this.settings.type == "blacklist" && !listed && !guildIsMutedReturn && !channelIsMutedReturn) listed = true;
+			else if(this.settings.type == "all" && !guildIsMutedReturn && !channelIsMutedReturn) listed = true;
+			else listed = false;
 
-			const author = dispatch.message && dispatch.message.author ? dispatch.message.author.id : null;
+			if(!listed) return e.callDefault();
+
+			let author = dispatch.message && dispatch.message.author ? NeatoLib.Modules.get("getUser").getUser(dispatch.message.author.id) : null;
+			if(!author) author = ((NeatoLib.Modules.get("_channelMessages")._channelMessages[channel.id] || { _map : {} })._map[dispatch.message ? dispatch.message.id : dispatch.id] || {}).author;
 
 			if(author && author.bot && this.settings.ignoreBots) return e.callDefault();
 			if(author && author.id == this.localUser.id && this.settings.ignoreSelf) return e.callDefault();
@@ -576,7 +576,6 @@ class MessageLogger {
 					if(!this.deletedChatMessages[channel.id]) (this.deletedChatMessages[channel.id] = { unseen : 0 })[dispatch.id] = timestamp;
 					else this.deletedChatMessages[channel.id][dispatch.id] = timestamp;
 					if(!this.selectedChannel || this.selectedChannel.id != channel.id) this.deletedChatMessages[channel.id].unseen++;
-					this.updateMessages();
 				}
 
 				const deleted = this.messageRecord.find(m => m.message.id == dispatch.id);
@@ -605,7 +604,6 @@ class MessageLogger {
 					if(this.settings.displayInChat) {
 						this.deletedChatMessages[channel.id][dispatch.ids[i]] = timestamp;
 						if(!this.selectedChannel || this.selectedChannel.id != channel.id) this.deletedChatMessages[channel.id].unseen++;
-						this.updateMessages();
 					}
 
 					const purged = this.messageRecord.find(x => x.message.id == dispatch.ids[i]);
@@ -633,7 +631,6 @@ class MessageLogger {
 					else if(!this.editedChatMessages[channel.id][dispatch.message.id]) this.editedChatMessages[channel.id][dispatch.message.id] = [{ message : dispatch.message.content, timestamp : timestamp }];
 					else this.editedChatMessages[channel.id][dispatch.message.id].push({ message : dispatch.message.content, timestamp : timestamp });
 					if(!this.selectedChannel || this.selectedChannel.id != channel.id) this.editedChatMessages[channel.id].unseen++;
-					this.updateMessages();
 				}
 
 				const last = this.messageRecord.find(m => m.message.id == dispatch.message.id), lastEditedIDX = this.editedMessageRecord.findIndex(m => m.message.id == dispatch.message.id);
@@ -686,6 +683,17 @@ class MessageLogger {
 			} else e.callDefault();
 
 		});
+
+		this.unpatchEdit = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get("startEditMessage"), "startEditMessage", e => {
+
+			if(!this.editedChatMessages[e.args[0]] || !this.editedChatMessages[e.args[0]][e.args[1]]) return e.callDefault();
+
+			const edits = this.editedChatMessages[e.args[0]][e.args[1]];
+			e.args[2] = edits[edits.length - 1].message;
+
+			return e.callDefault();
+
+		});
 		
 		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
@@ -728,10 +736,12 @@ class MessageLogger {
 
 		if(this.settings.showDeletedCount && this.deletedChatMessages[this.selectedChannel.id] && this.deletedChatMessages[this.selectedChannel.id].unseen) {
 			NeatoLib.showToast(`There are ${this.deletedChatMessages[this.selectedChannel.id].unseen} new deleted messages in ${this.selectedChannel.name ? "#" + this.selectedChannel.name : "DM"}`);
+			this.deletedChatMessages[this.selectedChannel.id].unseen = 0;
 		}
 
 		if(this.settings.showEditedCount && this.editedChatMessages[this.selectedChannel.id] && this.editedChatMessages[this.selectedChannel.id].unseen) {
 			NeatoLib.showToast(`There are ${this.editedChatMessages[this.selectedChannel.id].unseen} new edited messages in ${this.selectedChannel.name ? "#" + this.selectedChannel.name : "DM"}`);
+			this.editedChatMessages[this.selectedChannel.id].unseen = 0;
 		}
 
 		const onMessage = e => {
@@ -767,6 +777,7 @@ class MessageLogger {
 
 		for(let i = 0; i < foundEdited.length; i++) foundEdited[i].addEventListener("click", e => onMessage(e));
 
+		setTimeout(() => this.updateMessages(), 100);
 		this.updateMessages();
 
 	}
@@ -790,11 +801,11 @@ class MessageLogger {
 
 		for(let i = messages.length - 1; i > -1; i--) {
 
-			const id = NeatoLib.ReactData.getProp(messages[i], "message.id");
+			const id = NeatoLib.ReactData.getProp(messages[i], "message.id"), message = NeatoLib.DOM.searchForParentElementByClassName(messages[i], "message");
 
 			if(this.deletedChatMessages[channel.id] && this.deletedChatMessages[channel.id][id]) {
-				messages[i].classList.add("ml-deleted");
-				NeatoLib.Tooltip.attach("Deleted at " + this.deletedChatMessages[channel.id][id].split(",")[0], messages[i], { side : "left" });
+				message.classList.add("ml-deleted");
+				NeatoLib.Tooltip.attach("Deleted at " + this.deletedChatMessages[channel.id][id].split(",")[0], message, { side : "left" });
 			}
 
 			if(this.editedChatMessages[channel.id] && this.editedChatMessages[channel.id][id]) {
@@ -890,7 +901,7 @@ class MessageLogger {
 				
 				for(let i = 0, l = tabs.length; i < l; i++) if(tabs[i].classList.contains("selected")) tabs[i].classList.remove("selected");
 	
-				this.openWindow(tabs[i].classList[1], this.settings.renderCap);
+				this.openWindow(tabs[i].classList[1]);
 	
 				tabs[i].classList.add("selected");
 	
@@ -934,116 +945,122 @@ class MessageLogger {
 
 		if(!messages.length) return;
 
-		let lastMessage, group;
+		const onGroupContext = (e, i) => {
 
-		const populate = i => {
-			
-			if(!messages[i].message.author) return;
+			e.preventDefault();
 
-			if(lastMessage && lastMessage.author.id == messages[i].message.author.id && lastMessage.channel_id == messages[i].message.channel_id) {
+			const user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id), items = [], messageID = e.target.getAttribute("data-message-id");
 
-				const message = group.getElementsByClassName("message-text")[0], accessory = group.getElementsByClassName("accessory")[0];
+			if(e.target.tagName == "IMG") {
 
-				if(messages[i].editHistory != undefined) for(let ii = 0; ii < messages[i].editHistory.length; ii++) {
-					const markup = document.createElement("div"), timestamp = document.createElement("div");
-					markup.className = "markup";
-					markup.style = "opacity:0.5";
-					markup.innerHTML = this.formatMarkup(messages[i].editHistory[ii].content, messages[i].channel);
-					timestamp.className = "markup ml-edit-timestamp";
-					timestamp.innerText = messages[i].editHistory[ii].editedAt;
-					markup.appendChild(timestamp);
-					message.appendChild(markup);
+				const filename = e.target.src.substring(e.target.src.lastIndexOf("/") + 1, e.target.src.lastIndexOf("?") == -1 ? e.target.src.length : e.target.src.lastIndexOf("?"));
+
+				items.push(NeatoLib.ContextMenu.createItem(filename));
+
+				items.push(NeatoLib.ContextMenu.createItem("Save To Folder", () => {
+					NeatoLib.browseForFile(folder => {
+						NeatoLib.downloadFile(e.target.src, folder.path, filename);
+					}, { directory : true });
+				}));
+
+			}
+
+			if(e.target.classList.contains("markup")) {
+
+				if(messageID) {
+
+					if(channel && this.getMessage(channel.id, messages[i].message.id)) {
+						items.push(NeatoLib.ContextMenu.createItem("Jump To", () => {
+							this.transitionTo(`/channels/${messages[i].message.guild_id}/${messages[i].message.channel_id}?jump=${messages[i].message.id}`);
+							$backdrop.click();
+							this.getContextMenu().style.display = "none";
+						}));
+					}
+
+					items.push(NeatoLib.ContextMenu.createItem("Remove From Log", () => {
+						let messageA;
+						if(type == "sent") messageA = this.messageRecord;
+						if(type == "edited") messageA = this.editedMessageRecord;
+						if(type == "deleted" || type == "ghostpings") messageA = this.deletedMessageRecord;
+						if(type == "purged") messageA = this.purgedMessageRecord;
+						let ii = messageA.findIndex(x => x.message.id == messageID);
+						if(ii != -1) messageA.splice(ii, 1);
+						this.saveData();
+						NeatoLib.ContextMenu.close();
+						this.openWindow(type, curCap);
+					}));
+
 				}
 
-				const markup = document.createElement("div");
-				markup.className = "markup";
-				markup.dataset.messageId = messages[i].message.id;
-				markup.innerHTML = this.formatMarkup(messages[i].message.content, messages[i].channel);
-				message.appendChild(markup);
-
-				for(let ii = 0; ii < messages[i].message.attachments.length; ii++) {
-					const img = document.createElement("img");
-					img.src = messages[i].message.attachments[ii].url;
-					img.width = Math.clamp(messages[i].message.attachments[ii].width, 200, 650);
-					accessory.appendChild(img);
-				}
+				items.push(NeatoLib.ContextMenu.createItem("Copy Text", () => {
+					this.electron.clipboard.writeText(messages[i].message.content);
+					this.getContextMenu().style.display = "none";
+					NeatoLib.showToast("Text copied to clipboard!", "success");
+				}));
 
 				return;
 
 			}
+				
+			if(items.length) NeatoLib.ContextMenu.create(items, e);
 
-			lastMessage = messages[i].message;
+			if(items.length || !user || !channel) return;
 
-			group = this.messageGroupItem(messages[i], type);
+			this.openUserContextMenu(e, user, channel);
+			
+			document.getElementsByClassName(this.classes.item)[0].addEventListener("click", () => backdrop.click());
 
-			group.oncontextmenu = e => {
+		};
 
-				e.preventDefault();
+		let lastMessage, group;
 
-				const user = this.getUser(messages[i].message.author.id), channel = this.getChannel(messages[i].message.channel_id), items = [], messageID = e.target.getAttribute("data-message-id");
+		const populate = i => {
 
-				if(e.target.tagName == "IMG") {
+			try {
+				
+				if(!messages[i].message.author) return;
 
-					const filename = e.target.src.substring(e.target.src.lastIndexOf("/") + 1, e.target.src.lastIndexOf("?") == -1 ? e.target.src.length : e.target.src.lastIndexOf("?"));
+				if(lastMessage && lastMessage.author.id == messages[i].message.author.id && lastMessage.channel_id == messages[i].message.channel_id) {
 
-					items.push(NeatoLib.ContextMenu.createItem(filename));
+					const message = group.getElementsByClassName("message-text")[0], accessory = group.getElementsByClassName("accessory")[0];
 
-					items.push(NeatoLib.ContextMenu.createItem("Save To Folder", () => {
-						NeatoLib.browseForFile(folder => {
-							NeatoLib.downloadFile(e.target.src, folder.path, filename);
-						}, { directory : true });
-					}));
-
-				}
-
-				if(e.target.classList.contains("markup")) {
-
-					if(messageID) {
-
-						if(channel && this.getMessage(channel.id, messages[i].message.id)) {
-							items.push(NeatoLib.ContextMenu.createItem("Jump To", () => {
-								this.transitionTo(`/channels/${messages[i].message.guild_id}/${messages[i].message.channel_id}?jump=${messages[i].message.id}`);
-								$backdrop.click();
-								this.getContextMenu().style.display = "none";
-							}));
-						}
-
-						items.push(NeatoLib.ContextMenu.createItem("Remove From Log", () => {
-							let messageA;
-							if(type == "sent") messageA = this.messageRecord;
-							if(type == "edited") messageA = this.editedMessageRecord;
-							if(type == "deleted" || type == "ghostpings") messageA = this.deletedMessageRecord;
-							if(type == "purged") messageA = this.purgedMessageRecord;
-							let ii = messageA.findIndex(x => x.message.id == messageID);
-							if(ii != -1) messageA.splice(ii, 1);
-							this.saveData();
-							NeatoLib.ContextMenu.close();
-							this.openWindow(type, curCap);
-						}));
-
+					if(messages[i].editHistory != undefined) for(let ii = 0; ii < messages[i].editHistory.length; ii++) {
+						const markup = document.createElement("div"), timestamp = document.createElement("div");
+						markup.className = "markup";
+						markup.style = "opacity:0.5";
+						markup.innerHTML = this.formatMarkup(messages[i].editHistory[ii].content, messages[i].channel);
+						timestamp.className = "markup ml-edit-timestamp";
+						timestamp.innerText = messages[i].editHistory[ii].editedAt;
+						markup.appendChild(timestamp);
+						message.appendChild(markup);
 					}
 
-					items.push(NeatoLib.ContextMenu.createItem("Copy Text", () => {
-						this.electron.clipboard.writeText(messages[i].message.content);
-						this.getContextMenu().style.display = "none";
-						NeatoLib.showToast("Text copied to clipboard!", "success");
-					}));
+					const markup = document.createElement("div");
+					markup.className = "markup";
+					markup.dataset.messageId = messages[i].message.id;
+					markup.innerHTML = this.formatMarkup(messages[i].message.content, messages[i].channel);
+					message.appendChild(markup);
+
+					for(let ii = 0; ii < messages[i].message.attachments.length; ii++) {
+						const img = document.createElement("img");
+						img.src = messages[i].message.attachments[ii].url;
+						img.width = Math.clamp(messages[i].message.attachments[ii].width, 200, 650);
+						accessory.appendChild(img);
+					}
 
 					return;
 
 				}
-					
-				if(items.length) NeatoLib.ContextMenu.create(items, e);
 
-				if(items.length || !user || !channel) return;
+				lastMessage = messages[i].message;
 
-				this.openUserContextMenu(e, user, channel);
-				
-				document.getElementsByClassName(this.classes.item)[0].addEventListener("click", () => backdrop.click());
+				group = this.messageGroupItem(messages[i], type);
 
-			};
+				group.addEventListener("contextmenu", e => onGroupContext(e, i));
 
-			scroller.appendChild(group);
+				scroller.appendChild(group);
+
+			} catch(err) { console.error(err); }
 
 		};
 
@@ -1066,7 +1083,7 @@ class MessageLogger {
 			</div>`);
 
 			document.getElementById("ml-load-more-button").onclick = () => {
-				this.openWindow(type, curCap + this.settings.renderCap);
+				this.openWindow(type, parseInt(curCap) + parseInt(this.settings.renderCap));
 			};
 
 		}
@@ -1191,7 +1208,7 @@ class MessageLogger {
 	}
 
 	getAvatarOf(user) {
-		return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+		return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
 	}
 
 	onChannelContext(channel) {
@@ -1297,6 +1314,7 @@ class MessageLogger {
 	stop() {
 
 		this.unpatchDispatch();
+		this.unpatchEdit();
 
 		for(let i = 0; i < this.prevented.length; i++) this.prevented[i]();
 		

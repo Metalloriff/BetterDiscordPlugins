@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.12.7"; }
+	getVersion() { return "1.12.8"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -424,7 +424,8 @@ class MessageLogger {
 
 			if(e.target.parentElement.classList.contains("message-text")) return this.onMessageContext();
 
-			let channel = NeatoLib.ReactData.getProp(e.target, "channel");
+			const foundChannel = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.Modules.get("wrapperDefaultText").wrapper);
+			let channel = foundChannel ? NeatoLib.ReactData.getProp(foundChannel.parentElement, "channel") : null;
 			if(!channel) {
 				const privateChannel = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private");
 				if(privateChannel) channel = NeatoLib.Modules.get("getChannel").getChannel(privateChannel.firstChild.href.match(/\d+/)[0]);
@@ -784,7 +785,7 @@ class MessageLogger {
 
 	updateMessages() {
 
-		const messages = document.getElementsByClassName("markup"), channel = this.selectedChannel;
+		const groups = document.getElementsByClassName("chat")[0].getElementsByClassName("message-group"), channel = this.selectedChannel;
 
 		const onClickEditedTag = e => {
 
@@ -799,30 +800,40 @@ class MessageLogger {
 
 		if(!channel) return;
 
-		for(let i = messages.length - 1; i > -1; i--) {
+		for(let g = 0; g < groups.length; g++) {
 
-			const id = NeatoLib.ReactData.getProp(messages[i], "message.id"), message = NeatoLib.DOM.searchForParentElementByClassName(messages[i], "message");
+			const messages = NeatoLib.ReactData.getProp(groups[g], "messages");
 
-			if(this.deletedChatMessages[channel.id] && this.deletedChatMessages[channel.id][id]) {
-				message.classList.add("ml-deleted");
-				NeatoLib.Tooltip.attach("Deleted at " + this.deletedChatMessages[channel.id][id].split(",")[0], message, { side : "left" });
-			}
+			if(!messages) continue;
 
-			if(this.editedChatMessages[channel.id] && this.editedChatMessages[channel.id][id]) {
+			for(let i = 0; i < messages.length; i++) {
 
-				while(messages[i].getElementsByClassName("markup").length) messages[i].getElementsByClassName("markup")[0].remove();
+				const id = messages[i].id, message = groups[g].lastChild.getElementsByClassName("message")[i], markup = message ? message.getElementsByClassName("markup")[0] : null;
 
-				messages[i].classList.add("ml-edited");
+				if(!id || !markup) return
 
-				const edit = this.editedChatMessages[channel.id][id];
-
-				for(let e = 0; e < edit.length; e++) {
-					if(!messages[i].getElementsByClassName("edited").length) messages[i].insertAdjacentHTML("beforeend", `<span class="edited">(edited)</span>`);
-					messages[i].lastElementChild.addEventListener("click", onClickEditedTag);
-					messages[i].insertAdjacentHTML("beforeend", `<div class="markup ml-edited">${this.formatMarkup(edit[e].message, channel)}</div>`);
-					NeatoLib.Tooltip.attach("Edited at " + edit[e].timestamp.split(",")[0], messages[i].lastElementChild, { side : "left" });
+				if(this.deletedChatMessages[channel.id] && this.deletedChatMessages[channel.id][id]) {
+					message.classList.add("ml-deleted");
+					NeatoLib.Tooltip.attach("Deleted at " + this.deletedChatMessages[channel.id][id].split(",")[0], message, { side : "left" });
 				}
-				
+
+				if(this.editedChatMessages[channel.id] && this.editedChatMessages[channel.id][id]) {
+
+					while(markup.getElementsByClassName("markup").length) markup.getElementsByClassName("markup")[0].remove();
+
+					markup.classList.add("ml-edited");
+
+					const edit = this.editedChatMessages[channel.id][id];
+
+					for(let e = 0; e < edit.length; e++) {
+						if(!markup.getElementsByClassName("edited").length) markup.insertAdjacentHTML("beforeend", `<span class="edited">(edited)</span>`);
+						markup.lastElementChild.addEventListener("click", onClickEditedTag);
+						markup.insertAdjacentHTML("beforeend", `<div class="markup ml-edited">${this.formatMarkup(edit[e].message, channel)}</div>`);
+						NeatoLib.Tooltip.attach("Edited at " + edit[e].timestamp.split(",")[0], markup.lastElementChild, { side : "left" });
+					}
+
+				}
+
 			}
 
 		}

@@ -1,10 +1,10 @@
-//META{"name":"UnreadCountBadges","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UnreadCountBadges.plugin.js"}*//
+//META{"name":"UnreadCountBadges","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UnreadCountBadges.plugin.js"}*//
 
 class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.1.2"; }
+    getVersion() { return "0.2.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -16,6 +16,10 @@ class UnreadCountBadges {
 			"0.1.2":
 			`
 				The last update was a lie, it was far from more accurate. Fixed that.
+			`,
+			"0.2.2":
+			`
+				Discord broke it, I fixed it, that is all.
 			`
 		};
 	}
@@ -94,7 +98,7 @@ class UnreadCountBadges {
 
             for(let example of document.getElementsByClassName("containerDefault-1ZnADq ucb-ex")) {
 
-                let wrapper = example.getElementsByClassName("wrapper-KpKNwI")[0],
+                const wrapper = example.getElementsByClassName("wrapper-KpKNwI")[0],
                 content = example.getElementsByClassName("content-20Aix8")[0],
                 text = example.getElementsByClassName("overflowEllipsis-jeThUf")[0];
 
@@ -184,21 +188,31 @@ class UnreadCountBadges {
 
         NeatoLib.Events.attach("switch", this.switchEvent);
 
-        NeatoLib.patchInternalFunction("handleMessage", data => {
+        this.unpatchHandleMessage = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get("handleMessage"), "handleMessage", e => {
 
-            if(data.type == "MESSAGE_CREATE" && data.message) {
+			try {
 
-                if(!this.unreads[data.message.guild_id]) this.unreads[data.message.guild_id] = { total : 0 };
+				const data = e.args[0];
 
-                if(!this.muteModule.isGuildOrCategoryOrChannelMuted(data.message.guild_id, data.message.channel_id) || !this.settings.ignoreMutedGuilds) this.unreads[data.message.guild_id].total++;
+				if(data.type == "MESSAGE_CREATE" && data.message) {
 
-                if(!this.unreads[data.message.guild_id][data.message.channel_id]) this.unreads[data.message.guild_id][data.message.channel_id] = 0;
+					if(!this.unreads[data.message.guild_id]) this.unreads[data.message.guild_id] = { total : 0 };
 
-                this.unreads[data.message.guild_id][data.message.channel_id]++;
+					if(!this.muteModule.isGuildOrCategoryOrChannelMuted(data.message.guild_id, data.message.channel_id) || !this.settings.ignoreMutedGuilds) this.unreads[data.message.guild_id].total++;
 
-                this.updateBadges(data.message.guild_id);
+					if(!this.unreads[data.message.guild_id][data.message.channel_id]) this.unreads[data.message.guild_id][data.message.channel_id] = 0;
 
-            }
+					this.unreads[data.message.guild_id][data.message.channel_id]++;
+
+					this.updateBadges(data.message.guild_id);
+
+				}
+
+			} catch(err) {
+				console.error(err);
+			} finally {
+				return e.callDefault();
+			}
 
         }, this.getName());
 		
@@ -217,10 +231,10 @@ class UnreadCountBadges {
                 bottom: 35px;
                 background-color: ${this.settings.badgeColor};
             }
-            #app-mount .flex-1xMQg5 .iconSpacing-3JkGQO .unread-count-channel-badge {
+            #app-mount .unread-count-channel-badge {
                 background-color: ${this.settings.badgeColor};
             }
-            .wrapperMutedText-1YBpvv .unread-count-channel-badge {
+            .${NeatoLib.Modules.get("wrapperMutedText").wrapperMutedText.split(" ").join(".")} .unread-count-channel-badge {
                 opacity: ${this.settings.mutedChannelBadgeOpacity};
             }
         `);
@@ -229,37 +243,37 @@ class UnreadCountBadges {
 
     updateBadges(guild) {
 
-        let guilds = !guild ? this.guildModule.getGuilds() : undefined, selectedGuild = NeatoLib.getSelectedGuild();
+        const guilds = !guild ? this.guildModule.getGuilds() : undefined, selectedGuild = NeatoLib.getSelectedGuild();
 
-        let updateUnreadFor = id => {
+        const updateUnreadFor = id => {
 
             if(!this.unreads[id]) return;
 
             if(selectedGuild && selectedGuild.id == id) {
 
-                let channels = document.getElementsByClassName("wrapper-KpKNwI");
+				const classes = NeatoLib.Modules.get("wrapperDefaultText"), channels = document.getElementsByClassName(classes.wrapper);
 
                 for(let i = 0; i < channels.length; i++) {
 
-                    let props = NeatoLib.ReactData.getProps(channels[i]);
+                    const cid = NeatoLib.ReactData.getProp(channels[i].parentElement, "channel.id");
 
-                    if(!props) continue;
+                    if(!cid) continue;
 
-                    if(this.unreads[id][props.channel.id] > 0 && this.unreadModule.getUnreadCount(props.channel.id) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, props.channel.id) || !this.settings.ignoreMutedGuilds)) {
-                        this.unreads[id].total -= this.unreads[id][props.channel.id];
+                    if(this.unreads[id][cid] > 0 && this.unreadModule.getUnreadCount(cid) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, cid) || !this.settings.ignoreMutedGuilds)) {
+                        this.unreads[id].total -= this.unreads[id][cid];
                         if(this.unreads[id].total < 0) this.unreads[id].total = 0;
-						this.unreads[id][props.channel.id] = 0;
+						this.unreads[id][cid] = 0;
                     }
 
-                    if(this.unreads[id][props.channel.id] > 0) {
+                    if(this.unreads[id][cid] > 0) {
 
-                        if(this.channelBadges[props.channel.id]) this.channelBadges[props.channel.id].firstChild.innerText = this.unreads[id][props.channel.id];
-                        else this.channelBadges[props.channel.id] = channels[i].getElementsByClassName("flex-1xMQg5")[0].appendChild(this.createChannelBadge(this.unreads[id][props.channel.id]));
+                        if(this.channelBadges[cid]) this.channelBadges[cid].firstChild.innerText = this.unreads[id][cid];
+                        else this.channelBadges[cid] = channels[i].getElementsByClassName(classes.content)[0].lastChild.appendChild(this.createChannelBadge(this.unreads[id][cid]));
 
-                    } else if(this.channelBadges[props.channel.id]) {
+                    } else if(this.channelBadges[cid]) {
 
-                        this.channelBadges[props.channel.id].remove();
-                        delete this.channelBadges[props.channel.id];
+                        this.channelBadges[cid].remove();
+                        delete this.channelBadges[cid];
                         
                     }
 
@@ -294,7 +308,7 @@ class UnreadCountBadges {
 
     createBadge(unreadCount) {
 
-        let badge = document.createElement("div");
+        const badge = document.createElement("div");
 
         badge.classList.add("badge", "unread-count-badge");
         badge.innerText = unreadCount;
@@ -305,11 +319,11 @@ class UnreadCountBadges {
 
     createChannelBadge(unreadCount) {
 
-        let badge = document.createElement("div");
+        const badge = document.createElement("div");
 
-        badge.classList.add("iconSpacing-3JkGQO");
+        badge.classList.add(NeatoLib.Modules.get("containerDragAfter").iconSpacing.split(" "));
 
-        badge.innerHTML = `<div class="wrapper-232cHJ unread-count-channel-badge">${unreadCount}</div>`;
+        badge.innerHTML = `<div class="${NeatoLib.Modules.req.c[1724].exports.wrapper}" unread-count-channel-badge">${unreadCount}</div>`;
 
         return badge;
 
@@ -317,7 +331,7 @@ class UnreadCountBadges {
 	
     stop() {
 
-        let css = document.getElementById("uc-css");
+        const css = document.getElementById("uc-css");
         if(css) css.remove();
 
         NeatoLib.Events.detach("switch", this.switchEvent);

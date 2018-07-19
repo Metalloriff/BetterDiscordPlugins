@@ -1721,6 +1721,8 @@ var NeatoLib = {
 
 	downloadFile : async function(url, path, filename, onCompleted) {
 
+		filename = filename.split("?")[0];
+
 		const def = [url, path, filename, onCompleted];
 
 		let progressToast, id = path.replace(/[^a-z0-9]/g, "");

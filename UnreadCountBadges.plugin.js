@@ -4,7 +4,7 @@ class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.2.2"; }
+    getVersion() { return "0.2.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -323,7 +323,7 @@ class UnreadCountBadges {
 
         badge.classList.add(NeatoLib.Modules.get("containerDragAfter").iconSpacing.split(" "));
 
-        badge.innerHTML = `<div class="${NeatoLib.Modules.req.c[1724].exports.wrapper}" unread-count-channel-badge">${unreadCount}</div>`;
+        badge.innerHTML = `<div class="${NeatoLib.Modules.req.c[1724].exports.wrapper} unread-count-channel-badge">${unreadCount}</div>`;
 
         return badge;
 

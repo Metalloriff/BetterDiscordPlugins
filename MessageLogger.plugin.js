@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.12.9"; }
+	getVersion() { return "1.12.10"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -859,7 +859,7 @@ class MessageLogger {
 
 	formatMarkup(content, channel) {
 
-		let markup = content.replace(/(https?:\/\/[^\s]+)/g, `<a class="anchor-3Z-8Bb" href="$&">$&</a>`);
+		let markup = content.replace(/<[^>]+>/g, "").replace(/(https?:\/\/[^\s]+)/g, `<a class="anchor-3Z-8Bb" href="$&">$&</a>`);
 
 		try {
 

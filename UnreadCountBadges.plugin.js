@@ -4,7 +4,7 @@ class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.2.3"; }
+    getVersion() { return "0.2.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -121,10 +121,11 @@ class UnreadCountBadges {
             }
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Muted channel badge opacity", this.settings.mutedChannelBadgeOpacity, e => {
+				if(isNaN(e.target.value)) return NeatoLib.showToast("Value must be a number", "error");
                 this.settings.mutedChannelBadgeOpacity = e.target.value;
                 this.applySettings();
                 this.saveSettings();
-            }, { type : "number" }), this.getName());
+            }), this.getName());
 			
 			NeatoLib.Settings.pushChangelogElements(this);
 
@@ -323,7 +324,7 @@ class UnreadCountBadges {
 
         badge.classList.add(NeatoLib.Modules.get("containerDragAfter").iconSpacing.split(" "));
 
-        badge.innerHTML = `<div class="${NeatoLib.Modules.req.c[1724].exports.wrapper} unread-count-channel-badge">${unreadCount}</div>`;
+        badge.innerHTML = `<div class="wrapper-232cHJ unread-count-channel-badge">${unreadCount}</div>`;
 
         return badge;
 
@@ -339,9 +340,9 @@ class UnreadCountBadges {
         this.styles.destroy();
 
         for(let id in this.badges) this.badges[id].remove();
-        for(let id in this.channelBadges) this.channelBadges[id].remove();
-
-        NeatoLib.unpatchInternalFunction("handleMessage", this.getName());
+		for(let id in this.channelBadges) this.channelBadges[id].remove();
+		
+		this.unpatchHandleMessage();
 
         clearInterval(this.checkForBottomUpdate);
 

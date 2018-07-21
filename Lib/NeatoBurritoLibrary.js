@@ -2018,7 +2018,7 @@ var NeatoLib = {
 
 		if(!document.getElementsByClassName("toasts").length) {
 			
-			const container = document.getElementsByClassName("chat")[0],
+			const container = document.getElementsByClassName(NeatoLib.Modules.get("channels").channels)[0].nextSibling,
 			memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 			form = container ? container.getElementsByTagName("form")[0] : undefined,
 			left = container ? container.getBoundingClientRect().left : 310,

@@ -4,7 +4,7 @@ class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.2.4"; }
+    getVersion() { return "0.2.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -20,6 +20,12 @@ class UnreadCountBadges {
 			"0.2.2":
 			`
 				Discord broke it, I fixed it, that is all.
+			`,
+			"0.2.5":
+			`
+				Fixed channel unread styles.
+				Fixed muted channels never being read.
+				Fixed the muted channel opacity setting.
 			`
 		};
 	}
@@ -260,7 +266,7 @@ class UnreadCountBadges {
 
                     if(!cid) continue;
 
-                    if(this.unreads[id][cid] > 0 && this.unreadModule.getUnreadCount(cid) == 0 && (!this.muteModule.isGuildOrCategoryOrChannelMuted(id, cid) || !this.settings.ignoreMutedGuilds)) {
+                    if(this.unreads[id][cid] > 0 && this.unreadModule.getUnreadCount(cid) == 0) {
                         this.unreads[id].total -= this.unreads[id][cid];
                         if(this.unreads[id].total < 0) this.unreads[id].total = 0;
 						this.unreads[id][cid] = 0;

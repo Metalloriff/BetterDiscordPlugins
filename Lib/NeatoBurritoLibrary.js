@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version : "0.4.19",
+	version : "0.5.19",
 
 	parseVersion : function(version) {
 
@@ -30,11 +30,6 @@ var NeatoLib = {
 				let req = require("request"), vm = require("vm");
 
 				setTimeout(() => {
-
-					let libLoadedEvent = () => {
-						try{ this.onLibLoaded(); }
-						catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-					};
 			
 					req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
 
@@ -1809,6 +1804,10 @@ var NeatoLib = {
 
 	},
 
+	getClass : function(moduleName, className = moduleName, index = 0) {
+		return NeatoLib.Modules.get(moduleName)[className].split(" ")[index];
+	},
+
 	getClasses : function(classes, returnAll = true) {
 
 		var found = {};
@@ -2234,7 +2233,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if(added.classList.contains("messages-wrapper") || added.getElementsByClassName("messages-wrapper")[0] != undefined) call("switch");
 
-		if((added.classList.contains("message") && !added.classList.contains("message-sending")) || added.classList.contains("message-group")) call("message");
+		if((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.classList.contains("message-sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
 
 	}
 

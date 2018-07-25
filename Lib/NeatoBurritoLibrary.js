@@ -1107,9 +1107,10 @@ var NeatoLib = {
 		},
 
 		get : function(props) {
+			const cacheKey = typeof props == "string" ? props : props.join(",");
 			if(!this.cached) this.cached = {};
-			if(!this.cached[props]) this.cached[props] = typeof(props) == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
-			return this.cached[props];
+			if(!this.cached[cacheKey]) this.cached[cacheKey] = typeof props == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
+			return this.cached[cacheKey];
 		},
 
 		getById : function(id) {

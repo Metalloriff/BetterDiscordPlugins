@@ -1,10 +1,10 @@
-//META{"name":"BetterEmoteSizes"}*//
+//META{"name":"BetterEmoteSizes","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/BetterEmoteSizes.plugin.js"}*//
 
 class BetterEmoteSizes {
 	
     getName() { return "Emote Zoom"; }
     getDescription() { return "Increases the size of emojis, emotes, and reactions upon hovering over them and allows you to change their default sizes."; }
-    getVersion() { return "2.3.10"; }
+    getVersion() { return "2.3.11"; }
     getAuthor() { return "Metalloriff"; }
 	
 	getSettingsPanel(){
@@ -93,15 +93,16 @@ class BetterEmoteSizes {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 	
@@ -124,6 +125,8 @@ class BetterEmoteSizes {
 
 		NeatoLib.Updates.check(this);
 
+		if(!NeatoLib.hasRequiredLibVersion(this, "0.5.19")) return;
+
 		this.update();
 
 		NeatoLib.Events.onPluginLoaded(this);
@@ -132,23 +135,25 @@ class BetterEmoteSizes {
 	
 	update(){
 
+		const markup = NeatoLib.getClass("markup"), messageGroup = NeatoLib.getClass("containerCozy", "container"), message = NeatoLib.getClass("messageCozy", "message");
+
 		if(this.style) this.style.destroy();
-		this.style = NeatoLib.injectCSS(".message-group.hide-overflow { overflow: visible; }");
+		this.style = NeatoLib.injectCSS(`.${messageGroup} { overflow: visible; }`);
 		
 		if(this.settings.alterSmall) {
 			this.style.append(`
-				#app-mount .markup > .emoji:not(.jumboable) {
+				#app-mount .${markup} > .emoji:not(.jumboable) {
 					width: ${this.settings.smallSize}px;
 					height: ${this.settings.smallSize}px;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
 				}
-				#app-mount .markup > .emoji:not(.jumboable):hover {
+				#app-mount .${markup} > .emoji:not(.jumboable):hover {
 					transform: scale(${this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
 				}
-				#app-mount .comment:last-child .markup .emoji:not(.jumboable):hover {
+				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markup} .emoji:not(.jumboable):hover {
 					transform: scale(${this.settings.hoverSize}) translateY(-35%);
 				}
 			`);
@@ -156,18 +161,18 @@ class BetterEmoteSizes {
 
 		if(this.settings.alterLarge) {
 			this.style.append(`
-				#app-mount .markup > .emoji.jumboable {
+				#app-mount .${markup} > .emoji.jumboable {
 					width: ${this.settings.largeSize}px;
 					height: ${this.settings.largeSize}px;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
 				}
-				#app-mount .markup > .emoji.jumboable:hover {
+				#app-mount .${markup} > .emoji.jumboable:hover {
 					transform: scale(${this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
 				}
-				#app-mount .comment:last-child .markup .emoji.jumboable:hover {
+				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markup} .emoji.jumboable:hover {
 					transform: scale(${this.settings.hoverSize}) translateY(-35%);
 				}
 			`);
@@ -187,7 +192,7 @@ class BetterEmoteSizes {
 					position: relative;
 					z-index: 1;
 				}
-				#app-mount .comment:last-child .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):hover {
+				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):hover {
 					transform: scale(${this.settings.hoverSize}) translateY(-35%);
 				}
 			`);

@@ -123,7 +123,7 @@ class BetterEmoteSizes {
 			reactionHoverSize : 2
 		});
 
-		NeatoLib.Updates.check(this);
+		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/BetterEmoteSizes.plugin.js");
 
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.5.19")) return;
 

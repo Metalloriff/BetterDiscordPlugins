@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 	
     getName() { return "DetailedServerTooltips"; }
     getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-    getVersion() { return "0.2.3"; }
+    getVersion() { return "0.2.4"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -196,7 +196,7 @@ class DetailedServerTooltips {
         this.switchEvent = () => this.applyToGuilds();
 
         this.guildObserver = new MutationObserver(this.switchEvent);
-        this.guildObserver.observe(document.getElementsByClassName("guilds-wrapper")[0], { childList : true, subtree : true });
+        this.guildObserver.observe(document.getElementsByClassName(NeatoLib.getClass("guilds"))[0], { childList : true, subtree : true });
 
         NeatoLib.Events.attach("switch", this.switchEvent);
         
@@ -208,7 +208,7 @@ class DetailedServerTooltips {
     
     applyToGuilds(detach) {
 
-        let guilds = document.getElementsByClassName("guild-icon");
+        const guilds = document.getElementsByClassName(NeatoLib.getClass("guildIcon"));
 
         for(let i = 0; i < guilds.length; i++) {
 
@@ -251,7 +251,7 @@ class DetailedServerTooltips {
 
         if(!guildId || !element) return;
 
-        let tooltip = document.createElement("div"), guild = this.guildModule.getGuild(guildId), owner = this.userModule.getUser(guild.ownerId);
+        const tooltip = document.createElement("div"), guild = this.guildModule.getGuild(guildId), owner = this.userModule.getUser(guild.ownerId);
 
         tooltip.className = "tooltip tooltip-right dst-tooltip";
 
@@ -276,7 +276,7 @@ class DetailedServerTooltips {
 
         this.memberCounts[guildId] = this.memberModule.getMembers(guildId).length;
 
-        let self = setInterval(() => {
+        const self = setInterval(() => {
             if(!document.getElementsByClassName("tooltips")[0].contains(tooltip)) return clearInterval(self);
             this.memberCounts[guildId] = this.memberModule.getMembers(guildId).length;
             document.getElementById("dst-tooltip-owner-label").innerText = "Owner: " + (owner ? owner.tag : "unknown");

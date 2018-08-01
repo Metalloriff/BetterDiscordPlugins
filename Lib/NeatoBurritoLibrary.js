@@ -2260,7 +2260,6 @@ NeatoLib.getSelectedServer = NeatoLib.getSelectedGuild;
 NeatoLib.getSelectedServerId = NeatoLib.getSelectedGuildId;
 
 if(window.neatoStyles) window.neatoStyles.destroy();
-
 window.neatoStyles = NeatoLib.injectCSS(`
 
 	.toast.has-prog-bar {
@@ -2293,5 +2292,11 @@ window.neatoStyles = NeatoLib.injectCSS(`
 		transition: all 0.3s;
 		overflow: hidden;
 	}
+
+	/* Below is CSS from Zere's PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js */
+
+	#pluginNotice {-webkit-app-region: drag;border-radius:0;} #outdatedPlugins {font-weight:700;} #outdatedPlugins>span {-webkit-app-region: no-drag;color:#fff;cursor:pointer;} #outdatedPlugins>span:hover {text-decoration:underline;}
+
+	.toasts{position:fixed;display:flex;top:0;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;z-index:4000}@keyframes toast-up{from{transform:translateY(0);opacity:0}}.toast{animation:toast-up .3s ease;transform:translateY(-10px);background:#36393F;padding:10px;border-radius:5px;box-shadow:0 0 0 1px rgba(32,34,37,.6),0 2px 10px 0 rgba(0,0,0,.2);font-weight:500;color:#fff;user-select:text;font-size:14px;opacity:1;margin-top:10px}@keyframes toast-down{to{transform:translateY(0);opacity:0}}.toast.closing{animation:toast-down .2s ease;animation-fill-mode:forwards;opacity:1;transform:translateY(-10px)}.toast.icon{padding-left:30px;background-size:20px 20px;background-repeat:no-repeat;background-position:6px 50%}.toast.toast-info{background-color:#4a90e2}.toast.toast-info.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMSAxNWgtMnYtNmgydjZ6bTAtOGgtMlY3aDJ2MnoiLz48L3N2Zz4=)}.toast.toast-success{background-color:#43b581}.toast.toast-success.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy41OS03LjU5TDE5IDhsLTkgOXoiLz48L3N2Zz4=)}.toast.toast-danger,.toast.toast-error{background-color:#f04747}.toast.toast-danger.icon,.toast.toast-error.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTlMMTUuNTkgMTcgMTIgMTMuNDEgOC40MSAxNyA3IDE1LjU5IDEwLjU5IDEyIDcgOC40MSA4LjQxIDcgMTIgMTAuNTkgMTUuNTkgNyAxNyA4LjQxIDEzLjQxIDEyIDE3IDE1LjU5eiIvPiAgICA8cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PC9zdmc+)}.toast.toast-warn,.toast.toast-warning{background-color:#FFA600;color:#fff}.toast.toast-warn.icon,.toast.toast-warning.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMSAyMWgyMkwxMiAyIDEgMjF6bTEyLTNoLTJ2LTJoMnYyem0wLTRoLTJ2LTRoMnY0eiIvPjwvc3ZnPg==)}
 	
 `);

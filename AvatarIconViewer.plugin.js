@@ -4,7 +4,7 @@ class AvatarIconViewer {
 	
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.18"; }
+	getVersion() { return "0.5.19"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -65,7 +65,7 @@ class AvatarIconViewer {
 
 		const getAvatar = () => {
 
-			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group")),
+			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.Modules.get("containerCozy").container.split(" ").join(""))),
 			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.reactor)),
 			dmElement = NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "private"),
 			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length ? dmElement.getElementsByClassName("avatar-small")[1].style.backgroundImage : null;
@@ -88,7 +88,7 @@ class AvatarIconViewer {
 		
 		getServerIcon = () => {
 
-			if(!e.target.classList.contains("guild-icon") && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains(this.classes.iconSizeSmall) && !e.target.classList.contains(this.classes.listAvatar)) return null;
+			if(!e.target.classList.contains(NeatoLib.getClass("guildIcon")) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains(this.classes.iconSizeSmall) && !e.target.classList.contains(this.classes.listAvatar)) return null;
 
 			let iconBackground = e.target.style.backgroundImage;
 

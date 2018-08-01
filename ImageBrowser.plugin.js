@@ -4,11 +4,14 @@ class ImageBrowser {
 	
     getName() { return "ImageBrowser"; }
     getDescription() { return "Displays a next and previous button on image popouts for browsing through images in a channel."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.1.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+			"0.1.1":
+			`
+				You can now use the arrow keys to navigate through images.
+			`
 		};
 	}
 
@@ -98,9 +101,14 @@ class ImageBrowser {
 			
 		`);
 		
-		//if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
 		let images = [], selectedImage = -1, zoomLevel = 1;
+
+		document.addEventListener("keydown", this.keyDownEvent = e => {
+			if(e.key == "ArrowRight" && document.getElementById("ib-next-arrow")) document.getElementById("ib-next-arrow").click();
+			else if(e.key == "ArrowLeft" && document.getElementById("ib-prev-arrow")) document.getElementById("ib-prev-arrow").click();
+		});
 		
 		const selectImage = (wrapper, idx, initial) => {
 
@@ -223,6 +231,7 @@ class ImageBrowser {
     stop() {
 		this.mutationObserver.disconnect();
 		this.style.destroy();
+		document.removeEventListener("keydown", this.keyDownEvent);
 	}
 	
 }

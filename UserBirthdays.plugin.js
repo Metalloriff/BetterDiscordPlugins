@@ -4,7 +4,7 @@ class UserBirthdays {
 	
 	getName() { return "User Birthdays"; }
 	getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday."; }
-	getVersion() { return "1.0.5"; }
+	getVersion() { return "1.0.6"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -73,7 +73,7 @@ class UserBirthdays {
 
 				const uid = NeatoLib.ReactData.getProp(pop.getElementsByClassName("discriminator")[0], "user.id"), birthday = this.birthdays[uid];
 
-				if(!uid) return console.error(uid, "uid is null");
+				if(!uid) return;
 
 				NeatoLib.DOM.insertHTMLBefore(pop.getElementsByClassName(classes.footer)[0], `
 					<div class="body-3iLsc4 da-body">
@@ -96,11 +96,11 @@ class UserBirthdays {
 
 				pop = m[1].addedNodes[0];
 
-				if(pop.className.indexOf("modal") != -1) {
+				if(pop.className.indexOf("modal") != -1 && (popout.getElementsByClassName(NeatoLib.getClass("body")).length || popout.getElementsByClassName(NeatoLib.getClass("userInfoSection")).length)) {
 
 					const uid = NeatoLib.ReactData.getProp(pop.getElementsByClassName("discriminator")[0], "user.id"), birthday = this.birthdays[uid];
 
-					if(!uid) return console.error(uid, "uid is null");
+					if(!uid) return;
 					
 					NeatoLib.DOM.insertHTMLAtIndex(1, `
 						<div class="userInfoSection-2acyCx"><div class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Birthday</div><div class="note-3kmerW note-QfFU8y"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;">${birthday ? birthday.day : ""}</textarea></div></div>

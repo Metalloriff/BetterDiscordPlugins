@@ -1,10 +1,10 @@
-//META{"name":"SaveTo","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SaveTo.plugin.js"}*//
+//META{"name":"SaveTo","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SaveTo.plugin.js"}*//
 
 class SaveTo {
 	
 	getName() { return "Save To"; }
 	getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-	getVersion() { return "0.5.5"; }
+	getVersion() { return "0.5.6"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -267,15 +267,15 @@ class SaveTo {
 
 	onContextMenu(e) {
 
-		let member = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member), dm = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row"), messageGroup = NeatoLib.DOM.searchForParentElementByClassName(e.target, "message-group");
+		let member = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member), dm = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row"), messageGroup = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
 
-		if(e.target.localName != "a" && e.target.localName != "img" && e.target.localName != "video" && !member && !dm && !messageGroup) return;
+		if(e.target.localName != "a" && e.target.localName != "img" && e.target.localName != "video" && !member && !dm && !messageGroup && !e.target.className.includes("guildIcon")) return;
 
 		let saveLabel = "Save To", url = e.target.poster || e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf(`"`) + 1, e.target.style.backgroundImage.lastIndexOf(`"`)) || e.target.href || e.target.src, menu = [];
 
-		if(e.target.classList.contains("avatar-small")) saveLabel = "Save Icon To";
+		if(e.target.className.includes("guildIcon")) saveLabel = "Save Icon To";
 
-		if(!url || e.target.classList.contains("avatar-large")) {
+		if(!url || e.target.className.includes("large")) {
 
 			if(messageGroup) {
 
@@ -315,7 +315,7 @@ class SaveTo {
 
 		if(!url || e.target.classList.contains("emote") || url.includes("youtube.com/")) return;
 
-		if(url.indexOf("?") != -1) url = url.substring(0, url.lastIndexOf("?"));
+		url = url.split("?")[0];
 
 		if(saveLabel.includes("Avatar") || saveLabel.includes("Icon")) url += "?size=2048";
 

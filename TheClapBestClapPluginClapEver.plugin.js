@@ -4,7 +4,7 @@ class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
 	getDescription() { return `Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, "b:" for the good shit, and "owo:" for complete fucking cancer.`; }
-    getVersion() { return "0.4.4"; }
+    getVersion() { return "0.4.5"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -73,7 +73,10 @@ class TheClapBestClapPluginClapEver {
 
 				}
 
-				if(chatboxValue.startsWith("reverse:")) chatboxValue = chatboxValue.replace("reverse:", "").split("").reverse().join("");
+				if(chatboxValue.startsWith("reverse:")) {
+					chatboxValue = chatboxValue.replace("reverse:", "").split("").reverse().join("");
+					changed = true;
+				}
 
 				if(chatboxValue.startsWith("owo:")) {
 

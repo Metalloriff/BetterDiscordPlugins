@@ -472,7 +472,7 @@ class MessageLogger {
 
 		document.addEventListener("contextmenu", this.contextEvent = e => {
 
-			if(e.target.classList.contains("guild-icon")) return this.onGuildContext(e);
+			if(e.target.classList.contains(NeatoLib.getClass("guildIcon"))) return this.onGuildContext(e);
 
 			if(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("messageCozy", "message"))) return this.onMessageContext();
 

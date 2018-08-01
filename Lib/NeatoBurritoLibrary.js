@@ -1836,13 +1836,11 @@ var NeatoLib = {
 	},
 
 	getSelectedGuild : function() {
-		let selected = document.getElementsByClassName("guild selected");
-		return selected.length ? NeatoLib.Modules.Stores.Guilds.getGuild(NeatoLib.getSelectedGuildId()) : null;
+		return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getGuildId").getGuildId());
 	},
 
 	getSelectedGuildId : function() {
-		let selected = document.getElementsByClassName("guild selected");
-		return selected.length ? (selected[0].getElementsByTagName("a")[0].href.match(/\d+/) || [])[0] : null;
+		return NeatoLib.Modules.get("getGuildId").getGuildId();
 	},
 
 	getSelectedTextChannel : function() {

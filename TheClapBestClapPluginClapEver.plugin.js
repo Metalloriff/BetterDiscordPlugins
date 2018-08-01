@@ -1,42 +1,50 @@
-//META{"name":"TheClapBestClapPluginClapEver"}*//
+//META{"name":"TheClapBestClapPluginClapEver","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js"}*//
 
 class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
-	getDescription() { return `Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, and "owo:" for complete fucking cancer.`; }
-    getVersion() { return "0.4.2"; }
+	getDescription() { return `Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, "b:" for the good shit, and "owo:" for complete fucking cancer.`; }
+    getVersion() { return "0.4.3"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 
     start() {
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+
+        let libLoadedEvent = () => {
+            try{ this.onLibLoaded(); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+        };
+
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if(!lib) {
+			lib = document.createElement("script");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-		else libraryScript.addEventListener("load", () => { this.initialize(); });
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
+
 	}
 	
-	initialize(){
+	onLibLoaded() {
 
-		PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/TheClapBestClapPluginClapEver.plugin.js");
+		NeatoLib.Updates.check(this);
 
 		this.onChatInput = e => {
 
-			let chatbox = e.target;
+			const chatbox = e.target;
 
 			if(e.which == 13 && !e.shiftKey && chatbox.value){
 
-				let chatboxValue = chatbox.value.trim();
+				let chatboxValue = chatbox.value.trim(), changed = false;
 
 				if(chatboxValue.startsWith("clapclap") || chatboxValue.startsWith("superclapclap")){
 
-					let getClapClap = chatboxValue.substring(0, chatboxValue.indexOf(":") + 1), emote = "clap", definedEmote = getClapClap.substring(getClapClap.indexOf("(") + 1, getClapClap.indexOf(")"));
+					const getClapClap = chatboxValue.substring(0, chatboxValue.indexOf(":") + 1), emote = "clap", definedEmote = getClapClap.substring(getClapClap.indexOf("(") + 1, getClapClap.indexOf(")"));
 
 					if(definedEmote) emote = definedEmote;
 
@@ -45,12 +53,14 @@ class TheClapBestClapPluginClapEver {
 					chatboxValue = chatboxValue.replace(getClapClap, "").split(chatboxValue.startsWith("super") ? "" : " ").join(emote);
 
 					if(chatboxValue.startsWith(emote)) chatboxValue += emote;
+
+					changed = true;
 					
 				}
 
 				if(chatboxValue.startsWith("ra:")){
 
-					let alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", temp = chatboxValue.split(" ").join("\t");
+					const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", temp = chatboxValue.split(" ").join("\t");
 
 					for(let i = 0; i < alphabet.length; i++) temp = temp.replace("ra:", "").split(alphabet[i]).join("[a" + i + "]");
 					for(let i = 0; i < alphabet.length; i++) temp = temp.split("[a" + i + "]").join(":regional_indicator_" + alphabet[i].toLowerCase() + ": ");
@@ -59,13 +69,15 @@ class TheClapBestClapPluginClapEver {
 
 					chatboxValue = temp;
 
+					changed = true;
+
 				}
 
 				if(chatboxValue.startsWith("reverse:")) chatboxValue = chatboxValue.replace("reverse:", "").split("").reverse().join("");
 
 				if(chatboxValue.startsWith("owo:")) {
 
-					let cancer = ["owo", "OwO", "uwu", "UwU", ">w<", "^w^"];
+					const cancer = ["owo", "OwO", "uwu", "UwU", ">w<", "^w^"];
 
 					chatboxValue = chatboxValue.replace("owo:", "").trim();
 
@@ -75,10 +87,19 @@ class TheClapBestClapPluginClapEver {
 
 					if(chatbox.value == chatbox.value.toUpperCase()) chatboxValue = chatboxValue.toUpperCase();
 
+					changed = true;
+
+				}
+
+				if(chatboxValue.toLowerCase().startsWith("b:")) {
+					chatboxValue = chatboxValue.substring(2, chatboxValue.length).split("b").join(":b:");
+					changed = true;
 				}
 				
-				chatbox.select();
-				document.execCommand("insertText", false, chatboxValue);
+				if(changed) {
+					chatbox.select();
+					document.execCommand("insertText", false, chatboxValue);
+				}
 
 			}
 
@@ -86,22 +107,18 @@ class TheClapBestClapPluginClapEver {
 
 		this.onSwitch();
 
+		NeatoLib.Events.onPluginLoaded(this);
+
 	}
 	
-	onSwitch(){
-		
-		let chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
-
+	onSwitch() {
+		const chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
 		if(chatbox) chatbox.addEventListener("keydown", this.onChatInput);
-
 	}
 	
     stop() {
-		
-		let chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
-
+		const chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
 		if(chatbox) chatbox.removeEventListener("keydown", this.onChatInput);
-
 	}
 	
 }

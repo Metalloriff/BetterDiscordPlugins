@@ -4,7 +4,7 @@ class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
 	getDescription() { return `Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, "b:" for the good shit, and "owo:" for complete fucking cancer.`; }
-    getVersion() { return "0.4.3"; }
+    getVersion() { return "0.4.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -44,7 +44,7 @@ class TheClapBestClapPluginClapEver {
 
 				if(chatboxValue.startsWith("clapclap") || chatboxValue.startsWith("superclapclap")){
 
-					const getClapClap = chatboxValue.substring(0, chatboxValue.indexOf(":") + 1), emote = "clap", definedEmote = getClapClap.substring(getClapClap.indexOf("(") + 1, getClapClap.indexOf(")"));
+					let getClapClap = chatboxValue.substring(0, chatboxValue.indexOf(":") + 1), emote = "clap", definedEmote = getClapClap.substring(getClapClap.indexOf("(") + 1, getClapClap.indexOf(")"));
 
 					if(definedEmote) emote = definedEmote;
 
@@ -60,7 +60,7 @@ class TheClapBestClapPluginClapEver {
 
 				if(chatboxValue.startsWith("ra:")){
 
-					const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", temp = chatboxValue.split(" ").join("\t");
+					let alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", temp = chatboxValue.split(" ").join("\t");
 
 					for(let i = 0; i < alphabet.length; i++) temp = temp.replace("ra:", "").split(alphabet[i]).join("[a" + i + "]");
 					for(let i = 0; i < alphabet.length; i++) temp = temp.split("[a" + i + "]").join(":regional_indicator_" + alphabet[i].toLowerCase() + ": ");

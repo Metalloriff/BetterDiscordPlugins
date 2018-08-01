@@ -65,10 +65,10 @@ class SendLinksDirectly {
 
                     if(search[i].startsWith("[http")) {
                         links.push(search[i].substring(1, search[i].length).split(","));
-                        message = message.replace(search[i] + "]", "");
+						message = message.substring(0, message.indexOf("[")) + message.substring(message.indexOf("]") + 1, message.length);
                     } else if(search[i].substring(1, search[i].length).match(/^[A-Z]:\//)) {
 						files.push(search[i].substring(1, search[i].length).split(","));
-						message = message.replace(search[i] + "]", "");
+						message = message.substring(0, message.indexOf("[")) + message.substring(message.indexOf("]") + 1, message.length);
 					}
 
                 }

@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.12.11"; }
+	getVersion() { return "1.12.12"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -384,6 +384,7 @@ class MessageLogger {
 				margin-top: -2px;
 				margin-left: 5px;
 				margin-right: 5px;
+				background-size: cover;
 			}
 
 			.ml-username-meta {
@@ -392,6 +393,15 @@ class MessageLogger {
 
 			.ml-message-group {
 				padding: 10px 0;
+			}
+
+			#message-logger-window .${NeatoLib.getClass("containerCozy", "container")} {
+				margin-bottom: 5px;
+				padding-top: 5px;
+			}
+
+			#message-logger-window .message {
+				margin-left: 60px;
 			}
 
 			.ml-lmc {
@@ -464,7 +474,7 @@ class MessageLogger {
 
 			if(e.target.classList.contains("guild-icon")) return this.onGuildContext(e);
 
-			if(e.target.parentElement.classList.contains("message-text")) return this.onMessageContext();
+			if(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("messageCozy", "message"))) return this.onMessageContext();
 
 			const foundChannel = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("wrapperDefaultText", "wrapper"));
 			let channel = foundChannel ? NeatoLib.ReactData.getProp(foundChannel.parentElement, "channel") : null;

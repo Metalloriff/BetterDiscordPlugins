@@ -1,10 +1,10 @@
-//META{"name":"ShareButton","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ShareButton.plugin.js"}*//
+//META{"name":"ShareButton","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ShareButton.plugin.js"}*//
 
 class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.2.4"; }
+    getVersion() { return "0.2.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -29,15 +29,16 @@ class ShareButton {
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
     
@@ -85,7 +86,7 @@ class ShareButton {
                 let dropdown = e[0].addedNodes[0].firstChild, message = NeatoLib.ReactData.getProps(dropdown).message;
                 dropdown.insertAdjacentHTML("afterBegin", `<div id="sb-share-popout" class="btn-item">Share</div>`);
                 document.getElementById("sb-share-popout").addEventListener("click", () => {
-                    this.openShareMenu(undefined, "message", `"${message.content}" - ${message.author.username}`);
+                    this.openShareMenu(undefined, NeatoLib.Modules.get("messageCozy").message.split(" ").join(""), `"${message.content}" - ${message.author.username}`);
                     dropdown.style.display = "none";
                 });
             }
@@ -112,7 +113,7 @@ class ShareButton {
 
     onContextMenu(e) {
 
-        if(e.target.localName != "img" && e.target.localName != "video" && e.target.className != "markup" && e.target.parentElement.className != "markup") return;
+        if(e.target.localName != "img" && e.target.localName != "video" && !e.target.className.includes("markup")) return;
 
         let choices = [], pinnedChannelsItem = [], recentChannelsItem = [];
 

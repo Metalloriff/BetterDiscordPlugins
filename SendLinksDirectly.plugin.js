@@ -1,4 +1,4 @@
-//META{"name":"SendLinksDirectly"}*//
+//META{"name":"SendLinksDirectly","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SendLinksDirectly.plugin.js"}*//
 
 class SendLinksDirectly {
 	
@@ -6,11 +6,14 @@ class SendLinksDirectly {
     getDescription() { return `Allows you to enclose direct links in square brackets to upload them directly, instead of sending a link.
     Usage: [link] or [link, filename.fileformat]
     Example: [https://static-cdn.jtvnw.net/emoticons/v1/521050/4.0, forsenE.png]`; }
-    getVersion() { return "1.0.3"; }
+    getVersion() { return "1.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+			"1.1.3":
+			`
+				You can now send files from your PC with files paths.
+			`
 		};
 	}
 
@@ -20,19 +23,20 @@ class SendLinksDirectly {
 
         let libLoadedEvent = () => {
             try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
+            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
         };
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if(!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
+		else lib.addEventListener("load", libLoadedEvent);
 
 	}
 
@@ -53,37 +57,38 @@ class SendLinksDirectly {
                 
             if(e.which == 13 && !e.shiftKey && chatbox.value.trim() != "") {
 
-                let search = chatbox.value.split("[").join("][").split("]"), links = [], message = chatbox.value;
+                let search = chatbox.value.split("[").join("][").split("]"), links = [], files = [], message = chatbox.value;
 
                 for(let i = 1; i < search.length - 1; i++) {
 
+					search[i] = search[i].split("\\").join("/").split("\"").join("");
+
                     if(search[i].startsWith("[http")) {
-
-                        let link = search[i].substring(1, search[i].length), args = link.split(",");
-
-                        links.push(args);
-                        
+                        links.push(search[i].substring(1, search[i].length).split(","));
                         message = message.replace(search[i] + "]", "");
-
-                    }
+                    } else if(search[i].substring(1, search[i].length).match(/^[A-Z]:\//)) {
+						files.push(search[i].substring(1, search[i].length).split(","));
+						message = message.replace(search[i] + "]", "");
+					}
 
                 }
 
                 for(let i = 0; i < links.length; i++) {
 
-                    let filename = links[i][0].substring(links[i][0].lastIndexOf("/") + 1, links[i][0].length), urlVarStart = filename.lastIndexOf("?");
-
-                    if(urlVarStart != -1) filename = filename.substring(0, urlVarStart);
+                    const filename = links[i][0].substring(links[i][0].lastIndexOf("/") + 1, links[i][0].length).split("?")[0];
 
                     NeatoLib.requestFile(links[i][0], links[i].length > 1 ? links[i][1] : filename, file => {
-
                         this.uploadFile(selectedChannel.id, file, { content : i == 0 ? message : "", tts : false });
-
                     });
 
-                }
+				}
+				
+				for(let i = 0; i < files.length; i++) {
+					const filename = files[i][0].substring(files[i][0].lastIndexOf("/") + 1, files[i][0].length);
+					this.uploadFile(selectedChannel.id, new File([fs.readFileSync(files[i][0])], files[i].length > 1 ? files[i][1] : filename), { content : i == 0 ? message : "", tts : false });
+				}
 
-                if(links.length > 0) {
+                if(links.length > 0 || files.length > 0) {
 
                     chatbox.focus();
                     chatbox.select();
@@ -99,6 +104,8 @@ class SendLinksDirectly {
         this.switchEvent = () => this.switch();
 
         this.switch();
+
+        Metalloriff.Changelog.compareVersions(this.getName(), this.getChanges());
 
         NeatoLib.Events.attach("switch", this.switchEvent);
 

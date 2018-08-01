@@ -1,10 +1,10 @@
-//META{"name":"GuildCounter","website":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/README.md","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildCounter.plugin.js"}*//
+//META{"name":"GuildCounter","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildCounter.plugin.js"}*//
 
 class GuildCounter {
 	
     getName() { return "Guild Counter"; }
     getDescription() { return "Displays a guild counter below the online friend counter."; }
-    getVersion() { return "1.0.1"; }
+    getVersion() { return "1.0.2"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -34,16 +34,14 @@ class GuildCounter {
 
 		NeatoLib.Updates.check(this);
 
-		this.count = () => {
+		(this.guildsScroller = document.getElementsByClassName(NeatoLib.getClass("guilds"))[0]).addEventListener("DOMNodeInserted", this.count = () => {
 
 			let existing = document.getElementById("gc-counter"), count = Object.keys(NeatoLib.Modules.get("getGuilds").getGuilds()).length;
 	
 			if(existing) existing.innerText = count + " guilds";
-			else this.guildsScroller.insertBefore(NeatoLib.DOM.createElement({ id : "gc-counter", className : "friends-online", innerText : count + " guilds" }), this.guildsScroller.getElementsByClassName("dms")[0]);
+			else this.guildsScroller.insertBefore(NeatoLib.DOM.createElement({ id : "gc-counter", className : NeatoLib.getClass("friendsOnline"), innerText : count + " guilds" }), this.guildsScroller.getElementsByClassName(NeatoLib.getClass("dms"))[0]);
 
-		};
-
-		(this.guildsScroller = document.getElementsByClassName("guilds scroller")[0]).addEventListener("DOMNodeInserted", this.count);
+		});
 
 		this.count();
 

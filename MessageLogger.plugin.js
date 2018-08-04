@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.12.12"; }
+	getVersion() { return "1.12.13"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -790,7 +790,7 @@ class MessageLogger {
 
 	switch() {
 
-		if(this.ready != true || document.getElementsByClassName("messages scroller")[0] == undefined) return;
+		if(this.ready != true || document.getElementsByClassName(NeatoLib.getClass("messages"))[0] == undefined) return;
 
 		this.selectedChannel = NeatoLib.getSelectedTextChannel();
 
@@ -831,7 +831,7 @@ class MessageLogger {
 
 		});
 
-		this.messageObserver.observe(document.getElementsByClassName("messages scroller")[0], { childList : true, subtree : true });
+		this.messageObserver.observe(document.getElementsByClassName(NeatoLib.getClass("messages"))[0], { childList : true, subtree : true });
 
 		const foundEdited = document.getElementsByClassName(NeatoLib.getClass("edited"));
 
@@ -846,7 +846,7 @@ class MessageLogger {
 
 		if(!this.selectedChannel || cid && this.selectedChannel.id != cid) return;
 		
-		if(!document.getElementsByClassName("chat").length) return;
+		if(!document.getElementsByClassName(NeatoLib.getClass("chat")).length) return;
 
 		setTimeout(() => {
 
@@ -873,6 +873,8 @@ class MessageLogger {
 					for(let i = 0; i < edits.length; i++) if(edits[i].tooltip) edits[i].tooltip.detach();
 					messages[i].classList.add("ml-deleted");
 					NeatoLib.Tooltip.attach("Deleted at " + this.deletedChatMessages[this.selectedChannel.id][mid].split(",")[0], markup.textContent ? markup : messages[i].getElementsByClassName(NeatoLib.getClass("contentCozy", "content"))[0].lastChild, { side : "left" });
+					const images = messages[i].getElementsByTagName("img");
+					for(let i = 0; i < images.length; i++) images[i].src = images[i].src.split("?")[0];
 					continue;
 				}
 

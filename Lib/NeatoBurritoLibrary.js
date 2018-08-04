@@ -1010,7 +1010,7 @@ var NeatoLib = {
 	Chatbox : {
 
 		get : function() {
-			let chat = document.getElementsByClassName("chat")[0];
+			let chat = document.getElementsByClassName(NeatoLib.getClass("chat"))[0];
 			return chat ? chat.getElementsByTagName("textarea")[0] : null;
 		},
 
@@ -2230,9 +2230,9 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if(added.classList.contains(NeatoLib.Events.classes.activityFeed) || added.id == "friends") call("switch");
 
-		if(added.classList.contains("messages-wrapper") || added.getElementsByClassName("messages-wrapper")[0] != undefined) call("switch");
+		if(added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.classList.contains("message-sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
 
 	}
 

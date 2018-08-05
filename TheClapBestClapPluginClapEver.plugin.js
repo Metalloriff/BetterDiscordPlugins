@@ -4,7 +4,7 @@ class TheClapBestClapPluginClapEver {
 	
     getName() { return "The Clap Best Clap Plugin Clap Ever"; }
 	getDescription() { return `Literally the most useless and cancerous plugin ever. Put "clapclap:" at the first of your message to replace spaces with clap emojis. You can also do "clapclap(some_emote_name):" to use custom emotes, "superclapclap" for every character instead of every space, "ra:" to replace all characters with regional indicators, "reverse:" to reverse the message, "b:" for the good shit, and "owo:" for complete fucking cancer.`; }
-    getVersion() { return "0.4.5"; }
+    getVersion() { return "0.4.6"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -115,12 +115,12 @@ class TheClapBestClapPluginClapEver {
 	}
 	
 	onSwitch() {
-		const chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
+		const chatbox = NeatoLib.Chatbox.get();
 		if(chatbox) chatbox.addEventListener("keydown", this.onChatInput);
 	}
 	
     stop() {
-		const chat = document.getElementsByClassName("chat")[0], chatbox = chat ? chat.getElementsByTagName("textarea")[0] : undefined;
+		const chatbox = NeatoLib.Chatbox.get();
 		if(chatbox) chatbox.removeEventListener("keydown", this.onChatInput);
 	}
 	

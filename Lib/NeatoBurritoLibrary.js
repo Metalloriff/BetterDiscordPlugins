@@ -1,39 +1,46 @@
 var NeatoLib = {
 
-	version : "0.5.19",
+	version: "0.6.19",
 
-	parseVersion : function(version) {
+	parseVersion: function(version) {
 
-		let numbers = Array.from(version.split("."), n => parseInt(n)), major = numbers[0], minor = numbers[1], patch = numbers[2];
+		let numbers = Array.from(version.split("."), n => parseInt(n)),
+			major = numbers[0],
+			minor = numbers[1],
+			patch = numbers[2];
 
 		return {
-			major : major,
-			minor : minor,
-			patch : patch,
-			compareTo : otherVersion => {
-				if(patch > otherVersion.patch || minor > otherVersion.minor || major > otherVersion.major) return "newer";
-				if(patch < otherVersion.patch || minor < otherVersion.minor || major < otherVersion.major) return "older";
+			major: major,
+			minor: minor,
+			patch: patch,
+			compareTo: otherVersion => {
+				if (patch > otherVersion.patch || minor > otherVersion.minor || major > otherVersion.major) return "newer";
+				if (patch < otherVersion.patch || minor < otherVersion.minor || major < otherVersion.major) return "older";
 				return "equal";
 			}
 		};
 
 	},
 
-	hasRequiredLibVersion : function(plugin, requiredVersion) {
+	hasRequiredLibVersion: function(plugin, requiredVersion) {
 
-		if(NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
+		if (NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
 
-			if(plugin.ready) plugin.ready = false;
+			if (plugin.ready) plugin.ready = false;
 
 			let updateLibrary = () => {
 
-				let req = require("request"), vm = require("vm");
+				let req = require("request"),
+					vm = require("vm");
 
 				setTimeout(() => {
-			
+
 					req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
 
-						let lib = new vm.Script(data, { filename : "NeatoBurritoLibrary.js", displayErrors : true });
+						let lib = new vm.Script(data, {
+							filename: "NeatoBurritoLibrary.js",
+							displayErrors: true
+						});
 
 						new Promise(exec => exec(lib.runInThisContext())).then(() => {
 							NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
@@ -46,7 +53,11 @@ var NeatoLib = {
 
 			};
 
-			NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it.`, "error", { timeout : 30000, onClick : updateLibrary, destroyOnClick : true });
+			NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it.`, "error", {
+				timeout: 30000,
+				onClick: updateLibrary,
+				destroyOnClick: true
+			});
 
 			return false;
 
@@ -56,23 +67,23 @@ var NeatoLib = {
 
 	},
 
-	Changelog : {
+	Changelog: {
 
-		compareVersions : function(name, changes) {
+		compareVersions: function(name, changes) {
 
 			var spacelessName = name.split(" ").join(""),
-			updateData = NeatoLib.Data.load("MetalloriffUpdateData", spacelessName, {}),
-			unreadChanges = [],
-			thisUpdateData = updateData[spacelessName],
-			first = false;
+				updateData = NeatoLib.Data.load("MetalloriffUpdateData", spacelessName, {}),
+				unreadChanges = [],
+				thisUpdateData = updateData[spacelessName],
+				first = false;
 
-			if(thisUpdateData != undefined){
+			if (thisUpdateData != undefined) {
 
-				if(thisUpdateData.readChanges == undefined) thisUpdateData.readChanges = [];
+				if (thisUpdateData.readChanges == undefined) thisUpdateData.readChanges = [];
 
-				for(var i in changes){
-					
-					if(!thisUpdateData.readChanges.includes(i)){
+				for (var i in changes) {
+
+					if (!thisUpdateData.readChanges.includes(i)) {
 
 						unreadChanges.push(i);
 						thisUpdateData.readChanges.push(i);
@@ -81,29 +92,33 @@ var NeatoLib = {
 
 				}
 
-			}else{
+			} else {
 
-				updateData[spacelessName] = { readChanges : Object.keys(changes) }; 
+				updateData[spacelessName] = {
+					readChanges: Object.keys(changes)
+				};
 				first = true;
 
 			}
 
-			if(unreadChanges.length > 0 || first){ NeatoLib.Changelog.createChangeWindow(name, unreadChanges, changes, updateData); }
+			if (unreadChanges.length > 0 || first) {
+				NeatoLib.Changelog.createChangeWindow(name, unreadChanges, changes, updateData);
+			}
 
 		},
 
-		createChangeWindow : function(name, changes, allChanges, newUpdateData) {
+		createChangeWindow: function(name, changes, allChanges, newUpdateData) {
 
 			let changeKeys = Object.keys(allChanges);
 
-			if(changeKeys.length == 0) {
+			if (changeKeys.length == 0) {
 				NeatoLib.showToast("There are no updates notes for this plugin yet!", "error");
 				return;
 			}
 
 			let spacelessName = name.split(" ").join("");
 
-			if(document.getElementById(spacelessName + "-changelog")) document.getElementById(spacelessName + "-changelog").remove();
+			if (document.getElementById(spacelessName + "-changelog")) document.getElementById(spacelessName + "-changelog").remove();
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
 
@@ -119,7 +134,7 @@ var NeatoLib = {
 					color: white;
 					font-size: 35px;
 				}
-				
+
 				.metalloriff-update-note {
 					color: white;
 					font-size: 25px;
@@ -156,24 +171,24 @@ var NeatoLib = {
 				#${spacelessName}-changelog *::-webkit-scrollbar {
 					max-width: 10px;
 				}
-				
+
 				#${spacelessName}-changelog *::-webkit-scrollbar-track-piece {
 					background: transparent;
 					border: none;
 					border-radius: 5px;
 				}
-				
+
 				#${spacelessName}-changelog *:hover::-webkit-scrollbar-track-piece {
 					background: #2F3136;
 					border-radius: 5px;
 				}
-				
+
 				#${spacelessName}-changelog *::-webkit-scrollbar-thumb {
 					background: #1E2124;
 					border: none;
 					border-radius: 5px;
 				}
-				
+
 				#${spacelessName}-changelog *::-webkit-scrollbar-button {
 					display: none;
 				}
@@ -203,20 +218,20 @@ var NeatoLib = {
 			`);
 
 			document.getElementsByClassName("metalloriff-changelog-backdrop")[0].addEventListener("click", () => {
-				if(newUpdateData != undefined) NeatoLib.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
+				if (newUpdateData != undefined) NeatoLib.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
 				document.getElementById(spacelessName + "-changelog").remove();
 			});
 
 			let scroller = document.getElementById(spacelessName + "-changelog-scroller");
 
-			if(changes.length == 0) changes = changeKeys;
+			if (changes.length == 0) changes = changeKeys;
 
-			for(let i = 0; i < changes.length; i++){
+			for (let i = 0; i < changes.length; i++) {
 				scroller.insertAdjacentHTML("afterbegin", `
 					<div class="metalloriff-update-item">
-						<p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">`
-							+ allChanges[changes[i]].split("\n").join("<br><br>") +
-						`</p>
+						<p class="metalloriff-update-label">` + changes[i] + `</p><p class="metalloriff-update-note">` +
+					allChanges[changes[i]].split("\n").join("<br><br>") +
+					`</p>
 					</div>
 				`);
 			}
@@ -225,38 +240,306 @@ var NeatoLib = {
 
 	},
 
-	Settings : {
+	Settings: {
 
-		Styles : {
-			textField : `color: white; background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 5px; height: 40px; padding: 10px; width: 100%;`
+		createPanel: function(plugin) {
+			setTimeout(() => {
+				this.create(plugin);
+				this.pushChangelogElements(plugin);
+			});
+
+			return this.Elements.pluginNameLabel(plugin.getName());
 		},
 
-		Elements : {
+		create: function(plugin) {
+			const panel = document.getElementById(`plugin-settings-${plugin.getName()}`), fields = plugin.settingFields;
+			panel.classList.add("neato-settings");
 
-			pluginNameLabel : function(name) {
+			panel.insertAdjacentHTML("beforeEnd", `
+				<style>
+
+				</style>
+			`);
+
+			const createLabel = (title, description, tooltip) => {
+				const element = document.createElement("label");
+				element.className = "neato-setting-label";
+				element.textContent = title;
+				if(description) element.dataset.description = description || "";
+				if(tooltip) NeatoLib.Tooltip.attach(tooltip, element);
+				return element;
+			};
+
+			const createToggleSwitch = (title, description, tooltip, value, callback) => {
+				const element = document.createElement("div");
+				element.className = "neato-setting";
+				if (title) element.appendChild(createLabel(title, description, tooltip));
+
+				const tswitch = document.createElement("div");
+				tswitch.className = [NeatoLib.getClass("flexChild"), NeatoLib.getClass("switchEnabled"), NeatoLib.getClass("switch"), value ? NeatoLib.getClass("valueChecked") : NeatoLib.getClass("valueUnchecked"), NeatoLib.getClass("value"), NeatoLib.getClass("sizeDefault"), NeatoLib.getClass("sizeDefault", "size"), NeatoLib.getClass("themeDefault")].join(" ");
+				tswitch.style.float = "right";
+
+				const tcheckbox = document.createElement("input");
+				tcheckbox.type = "checkbox";
+				tcheckbox.className = [NeatoLib.getClass("checkboxEnabled"), NeatoLib.getClass("checkbox")].join(" ");
+
+				tswitch.appendChild(tcheckbox);
+
+				tswitch.addEventListener("click", () => {
+					value = !value;
+
+					if (value == true) tswitch.className = tswitch.className.replace(NeatoLib.getClass("valueUnchecked"), NeatoLib.getClass("valueChecked"));
+					else tswitch.className = tswitch.className.replace(NeatoLib.getClass("valueChecked"), NeatoLib.getClass("valueUnchecked"));
+
+					callback(value);
+				});
+
+				element.appendChild(tswitch);
+
+				return element;
+			};
+
+			const createTextField = (title, description, tooltip, value, type, callback) => {
+				const element = document.createElement("div");
+				element.className = "neato-setting";
+				if (title) element.appendChild(createLabel(title, description, tooltip));
+
+				const input = document.createElement("input");
+				input.className = "neato-textfield";
+				input.type = "text";
+				input.value = value || "";
+
+				let last = input.value;
+
+				input.addEventListener("focusout", e => {
+					switch (type) {
+						case "number": case "float":
+							if (!e.target.value) {
+								callback(e.target.value = last = 0);
+								break;
+							}
+
+							if (isNaN(e.target.value)) {
+								NeatoLib.showToast("Value must be a number!", "error");
+								e.target.value = last;
+								break;
+							}
+
+							callback(last = parseFloat(e.target.value));
+						break;
+
+						case "whole number": case "int": case "integer":
+							if (!e.target.value) {
+								callback(e.target.value = last = 0);
+								break;
+							}
+
+							if (isNaN(e.target.value)) {
+								NeatoLib.showToast("Value must be a number!", "error");
+								e.target.value = last;
+								break;
+							}
+
+							callback(last = parseInt(e.target.value));
+						break;
+
+						default: callback(e.target.value);
+					}
+				});
+
+				element.appendChild(input);
+
+				return element;
+			};
+
+			const createRadioGroup = (title, description, tooltip, value, choices, callback) => {
+				const element = document.createElement("div");
+				element.className = "neato-setting";
+				if (title) element.appendChild(createLabel(title, description, tooltip));
+
+				const list = document.createElement("div");
+
+				const update = () => {
+					for (let choice of element.getElementsByClassName("neato-radio-button")) {
+						if (choice.dataset.key == value) choice.classList.add("nrb-selected");
+						else choice.classList.remove("nrb-selected");
+					}
+				};
+
+				const createRadioButton = choice => {
+					const c = document.createElement("div");
+					c.className = "neato-radio-button";
+					c.dataset.key = choice;
+					if (value == choice) c.classList.add("nrb-selected");
+
+					const t = document.createElement("span");
+					t.className = "nrb-box";
+
+					c.appendChild(t);
+					c.appendChild(createLabel(choices[choice].label, choices[choice].description, choices[choice].tooltip));
+
+					c.addEventListener("click", () => {
+						callback(value = choice);
+						update();
+					});
+
+					return c;
+				};
+
+				for (let choice in choices) element.appendChild(createRadioButton(choice));
+
+				update();
+
+				return element;
+			};
+
+			if (!plugin.settings) plugin.settings = plugin.defaultSettings;
+
+			for (let setting in fields) {
+				const field = fields[setting];
+				try {
+					let repop, array, insertDeleteButton;
+
+					if (field.array || field.list) {
+						const list = document.createElement("div");
+						list.className = "neato-setting neato-setting-array";
+						list.appendChild(createLabel(field.label, field.description, field.tooltip));
+
+						array = document.createElement("div");
+						array.className = "neato-setting-array-items";
+						list.appendChild(array);
+
+						if (field.array) {
+							const addButton = document.createElement("button"), clearButton = document.createElement("button");
+							addButton.className = clearButton.className = `${NeatoLib.getClass("button")} ${NeatoLib.getClass("lookFilled")} ${NeatoLib.getClass("colorBrand")} ${NeatoLib.getClass("sizeMedium")} ${NeatoLib.getClass("grow")}`;
+							addButton.style = clearButton.style = "display:inline;margin:0 10px";
+
+							addButton.textContent = "Add";
+							addButton.addEventListener("click", () => {
+								plugin.settings[setting].push("");
+								array.innerHTML = "";
+								repop();
+								plugin.saveSettings();
+							});
+
+							clearButton.textContent = "Clear";
+							clearButton.addEventListener("click", () => {
+								plugin.settings[setting] = [];
+								array.innerHTML = "";
+								repop();
+								plugin.saveSettings();
+							});
+
+							insertDeleteButton = i => {
+								const button = document.createElement("span");
+								button.className = "material-icons neato-array-remove-button";
+								button.textContent = "close";
+
+								button.addEventListener("click", () => {
+									plugin.settings[setting].splice(i, 1);
+									array.innerHTML = "";
+									repop();
+									plugin.saveSettings();
+								});
+
+								NeatoLib.Tooltip.attach("Remove", button, { delay : 250 });
+
+								array.children[i].appendChild(button);
+							};
+
+							const buttons = document.createElement("div");
+							buttons.className = "neato-setting-array-buttons";
+
+							buttons.appendChild(addButton);
+							buttons.appendChild(clearButton);
+
+							list.appendChild(buttons);
+						}
+
+						panel.appendChild(list);
+					}
+
+					const set = nv => {
+						plugin.settings[setting] = nv;
+						plugin.saveSettings();
+					};
+
+					switch (field.type) {
+						case "bool": case "boolean":
+							if (array) {
+								(repop = () => {
+									for (let i in plugin.settings[setting]) {
+										array.appendChild(createToggleSwitch(null, null, null, plugin.settings[setting][i], nv => {
+											plugin.settings[setting][i] = nv;
+											plugin.saveSettings();
+										}));
+										if (field.array) insertDeleteButton(i);
+									}
+								})();
+							} else {
+								panel.appendChild(createToggleSwitch(field.label, field.description, field.tooltip, plugin.settings[setting], set));
+							}
+						break;
+
+						case "custom":
+							if (field.element) panel.appendChild(field.element);
+							if (field.html) panel.insertAdjacentHTML("beforeEnd", field.html);
+						break;
+
+						case "radio": case "radio group":
+							panel.appendChild(createRadioGroup(field.label, field.description, field.tooltip, plugin.settings[setting], field.choices, set));
+						break;
+
+						default:
+							if (array) {
+								(repop = () => {
+									for (let i in plugin.settings[setting]) {
+										array.appendChild(createTextField(null, null, null, plugin.settings[setting][i], field.type, nv => {
+											plugin.settings[setting][i] = nv;
+											plugin.saveSettings();
+										}));
+										if (field.array) insertDeleteButton(i);
+									}
+								})();
+							} else {
+								panel.appendChild(createTextField(field.label, field.description, field.tooltip, plugin.settings[setting], field.type, set));
+							}
+
+					}
+				} catch(err) { console.error(err); }
+			}
+		},
+
+		Styles: {
+			textField: `color: white; background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 5px; height: 40px; padding: 10px; width: 100%;`
+		},
+
+		Elements: {
+
+			pluginNameLabel: function(name) {
 				return `
 					<style>
 						#bd-settingspane-container *::-webkit-scrollbar {
 							max-width: 10px;
 						}
-						
+
 						#bd-settingspane-container *::-webkit-scrollbar-track-piece {
 							background: transparent;
 							border: none;
 							border-radius: 5px;
 						}
-						
+
 						#bd-settingspane-container *:hover::-webkit-scrollbar-track-piece {
 							background: #2F3136;
 							border-radius: 5px;
 						}
-						
+
 						#bd-settingspane-container *::-webkit-scrollbar-thumb {
 							background: #1E2124;
 							border: none;
 							border-radius: 5px;
 						}
-						
+
 						#bd-settingspane-container *::-webkit-scrollbar-button {
 							display: none;
 						}
@@ -264,7 +547,7 @@ var NeatoLib = {
 					<h style="color: white;font-size: 30px;font-weight: bold;">${name.replace(/([A-Z])/g, ' $1').trim()} by Metalloriff</h>`;
 			},
 
-			createRadioGroup : function(id, label, choices, selectedChoice, callback, description = "") {
+			createRadioGroup: function(id, label, choices, selectedChoice, callback, description = "") {
 
 				let element = document.createElement("div");
 
@@ -275,9 +558,9 @@ var NeatoLib = {
 				<h5 style="Color:white;padding-bottom:10px;opacity:0.5;">${description}<h5>
 				<div id="${id}" style="color:white;"></div>`;
 
-				for(let i = 0; i < choices.length; i++) {
+				for (let i = 0; i < choices.length; i++) {
 
-					if(choices[i].description == undefined) choices[i].description = "";
+					if (choices[i].description == undefined) choices[i].description = "";
 
 					let choiceButton = document.createElement("div");
 
@@ -287,8 +570,8 @@ var NeatoLib = {
 					choiceButton.setAttribute("class", "metalloriff-checkbox-item");
 					choiceButton.setAttribute("style", `padding:10px;border-radius:5px !important;background-color:rgba(0, 0, 0, 0.3);cursor:pointer;position:relative;margin-bottom:10px;display:flex;`);
 
-					choiceButton.innerHTML = 
-					`<label>
+					choiceButton.innerHTML =
+						`<label>
 						<div style="width:24px;height:24px;border:3px solid white;border-radius:100%;"></div>
 					</label>
 					<div style="margin: 0 8px;color:white;">
@@ -298,7 +581,7 @@ var NeatoLib = {
 
 					element.insertAdjacentElement("beforeend", choiceButton);
 
-					if(selectedChoice != undefined && choices[i].value == selectedChoice) choiceButton.querySelector(`label > div`).style.backgroundColor = "white";
+					if (selectedChoice != undefined && choices[i].value == selectedChoice) choiceButton.querySelector(`label > div`).style.backgroundColor = "white";
 
 					choiceButton.addEventListener("click", e => {
 
@@ -306,7 +589,7 @@ var NeatoLib = {
 
 						let checkboxes = e.currentTarget.parentElement.querySelectorAll(`.metalloriff-checkbox-item > label > div`);
 
-						for(let ii = 0; ii < checkboxes.length; ii++) checkboxes[ii].style.backgroundColor = "";
+						for (let ii = 0; ii < checkboxes.length; ii++) checkboxes[ii].style.backgroundColor = "";
 
 						element.querySelector(`#${id}-${i} > label > div`).style.backgroundColor = "white";
 
@@ -320,7 +603,7 @@ var NeatoLib = {
 
 			},
 
-			createToggleGroup : function(id, label, choices, callback, description = "") {
+			createToggleGroup: function(id, label, choices, callback, description = "") {
 
 				let element = document.createElement("div");
 
@@ -332,7 +615,7 @@ var NeatoLib = {
 					<div id="${id}" style="color:white;"></div>
 				`);
 
-				for(let i = 0; i < choices.length; i++) {
+				for (let i = 0; i < choices.length; i++) {
 
 					let choiceButton = NeatoLib.Settings.Elements.createToggleSwitch(choices[i].title, choices[i].setValue, e => {
 						callback(choices[i], e);
@@ -350,7 +633,7 @@ var NeatoLib = {
 
 			},
 
-			createTextField : function(label, type, value, callback, options = {}) {
+			createTextField: function(label, type, value, callback, options = {}) {
 
 				let element = document.createElement("div");
 
@@ -361,7 +644,9 @@ var NeatoLib = {
 					<input value="${value}" type="${type}" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5">
 				`);
 
-				if(options.tooltip) NeatoLib.Tooltip.attach(options.tooltip, element, { side : "left" });
+				if (options.tooltip) NeatoLib.Tooltip.attach(options.tooltip, element, {
+					side: "left"
+				});
 
 				element.querySelector("input").addEventListener(options.callbackType || "focusout", e => callback(e));
 
@@ -369,7 +654,7 @@ var NeatoLib = {
 
 			},
 
-			createNewTextField : function(label, value, callback, options = {}) {
+			createNewTextField: function(label, value, callback, options = {}) {
 
 				let element = document.createElement("div");
 
@@ -393,7 +678,7 @@ var NeatoLib = {
 
 			},
 
-			createHint : function(text, options = {}) {
+			createHint: function(text, options = {}) {
 
 				let element = document.createElement("p");
 
@@ -406,31 +691,31 @@ var NeatoLib = {
 
 			},
 
-			createButton : function(label, callback, style = "", attributes = {}) {
-				
+			createButton: function(label, callback, style = "", attributes = {}) {
+
 				let element = document.createElement("button");
 
 				element.setAttribute("style", `display:inline-block;${style}`);
 				element.setAttribute("class", "button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN");
 
-				for(let key in attributes) element.setAttribute(key, attributes[key]);
+				for (let key in attributes) element.setAttribute(key, attributes[key]);
 
 				element.innerText = label;
 
 				element.addEventListener("click", e => callback(e));
-				
+
 				return element;
 
 			},
 
-			createToggleSwitch : function(label, value, callback, spacing = "20px") {
+			createToggleSwitch: function(label, value, callback, spacing = "20px") {
 
 				var element = document.createElement("div");
 
 				element.style.paddingTop = spacing;
 
-				element.innerHTML = 
-				`<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStart-H-X2h- noWrap-3jynv6" style="flex: 1 1 auto;">
+				element.innerHTML =
+					`<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStart-H-X2h- noWrap-3jynv6" style="flex: 1 1 auto;">
 					<h3 class="titleDefault-a8-ZSr title-31JmR4 marginReset-236NPn weightMedium-2iZe9B size16-14cGz5 height24-3XzeJx flexChild-faoVW3" style="flex: 1 1 auto;">${label}</h3>
 					<div class="flexChild-faoVW3 switchEnabled-V2WDBB switch-3wwwcV ${value == true ? "valueChecked-m-4IJZ" : "valueUnchecked-2lU_20"} value-2hFrkk sizeDefault-2YlOZr size-3rFEHg themeDefault-24hCdX" style="flex: 0 0 auto;">
 						<input class="checkboxEnabled-CtinEn checkbox-2tyjJg" type="checkbox">
@@ -441,7 +726,7 @@ var NeatoLib = {
 
 					var b = e.currentTarget.parentElement;
 
-					if(b.classList.contains("valueChecked-m-4IJZ")) {
+					if (b.classList.contains("valueChecked-m-4IJZ")) {
 						b.classList.add("valueUnchecked-2lU_20");
 						b.classList.remove("valueChecked-m-4IJZ");
 					} else {
@@ -457,11 +742,11 @@ var NeatoLib = {
 
 			},
 
-			createLabel : function(title, spacing = "20px", style = "") {
+			createLabel: function(title, spacing = "20px", style = "") {
 				return `<div style="color:white;margin: ${spacing} 0px;${style}">${title}</div>`;
 			},
 
-			createGroup : function(title, options = {}) {
+			createGroup: function(title, options = {}) {
 
 				let element = document.createElement("div");
 
@@ -473,13 +758,15 @@ var NeatoLib = {
 
 			},
 
-			createKeybindInput : function(title, value, callback, options = {}) {
+			createKeybindInput: function(title, value, callback, options = {}) {
 
-				let element = document.createElement("div"), v = value.primaryKey || "", oldValue = value;
+				let element = document.createElement("div"),
+					v = value.primaryKey || "",
+					oldValue = value;
 
-				if(value.modifiers && value.modifiers[0]) v = (value.modifiers.join(" + ") || "") + " + " + (value.primaryKey || "");
+				if (value.modifiers && value.modifiers[0]) v = (value.modifiers.join(" + ") || "") + " + " + (value.primaryKey || "");
 
-				if(options.global) v = value;
+				if (options.global) v = value;
 
 				element.insertAdjacentHTML("beforeend", `
 					<style>
@@ -513,65 +800,68 @@ var NeatoLib = {
 					</div>
 				`);
 
-				let isRecording = false, primaryKey = "", modifiers = [], globalKeys = [];
+				let isRecording = false,
+					primaryKey = "",
+					modifiers = [],
+					globalKeys = [];
 
 				let keyEvent = e => {
 
 					e.preventDefault();
 
-					if(options.global) {
+					if (options.global) {
 
 						let key = e.key;
 
-						if(key.length == 1) key = key.toUpperCase();
+						if (key.length == 1) key = key.toUpperCase();
 
-						if(globalKeys.indexOf(key) == -1) globalKeys.push(key);
-						if(globalKeys[0] == "") globalKeys.splice(0, 1);
+						if (globalKeys.indexOf(key) == -1) globalKeys.push(key);
+						if (globalKeys[0] == "") globalKeys.splice(0, 1);
 						input.value = globalKeys.join(" + ");
 
-						if(e.location == 0 && globalKeys.length > 1) button.click();
+						if (e.location == 0 && globalKeys.length > 1) button.click();
 						else input.value += " + ...";
 
 					} else {
 
-						if(e.location == 0) primaryKey = e.code;
-						else if(modifiers.indexOf(e.code) == -1) modifiers.push(e.code);
+						if (e.location == 0) primaryKey = e.code;
+						else if (modifiers.indexOf(e.code) == -1) modifiers.push(e.code);
 
-						if(primaryKey && modifiers[0]) {
+						if (primaryKey && modifiers[0]) {
 							input.value = `${modifiers.join(" + ")} + ${primaryKey}`;
 							button.click();
-						} else if(primaryKey) input.value = primaryKey;
-						else if(modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
+						} else if (primaryKey) input.value = primaryKey;
+						else if (modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
 						else input.value = "";
 
 						input.value = input.value.replace("Key", "");
 
 					}
-					
+
 				};
 
 				let keyUpEvent = e => {
 
 					e.preventDefault();
 
-					if(options.global) {
+					if (options.global) {
 
 						let key = e.key;
 
-						if(key.length == 1) key = key.toUpperCase();
+						if (key.length == 1) key = key.toUpperCase();
 
-						if(globalKeys.indexOf(key) != -1) globalKeys.splice(globalKeys.indexOf(key), 1);
-						if(globalKeys[0] == "") globalKeys.splice(0, 1);
+						if (globalKeys.indexOf(key) != -1) globalKeys.splice(globalKeys.indexOf(key), 1);
+						if (globalKeys[0] == "") globalKeys.splice(0, 1);
 						input.value = globalKeys.join(" + ");
 
 					} else {
 
-						if(e.location == 0) primaryKey = undefined;
-						else if(modifiers.indexOf(e.code) != -1) modifiers.splice(modifiers.indexOf(e.code), 1);
+						if (e.location == 0) primaryKey = undefined;
+						else if (modifiers.indexOf(e.code) != -1) modifiers.splice(modifiers.indexOf(e.code), 1);
 
-						if(primaryKey && modifiers[0]) input.value = `${modifiers.join(" + ")} + ${primaryKey}`;
-						else if(primaryKey) input.value = primaryKey;
-						else if(modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
+						if (primaryKey && modifiers[0]) input.value = `${modifiers.join(" + ")} + ${primaryKey}`;
+						else if (primaryKey) input.value = primaryKey;
+						else if (modifiers[0]) input.value = modifiers.join(" + ") + " + ...";
 						else input.value = "";
 
 						input.value = input.value.replace("Key", "");
@@ -584,8 +874,8 @@ var NeatoLib = {
 
 					isRecording = !isRecording;
 
-					if(isRecording) {
-						if(options.global) NeatoLib.Keybinds.unregisterGlobal(oldValue);
+					if (isRecording) {
+						if (options.global) NeatoLib.Keybinds.unregisterGlobal(oldValue);
 						document.addEventListener("keydown", keyEvent);
 						document.addEventListener("keyup", keyUpEvent);
 						document.addEventListener("click", documentClick);
@@ -593,8 +883,11 @@ var NeatoLib = {
 						label.innerText = "Save Keybind";
 					} else {
 						oldValue = globalKeys.join(" + ");
-						if(options.global) callback(oldValue);
-						else callback({ primaryKey : primaryKey, modifiers : modifiers });
+						if (options.global) callback(oldValue);
+						else callback({
+							primaryKey: primaryKey,
+							modifiers: modifiers
+						});
 						primaryKey = undefined;
 						modifiers = [];
 						globalKeys = [];
@@ -608,13 +901,13 @@ var NeatoLib = {
 				};
 
 				let documentClick = e => {
-					if(!e.target.classList.contains("nbl-keybind-button")) toggleRecording();
+					if (!e.target.classList.contains("nbl-keybind-button")) toggleRecording();
 				};
 
 				let input = element.getElementsByTagName("input")[0],
-				container = element.getElementsByClassName("container-CpszHS")[0],
-				button = element.getElementsByTagName("button")[0],
-				label = element.getElementsByClassName("text-2sI5Sd")[0];
+					container = element.getElementsByClassName("container-CpszHS")[0],
+					button = element.getElementsByTagName("button")[0],
+					label = element.getElementsByClassName("text-2sI5Sd")[0];
 
 				button.addEventListener("click", toggleRecording);
 
@@ -624,7 +917,7 @@ var NeatoLib = {
 
 		},
 
-		pushChangelogElements : function(plugin) {
+		pushChangelogElements: function(plugin) {
 
 			var element = document.createElement("div");
 
@@ -660,24 +953,31 @@ var NeatoLib = {
 
 		},
 
-		pushElement : function(element, name, options = {}) {
+		pushElement: function(element, name, options = {}) {
 
-			const { tooltip, tooltipSide } = options;
+			const {
+				tooltip,
+				tooltipSide
+			} = options;
 
 			document.getElementById(`plugin-settings-${name}`).appendChild(element);
 
-			if(tooltip) NeatoLib.Tooltip.attach(tooltip, element, { side : tooltipSide || "left" });
+			if (tooltip) NeatoLib.Tooltip.attach(tooltip, element, {
+				side: tooltipSide || "left"
+			});
 
 		},
 
-		pushElements : function(elements, name) {
+		pushElements: function(elements, name) {
 			let panel = document.getElementById(`plugin-settings-${name}`);
-			for(let i = 0; i < elements.length; i++) panel.appendChild(elements[i]);
+			for (let i = 0; i < elements.length; i++) panel.appendChild(elements[i]);
 		},
 
-		pushHTML : function(html, name) { document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html); },
+		pushHTML: function(html, name) {
+			document.getElementById(`plugin-settings-${name}`).insertAdjacentHTML("beforeend", html);
+		},
 
-		showPluginSettings : function(name) {
+		showPluginSettings: function(name) {
 
 			document.querySelector(".button-2b6hmh:nth-child(3)").click();
 
@@ -685,15 +985,18 @@ var NeatoLib = {
 
 				var bdActions = document.querySelectorAll("#bd-settings-sidebar .ui-tab-bar-item");
 
-				for(var i = 0; i < bdActions.length; i++) { if(bdActions[i].textContent == "Plugins") bdActions[i].click(); }
+				for (var i = 0; i < bdActions.length; i++) {
+					if (bdActions[i].textContent == "Plugins") bdActions[i].click();
+				}
 
 				setTimeout(() => {
 
-					var settingsBox = document.querySelector(`li[data-name="${name}"]`), settingsButton = settingsBox.getElementsByClassName("bda-settings-button")[0];
+					var settingsBox = document.querySelector(`li[data-name="${name}"]`),
+						settingsButton = settingsBox.getElementsByClassName("bda-settings-button")[0];
 
 					settingsBox.scrollIntoView();
 
-					if(settingsButton != undefined) settingsButton.click();
+					if (settingsButton != undefined) settingsButton.click();
 
 				}, 100);
 
@@ -701,22 +1004,22 @@ var NeatoLib = {
 
 		},
 
-		save : function(plugin) {
+		save: function(plugin) {
 			NeatoLib.Data.save(plugin.getName().split(" ").join(""), "settings", plugin.settings);
 		},
 
-		load : function(plugin, defaultSettings) {
+		load: function(plugin, defaultSettings) {
 			return NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings);
 		}
 
 	},
 
-	UI : {
+	UI: {
 
-		createPrompt : function(id, title, description, yesCallback, noCallback = "close", options = {}) {
+		createPrompt: function(id, title, description, yesCallback, noCallback = "close", options = {}) {
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
-			
+
 			<div id="neato-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
 				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
@@ -737,13 +1040,13 @@ var NeatoLib = {
 					</div>
 				</div>
 			</div>
-			
+
 			`);
 
 			let prompt = document.getElementById("neato-prompt-" + id),
-			backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
-			yesButton = prompt.getElementsByClassName("prompt-yes")[0],
-			noButton = prompt.getElementsByClassName("prompt-no")[0];
+				backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
+				yesButton = prompt.getElementsByClassName("prompt-yes")[0],
+				noButton = prompt.getElementsByClassName("prompt-no")[0];
 
 			prompt.close = () => prompt.outerHTML = "";
 
@@ -753,18 +1056,18 @@ var NeatoLib = {
 			noButton.addEventListener("click", noCallback == "close" ? () => prompt.close() : () => noCallback(prompt));
 
 			prompt.addEventListener("keydown", e => {
-			if(e.key == "Escape") prompt.close();
-			if(e.key == "Enter") yesButton.click();
+				if (e.key == "Escape") prompt.close();
+				if (e.key == "Enter") yesButton.click();
 			});
 
 			return prompt;
 
 		},
 
-		createTextPrompt : function(id, title, callback, value = "", options = {}) {
+		createTextPrompt: function(id, title, callback, value = "", options = {}) {
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
-					
+
 			<div id="neato-text-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
 				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
@@ -789,13 +1092,13 @@ var NeatoLib = {
 			</div>
 
 			`);
-			
+
 			let prompt = document.getElementById("neato-text-prompt-" + id),
-			backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
-			confirmButton = prompt.getElementsByClassName("prompt-confirm")[0],
-			cancelButton = prompt.getElementsByClassName("prompt-cancel")[0],
-			secondOption = prompt.getElementsByClassName("prompt-second-option")[0],
-			field = prompt.getElementsByTagName("input")[0];
+				backdrop = prompt.getElementsByClassName("backdrop-1wrmKB")[0],
+				confirmButton = prompt.getElementsByClassName("prompt-confirm")[0],
+				cancelButton = prompt.getElementsByClassName("prompt-cancel")[0],
+				secondOption = prompt.getElementsByClassName("prompt-second-option")[0],
+				field = prompt.getElementsByTagName("input")[0];
 
 			field.focus();
 			field.selectionStart = field.selectionEnd = field.value.length;
@@ -807,21 +1110,21 @@ var NeatoLib = {
 			confirmButton.addEventListener("click", () => callback(field.value, prompt));
 			cancelButton.addEventListener("click", () => prompt.close());
 
-			if(options.secondOptionCallback != undefined) secondOption.addEventListener("click", () => options.secondOptionCallback(prompt));
+			if (options.secondOptionCallback != undefined) secondOption.addEventListener("click", () => options.secondOptionCallback(prompt));
 
 			prompt.addEventListener("keydown", e => {
-			if(e.key == "Escape") prompt.close();
-			if(e.key == "Enter") confirmButton.click();
+				if (e.key == "Escape") prompt.close();
+				if (e.key == "Enter") confirmButton.click();
 			});
 
 			return prompt;
 
 		},
 
-		createBasicScrollList : function(id, title, options = {}) {
+		createBasicScrollList: function(id, title, options = {}) {
 
 			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
-			
+
 			<div id="${id}">
 
 			<style>
@@ -867,24 +1170,24 @@ var NeatoLib = {
 				#${id} *::-webkit-scrollbar {
 					max-width: 10px;
 				}
-				
+
 				#${id} *::-webkit-scrollbar-track-piece {
 					background: transparent;
 					border: none;
 					border-radius: 5px;
 				}
-				
+
 				#${id} *:hover::-webkit-scrollbar-track-piece {
 					background: #2F3136;
 					border-radius: 5px;
 				}
-				
+
 				#${id} *::-webkit-scrollbar-thumb {
 					background: #1E2124;
 					border: none;
 					border-radius: 5px;
 				}
-				
+
 				#${id} *::-webkit-scrollbar-button {
 					display: none;
 				}
@@ -906,7 +1209,7 @@ var NeatoLib = {
 				.${id}-scroller > :last-child {
 					margin-bottom: 10px;
 				}
-				
+
 			</style>
 
 			<div class="${id}-backdrop"></div>
@@ -922,48 +1225,57 @@ var NeatoLib = {
 
 			`);
 
-			let window = document.getElementById(id), scroller = window.getElementsByClassName(`${id}-scroller`)[0], backdrop = window.getElementsByClassName(`${id}-backdrop`)[0];
+			let window = document.getElementById(id),
+				scroller = window.getElementsByClassName(`${id}-scroller`)[0],
+				backdrop = window.getElementsByClassName(`${id}-backdrop`)[0];
 
 			backdrop.addEventListener("click", () => window.outerHTML = "");
-			window.addEventListener("keydown", e => { if(key == "Escape") backdrop.click(); });
+			window.addEventListener("keydown", e => {
+				if (key == "Escape") backdrop.click();
+			});
 
-			return { window : window, scroller : scroller, backdrop : backdrop };
+			return {
+				window: window,
+				scroller: scroller,
+				backdrop: backdrop
+			};
 
 		}
 
 	},
 
-	Keybinds : {
+	Keybinds: {
 
-		globalShortcut : require("electron").remote.globalShortcut,
+		globalShortcut: require("electron").remote.globalShortcut,
 
-		attachListener : function(id, key, event, options = {}) {
+		attachListener: function(id, key, event, options = {}) {
 
-			if(key == undefined) return console.warn(id, "The passed key object is null!", key);
+			if (key == undefined) return console.warn(id, "The passed key object is null!", key);
 
-			if(window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
+			if (window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
 
 			let node = options.node || document;
 
-			if(window.activeNeatoKeyListeners[id]) {
+			if (window.activeNeatoKeyListeners[id]) {
 				console.warn("There is already a keybind listener with the id '" + id + "'!");
 				return;
 			}
 
 			window.activeNeatoKeyListeners[id] = {
-				heldKeys : [],
-				keydown : e => {
-					if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) == -1) window.activeNeatoKeyListeners[id].heldKeys.push(e.code);
-					if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
+				heldKeys: [],
+				keydown: e => {
+					if (window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) == -1) window.activeNeatoKeyListeners[id].heldKeys.push(e.code);
+					if (window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.primaryKey) != -1) {
 						let heldModifiers = 0;
-						for(let i = 0; i < key.modifiers.length; i++) if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
-						if(key.modifiers.length == heldModifiers && window.activeNeatoKeyListeners[id].heldKeys.length == heldModifiers + 1) event(e);
+						for (let i = 0; i < key.modifiers.length; i++)
+							if (window.activeNeatoKeyListeners[id].heldKeys.indexOf(key.modifiers[i]) != -1) heldModifiers++;
+						if (key.modifiers.length == heldModifiers && window.activeNeatoKeyListeners[id].heldKeys.length == heldModifiers + 1) event(e);
 					}
 				},
-				keyup : e => {
-					if(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) != -1) window.activeNeatoKeyListeners[id].heldKeys.splice(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code), 1);
+				keyup: e => {
+					if (window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code) != -1) window.activeNeatoKeyListeners[id].heldKeys.splice(window.activeNeatoKeyListeners[id].heldKeys.indexOf(e.code), 1);
 				},
-				windowFocusLoss : () => {
+				windowFocusLoss: () => {
 					window.activeNeatoKeyListeners[id].heldKeys = [];
 				}
 			};
@@ -977,11 +1289,11 @@ var NeatoLib = {
 
 		},
 
-		detachListener : function(id, node = document) {
+		detachListener: function(id, node = document) {
 
-			if(window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
-			
-			if(!window.activeNeatoKeyListeners[id]) {
+			if (window.activeNeatoKeyListeners == undefined) window.activeNeatoKeyListeners = {};
+
+			if (!window.activeNeatoKeyListeners[id]) {
 				console.warn("There is no keybind listener with the id '" + id + "'!");
 				return;
 			}
@@ -995,51 +1307,64 @@ var NeatoLib = {
 
 		},
 
-		registerGlobal : function(key, event, debug = false) {
-			try { this.globalShortcut.register(key, event); }
-			catch(e) { if(debug) console.error(e); }
+		registerGlobal: function(key, event, debug = false) {
+			try {
+				this.globalShortcut.register(key, event);
+			} catch (e) {
+				if (debug) console.error(e);
+			}
 		},
 
-		unregisterGlobal : function(key, debug = false) {
-			try { this.globalShortcut.unregister(key); }
-			catch(e) { if(debug) console.error(e); }
+		unregisterGlobal: function(key, debug = false) {
+			try {
+				this.globalShortcut.unregister(key);
+			} catch (e) {
+				if (debug) console.error(e);
+			}
 		}
 
 	},
 
-	Chatbox : {
+	Chatbox: {
 
-		get : function() {
+		get: function() {
 			let chat = document.getElementsByClassName(NeatoLib.getClass("chat"))[0];
 			return chat ? chat.getElementsByTagName("textarea")[0] : null;
 		},
 
-		setText : function(newText) {
+		setText: function(newText) {
 			NeatoLib.Chatbox.get().select();
 			document.execCommand("insertText", false, newText);
 		},
 
-		appendText : function(text) {
+		appendText: function(text) {
 			let chatbox = NeatoLib.Chatbox.get();
-			if(!chatbox) return;
+			if (!chatbox) return;
 			chatbox.select();
 			document.execCommand("insertText", false, chatbox.value + text);
 		}
 
 	},
 
-	Modules : { //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+	Modules: { //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
-		req : webpackJsonp.push([[], { "__extra_id__" : (m, e, r) => m.exports = r }, [["__extra_id__"]]]),
+		req: webpackJsonp.push([
+			[], {
+				"__extra_id__": (m, e, r) => m.exports = r
+			},
+			[
+				["__extra_id__"]
+			]
+		]),
 
-		find : function(filter) {
-			
-			for(let i in this.req.c) {
+		find: function(filter) {
 
-				if(this.req.c.hasOwnProperty(i)) {
+			for (let i in this.req.c) {
+
+				if (this.req.c.hasOwnProperty(i)) {
 					let m = this.req.c[i].exports;
-					if(m && m.__esModule && m.default && filter(m.default)) return m.default;
-					if(m && filter(m)) return m;
+					if (m && m.__esModule && m.default && filter(m.default)) return m.default;
+					if (m && filter(m)) return m;
 				}
 
 			}
@@ -1050,16 +1375,16 @@ var NeatoLib = {
 
 		},
 
-		findAll : function(filter) {
+		findAll: function(filter) {
 
 			let found = [];
-			
-			for(let i in this.req.c) {
 
-				if(this.req.c.hasOwnProperty(i)) {
+			for (let i in this.req.c) {
+
+				if (this.req.c.hasOwnProperty(i)) {
 					let m = this.req.c[i].exports;
-					if(m && m.__esModule && m.default && filter(m.default)) found.push(m.default);
-					else if(m && filter(m)) found.push(m);
+					if (m && m.__esModule && m.default && filter(m.default)) found.push(m.default);
+					else if (m && filter(m)) found.push(m);
 				}
 
 			}
@@ -1068,18 +1393,18 @@ var NeatoLib = {
 
 		},
 
-		findAllByPropertyName : function(propName, filter) {
+		findAllByPropertyName: function(propName, filter) {
 
-			if(!filter) filter = m => m[propName];
+			if (!filter) filter = m => m[propName];
 
 			let found = [];
-			
-			for(let i in this.req.c) {
 
-				if(this.req.c.hasOwnProperty(i)) {
+			for (let i in this.req.c) {
+
+				if (this.req.c.hasOwnProperty(i)) {
 					let m = this.req.c[i].exports;
-					if(m && m.__esModule && m.default && filter(m.default)) found.push(m.default[propName]);
-					else if(m && filter(m)) found.push(m[propName]);
+					if (m && m.__esModule && m.default && filter(m.default)) found.push(m.default[propName]);
+					else if (m && filter(m)) found.push(m[propName]);
 				}
 
 			}
@@ -1088,14 +1413,14 @@ var NeatoLib = {
 
 		},
 
-		findIndex : function(filter) {
-			
-			for(let i in this.req.c) {
+		findIndex: function(filter) {
 
-				if(this.req.c.hasOwnProperty(i)) {
+			for (let i in this.req.c) {
+
+				if (this.req.c.hasOwnProperty(i)) {
 					let m = this.req.c[i].exports;
-					if(m && m.__esModule && m.default && filter(m.default)) return i;
-					if(m && filter(m)) return i;
+					if (m && m.__esModule && m.default && filter(m.default)) return i;
+					if (m && filter(m)) return i;
 				}
 
 			}
@@ -1106,41 +1431,41 @@ var NeatoLib = {
 
 		},
 
-		get : function(props) {
+		get: function(props) {
 			const cacheKey = typeof props == "string" ? props : props.join(",");
-			if(!this.cached) this.cached = {};
-			if(!this.cached[cacheKey]) this.cached[cacheKey] = typeof props == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
+			if (!this.cached) this.cached = {};
+			if (!this.cached[cacheKey]) this.cached[cacheKey] = typeof props == "string" ? this.find(module => module[props] != undefined) : this.find(module => props.every(prop => module[prop] != undefined));
 			return this.cached[cacheKey];
 		},
 
-		getById : function(id) {
+		getById: function(id) {
 			return this.find(x => x._dispatchToken == "ID_" + id);
 		}
 
 	},
 
-	Updates : { //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
+	Updates: { //Based off of Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js
 
-		requestUpdateCheck : function(pluginName, url) {
+		requestUpdateCheck: function(pluginName, url) {
 
 			require("request")(url, (err, response, res) => {
 
-				if(err) return console.error(pluginName, "Failed to check for updates!", err);
+				if (err) return console.error(pluginName, "Failed to check for updates!", err);
 
 				let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i);
-				if(!latestVersion) return;
+				if (!latestVersion) return;
 				latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
 
-				if(window.PluginUpdates.plugins[url] && window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
+				if (window.PluginUpdates.plugins[url] && window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
 				else NeatoLib.Updates.hideNotice(pluginName);
 
 			});
 
 		},
 
-		displayNotice : function(pluginName, url) {
+		displayNotice: function(pluginName, url) {
 
-			if(document.getElementById("pluginNotice") == undefined) {
+			if (document.getElementById("pluginNotice") == undefined) {
 
 				let classes = NeatoLib.Modules.get("noticeInfo");
 
@@ -1150,43 +1475,47 @@ var NeatoLib = {
 
 			}
 
-			if(document.getElementById(pluginName + "-notice") == undefined) {
+			if (document.getElementById(pluginName + "-notice") == undefined) {
 
-				let element = document.createElement("span"), outdated = document.getElementById("outdatedPlugins");
+				let element = document.createElement("span"),
+					outdated = document.getElementById("outdatedPlugins");
 
 				element.setAttribute("id", pluginName + "-notice");
 				element.innerText = pluginName;
 
 				element.addEventListener("click", () => NeatoLib.Updates.download(pluginName, url));
 
-				if(outdated.getElementsByTagName("span")[0] != undefined) outdated.insertAdjacentHTML("beforeend", "<span class='separator'>, </span>");
+				if (outdated.getElementsByTagName("span")[0] != undefined) outdated.insertAdjacentHTML("beforeend", "<span class='separator'>, </span>");
 				outdated.appendChild(element);
 
 			}
 
 		},
 
-		hideNotice : function(pluginName) {
+		hideNotice: function(pluginName) {
 
 			let notice = document.getElementById(pluginName + "-notice");
 
-			if(notice) {
-				if(notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
-				else if(notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
+			if (notice) {
+				if (notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
+				else if (notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
 				notice.remove();
-			} else if(!document.querySelector("#outdatedPluings > span") && document.querySelector("#pluginNotice > .btn-reload") && document.querySelector("#pluginNotice .notice-message")) document.querySelector("#pluginNotice .notice-message").innerText = "To finish updating you need to reload.";
+			} else if (!document.querySelector("#outdatedPluings > span") && document.querySelector("#pluginNotice > .btn-reload") && document.querySelector("#pluginNotice .notice-message")) document.querySelector("#pluginNotice .notice-message").innerText = "To finish updating you need to reload.";
 
 		},
 
-		download : function(pluginName, url) {
-			
-			let req = require("request"), fs = require("fs"), path = require("path");
+		download: function(pluginName, url) {
+
+			let req = require("request"),
+				fs = require("fs"),
+				path = require("path");
 
 			req(url, (err, response, res) => {
 
-				if(err) return console.error(pluginName, "Failed to download update!", err);
+				if (err) return console.error(pluginName, "Failed to download update!", err);
 
-				let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i).toString().replace(/['"]/g, "").trim(), fileName = url.split("/");
+				let latestVersion = res.match(/['"][0-9]+\.[0-9]+\.[0-9]+['"]/i).toString().replace(/['"]/g, "").trim(),
+					fileName = url.split("/");
 				fileName = fileName[fileName.length - 1];
 
 				let file = path.join(NeatoLib.getPluginsFolderPath(), fileName);
@@ -1197,14 +1526,14 @@ var NeatoLib = {
 
 				let rnm = (window.bdplugins["Restart-No-More"] && window.pluginCookie["Restart-No-More"]) || (window.bdplugins["Restart No More"] && window.pluginCookie["Restart No More"]);
 
-				if(!rnm) {
+				if (!rnm) {
 
-					if(!window.PluginUpdates.downloaded) {
-						
+					if (!window.PluginUpdates.downloaded) {
+
 						window.PluginUpdates.downloaded = [];
 
 						let button = document.createElement("button");
-						
+
 						button.className = "btn btn-reload btn-2o56RF button-1MICoQ size14-3iUx6q weightMedium-2iZe9B";
 						button.innerText = "Reload";
 
@@ -1217,7 +1546,7 @@ var NeatoLib = {
 						tooltip.className = "tooltip tooltip-bottom tooltip-black";
 
 						tooltip.style.maxWidth = "400px";
-						
+
 						button.addEventListener("mouseenter", () => {
 							document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
 							tooltip.innerText = window.PluginUpdates.downloaded.join(", ");
@@ -1241,24 +1570,30 @@ var NeatoLib = {
 
 		},
 
-		check : function(plugin, path) {
+		check: function(plugin, path) {
 
 			let url = path ? path : "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
 
-			if(typeof window.PluginUpdates == "undefined") window.PluginUpdates = { plugins : {} };
-			window.PluginUpdates.plugins[url] = { name : plugin.getName(), raw : url, version : plugin.getVersion() };
+			if (typeof window.PluginUpdates == "undefined") window.PluginUpdates = {
+				plugins: {}
+			};
+			window.PluginUpdates.plugins[url] = {
+				name: plugin.getName(),
+				raw: url,
+				version: plugin.getVersion()
+			};
 
 			NeatoLib.Updates.requestUpdateCheck(plugin.getName(), url);
 
-			if(typeof window.PluginUpdates.interval == "undefined") {
+			if (typeof window.PluginUpdates.interval == "undefined") {
 				window.PluginUpdates.interval = setInterval(() => {
 					window.PluginUpdates.checkAll();
 				}, 7200000);
 			}
 
-			if(typeof window.PluginUpdates.checkAll == "undefined") {
+			if (typeof window.PluginUpdates.checkAll == "undefined") {
 				window.PluginUpdates.checkAll = function() {
-					for(let key in this.plugins) {
+					for (let key in this.plugins) {
 						NeatoLib.Updates.requestUpdateCheck(this.plugins[key].name, this.plugins[key].raw);
 					}
 				};
@@ -1268,31 +1603,37 @@ var NeatoLib = {
 
 	},
 
-	Data : {
+	Data: {
 
-		save : function(name, key, data) {
-			try { bdPluginStorage.set(name, key, data); }
-			catch(err) { console.warn(name, "failed to save data.", err); }
+		save: function(name, key, data) {
+			try {
+				bdPluginStorage.set(name, key, data);
+			} catch (err) {
+				console.warn(name, "failed to save data.", err);
+			}
 		},
 
-		load : function(name, key, fallback) {
-			try { return $.extend(true, fallback ? fallback : {}, bdPluginStorage.get(name, key)); }
-			catch(err) { console.warn(name, "failed to load data.", err); }
+		load: function(name, key, fallback) {
+			try {
+				return $.extend(true, fallback ? fallback : {}, bdPluginStorage.get(name, key));
+			} catch (err) {
+				console.warn(name, "failed to load data.", err);
+			}
 			return {};
 		}
 
 	},
 
-	Events : {
+	Events: {
 
-		onPluginLoaded : function(plugin) {
+		onPluginLoaded: function(plugin) {
 
 			NeatoLib.showToast(`[${plugin.getName()}]: Plugin loaded.`, "success");
 			console.log(plugin.getName(), "loaded.");
 
 			plugin.ready = true;
 
-			if(plugin.forceLoadTimeout) {
+			if (plugin.forceLoadTimeout) {
 				clearTimeout(plugin.forceLoadTimeout);
 				plugin.forceLoadTimeout = null;
 				delete plugin.forceLoadTimeout;
@@ -1300,55 +1641,59 @@ var NeatoLib = {
 
 		},
 
-		attach : function(eventType, event, options = {}) {
-			window.activeNeatoEvents.push({ callback : event, type : eventType, options : options });
+		attach: function(eventType, event, options = {}) {
+			window.activeNeatoEvents.push({
+				callback: event,
+				type: eventType,
+				options: options
+			});
 		},
 
-		detach : function(eventType, event) {
+		detach: function(eventType, event) {
 			let idx = window.activeNeatoEvents.findIndex(e => e.callback == event && e.type == eventType);
-			if(idx != -1) window.activeNeatoEvents.splice(idx, 1);
+			if (idx != -1) window.activeNeatoEvents.splice(idx, 1);
 			else console.warn("Event could not be found.", event);
 		}
 
 	},
 
-	ReactData : {
+	ReactData: {
 
-		get : function(element) {
+		get: function(element) {
 
-			if(!(element instanceof Element)) return null;
+			if (!(element instanceof Element)) return null;
 
 			return element[Object.keys(element).find(key => key.startsWith("__reactInternalInstance"))];
 
 		},
 
-		getEvents : function(element) {
+		getEvents: function(element) {
 
-			if(!(element instanceof Element)) return null;
+			if (!(element instanceof Element)) return null;
 
 			return element[Object.keys(element).find(key => key.startsWith("__reactEventHandlers"))];
 
 		},
 
-		getOwner : function(element) {
+		getOwner: function(element) {
 
-			if(!(element instanceof Element)) return null;
-			
+			if (!(element instanceof Element)) return null;
+
 			let reactData = this.get(element);
 
-			if(reactData == undefined) return null;
+			if (reactData == undefined) return null;
 
-			for(let c = reactData.return; !_.isNil(c); c = c.return) {
-				if(_.isNil(c)) continue;
+			for (let c = reactData.return; !_.isNil(c); c = c.return) {
+				if (_.isNil(c)) continue;
 				let owner = c.stateNode;
-				if(!_.isNil(owner) && !(owner instanceof HTMLElement)) return owner;
+				if (!_.isNil(owner) && !(owner instanceof HTMLElement)) return owner;
 			}
 
 		},
 
-		getProps : function(element) {
+		getProps: function(element) {
 
-			if(!(element instanceof Element)) return null;
+			if (!(element instanceof Element)) return null;
 
 			let owner = this.getOwner(element);
 
@@ -1356,19 +1701,20 @@ var NeatoLib = {
 
 		},
 
-		getProp : function(element, propKey) {
-			
-			if(!(element instanceof Element)) return null;
+		getProp: function(element, propKey) {
+
+			if (!(element instanceof Element)) return null;
 
 			let owner = this.getOwner(element);
 
-			if(!owner || !owner.props) return null;
+			if (!owner || !owner.props) return null;
 
-			let split = propKey.split("."), obj = owner.props;
+			let split = propKey.split("."),
+				obj = owner.props;
 
-			for(let i = 0; i < split.length; i++) {
+			for (let i = 0; i < split.length; i++) {
 				obj = obj[split[i]];
-				if(!obj) return null;
+				if (!obj) return null;
 			}
 
 			return obj;
@@ -1377,19 +1723,19 @@ var NeatoLib = {
 
 	},
 
-	ContextMenu : {
+	ContextMenu: {
 
-		create : function(items, event, options = {}) {
+		create: function(items, event, options = {}) {
 
 			this.close();
-			
+
 			let menu = document.createElement("div");
 
 			menu.classList.add(this.classes.contextMenu.split(" ")[0], document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
 
-			for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
+			for (let i = 0; i < items.length; i++) menu.appendChild(items[i]);
 
-			if(options.style) menu.style = options.style;
+			if (options.style) menu.style = options.style;
 
 			menu.style.zIndex = 10000;
 			menu.style.top = event.clientY + "px";
@@ -1403,11 +1749,11 @@ var NeatoLib = {
 			};
 
 			let onClick = e => {
-				if(!menu.contains(e.target)) close();
+				if (!menu.contains(e.target)) close();
 			};
 
 			let onKeyUp = e => {
-				if(e.key == "Escape") close();
+				if (e.key == "Escape") close();
 			};
 
 			document.addEventListener("click", onClick);
@@ -1422,19 +1768,19 @@ var NeatoLib = {
 
 		},
 
-		createGroup : function(items, options = {}) {
+		createGroup: function(items, options = {}) {
 
 			let element = document.createElement("div");
 
 			element.classList.add(this.classes.itemGroup.split(" ")[0]);
 
-			for(let i = 0; i < items.length; i++) element.appendChild(items[i]);
+			for (let i = 0; i < items.length; i++) element.appendChild(items[i]);
 
 			return element;
 
 		},
 
-		createItem : function(label, callback, options = {}) {
+		createItem: function(label, callback, options = {}) {
 
 			let element = document.createElement("div");
 
@@ -1442,53 +1788,53 @@ var NeatoLib = {
 
 			element.innerHTML = "<span>" + label + "</span>";
 
-			if(options.color) element.firstChild.style.color = options.color;
+			if (options.color) element.firstChild.style.color = options.color;
 
-			if(options.hint) NeatoLib.Tooltip.attach(options.hint, element);
+			if (options.hint) NeatoLib.Tooltip.attach(options.hint, element);
 
-			if(options.description) element.innerHTML += `<div class="${this.classes.hint}">${options.description}</div>`;
+			if (options.description) element.innerHTML += `<div class="${this.classes.hint}">${options.description}</div>`;
 
-			if(callback) element.addEventListener("click", callback);
+			if (callback) element.addEventListener("click", callback);
 
 			return element;
 
 		},
 
-		createSubMenu : function(label, items, options = {}) {
-			
+		createSubMenu: function(label, items, options = {}) {
+
 			let element = document.createElement("div");
 
 			element.classList.add(this.classes.item.split(" ")[0], this.classes.itemSubMenu.split(" ")[0]);
 
 			element.innerText = label;
 
-			if(options.color) element.style.color = options.color;
+			if (options.color) element.style.color = options.color;
 
-			if(options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
+			if (options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
 
-			if(options.callback) element.addEventListener("click", e => {
-				if(e.target == element) options.callback(e);
+			if (options.callback) element.addEventListener("click", e => {
+				if (e.target == element) options.callback(e);
 			});
 
 			element.addEventListener("mouseenter", () => {
-				if(element.getElementsByTagName("div")[0]) return element.getElementsByTagName("div")[0].style.display = "inline-block";
+				if (element.getElementsByTagName("div")[0]) return element.getElementsByTagName("div")[0].style.display = "inline-block";
 				let menu = document.createElement("div");
 				menu.style.left = element.parentElement.getBoundingClientRect().left + "px";
 				menu.style.top = element.getBoundingClientRect().top + "px";
 				menu.classList.add(this.classes.contextMenu.split(" ")[0], document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
-				for(let i = 0; i < items.length; i++) menu.appendChild(items[i]);
+				for (let i = 0; i < items.length; i++) menu.appendChild(items[i]);
 				element.appendChild(menu);
 			});
 
 			element.addEventListener("mouseleave", () => {
-				if(element.getElementsByTagName("div")[0]) element.getElementsByTagName("div")[0].style.display = "none";
+				if (element.getElementsByTagName("div")[0]) element.getElementsByTagName("div")[0].style.display = "none";
 			});
 
 			return element;
 
 		},
 
-		createToggle : function(label, value, callback, options = {}) {
+		createToggle: function(label, value, callback, options = {}) {
 
 			let element = document.createElement("div");
 
@@ -1505,12 +1851,12 @@ var NeatoLib = {
 			`;
 
 			let checkbox = element.getElementsByTagName("input")[0];
-			
+
 			checkbox.checked = value;
 
-			if(options.color) element.style.color = options.color;
+			if (options.color) element.style.color = options.color;
 
-			if(callback) element.addEventListener("click", () => {
+			if (callback) element.addEventListener("click", () => {
 				checkbox.checked = !checkbox.checked;
 				callback(checkbox.checked);
 			});
@@ -1519,86 +1865,91 @@ var NeatoLib = {
 
 		},
 
-		get : function() {
+		get: function() {
 			return Array.filter(document.getElementsByClassName(this.classes.contextMenu), x => x.style.display != "none")[0];
 		},
 
-		close : function() {
+		close: function() {
 			let cm = NeatoLib.ContextMenu.get();
-			if(cm) cm.style.display = "none";
+			if (cm) cm.style.display = "none";
 		}
 
 	},
 
-	Tooltip : {
+	Tooltip: {
 
-		attach : function(content, element, options = {}) {
+		attach: function(content, element, options = {}) {
 
-			if(element.tooltip != undefined) element.tooltip.detach();
+			if (element.tooltip != undefined) element.tooltip.detach();
 
-			const { side = "top", color = undefined, onShow = undefined, onHide = undefined } = options;
+			const { side = "top", color, onShow, onHide, delay } = options;
 
-			let domChecker;
+			let domChecker, delayTimeout;
 
 			element.tooltip = {
-				tooltip : undefined,
-				node : element,
-				event : {
-					mouseenter : () => {
+				tooltip: undefined,
+				node: element,
+				event: {
+					mouseenter: () => {
 						let tooltip = document.createElement("div");
 						tooltip.classList.add("tooltip", "tooltip-" + side, "tooltip-black");
 						tooltip.innerText = content;
 						tooltip.style.pointerEvents = "none";
 						tooltip.style.zIndex = 15000;
-						if(color) tooltip.style.backgroundColor = color;
+						if (color) tooltip.style.backgroundColor = color;
 						document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
 						element.tooltip.tooltip = tooltip;
 						let elementRect = element.getBoundingClientRect();
-						switch(side) {
-							case "top" : {
+						switch (side) {
+							case "top":
 								tooltip.style.top = (elementRect.top - tooltip.offsetHeight) + "px";
 								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
-								break;
-							}
-							case "bottom" : {
+							break;
+
+							case "bottom":
 								tooltip.style.top = (elementRect.top + element.offsetHeight) + "px";
 								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
-								break;
-							}
-							case "right" : {
+							break;
+
+							case "right":
 								tooltip.style.left = (elementRect.left + element.offsetWidth) + "px";
 								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
-								break;
-							}
-							case "left" : {
+							break;
+
+							case "left":
 								tooltip.style.left = (elementRect.left - tooltip.offsetWidth) + "px";
 								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
-								break;
-							}
+							break;
 						}
-						if(typeof onShow == "function") onShow(element.tooltip);
+						if (typeof onShow == "function") onShow(element.tooltip);
 						domChecker = setInterval(() => {
-							if(!document.contains(element)) {
+							if (!document.contains(element)) {
 								tooltip.remove();
 								clearInterval(domChecker);
 							}
 						}, 200);
 					},
-					mouseleave : () => {
-						if(element.tooltip.tooltip) {
+					mouseleave: () => {
+						if (element.tooltip.tooltip) {
 							element.tooltip.tooltip.remove();
-							if(typeof onHide == "function") onHide(element.tooltip);
+							if (typeof onHide == "function") onHide(element.tooltip);
 						}
 						clearInterval(domChecker);
+						clearTimeout(delayTimeout);
 					}
 				},
-				detach : () => {
+				detach: () => {
 					element.tooltip.event.mouseleave();
 					element.removeEventListener("mouseenter", element.tooltip.event.mouseenter);
 					element.removeEventListener("mouseleave", element.tooltip.event.mouseleave);
 					delete element.tooltip;
 				}
 			};
+
+			if (delay) {
+				const display = element.tooltip.event.mouseenter;
+				element.tooltip.event.mouseenter = () => delayTimeout = setTimeout(display, delay);
+			}
 
 			element.addEventListener("mouseenter", element.tooltip.event.mouseenter);
 			element.addEventListener("mouseleave", element.tooltip.event.mouseleave);
@@ -1609,43 +1960,44 @@ var NeatoLib = {
 
 	},
 
-	Colors : {
+	Colors: {
 
-		DiscordDefaults : {
-			red : "#f04747",
-			blue : "#7289da",
-			green : "#43b581"
+		DiscordDefaults: {
+			red: "#f04747",
+			blue: "#7289da",
+			green: "#43b581"
 		},
 
-		hexToRGB : function(hex, format = "R, G, B") {
+		hexToRGB: function(hex, format = "R, G, B") {
 			return format.replace("R", parseInt(hex.substring(1, 7).substring(0, 2), 16)).replace("G", parseInt(hex.substring(1, 7).substring(2, 4), 16)).replace("B", parseInt(parseInt(hex.substring(1, 7).substring(4, 6), 16)));
 		},
 
-		getBrightness : function(color) {
-			if(!color) return 0;
+		getBrightness: function(color) {
+			if (!color) return 0;
 			let c = Array.from(color.split(","), n => parseInt(n.replace(/[^0-9]/g, "")));
 			return Math.sqrt(c[0] * c[0] * 0.241 + c[1] * c[1] * 0.691 + c[2] * c[2] * 0.068) / 255;
 		}
 
 	},
 
-	DOM : {
+	DOM: {
 
-		searchForParentElementByClassName : function(e, className) {
+		searchForParentElementByClassName: function(e, className) {
 
-			if(!e) return null;
+			if (!e) return null;
 
-			if(e.classList.contains(className)) return e;
+			if (e.classList.contains(className)) return e;
 
 			let element = e;
 
-			while(element && element.parentElement && element.parentElement != document) {
+			while (element && element.parentElement && element.parentElement != document) {
 
 				element = element.parentElement;
 
-				if(element.classList.contains(className)) return element;
+				if (element.classList.contains(className)) return element;
 
-				for(let i = 0; i < element.children.length; i++) if(element.children[i].classList.contains(className)) return element.children[i];
+				for (let i = 0; i < element.children.length; i++)
+					if (element.children[i].classList.contains(className)) return element.children[i];
 
 			}
 
@@ -1653,30 +2005,31 @@ var NeatoLib = {
 
 		},
 
-		createElement : function(values, options = {}) {
+		createElement: function(values, options = {}) {
 
 			let element = document.createElement(options.type || "div");
 
-			for(let key in values) element[key] = values[key];
+			for (let key in values) element[key] = values[key];
 
 			return element;
 
 		},
 
-		sortChildren : function(element, sortFunc) {
+		sortChildren: function(element, sortFunc) {
 
 			let children = Array.from(element.children).sort(sortFunc || function(a, b) {
-				let x = a.innerText.toLowerCase(), y = b.innerText.toLowerCase();
-				if(x < y) return -1;
-				else if(x > y) return 1;
+				let x = a.innerText.toLowerCase(),
+					y = b.innerText.toLowerCase();
+				if (x < y) return -1;
+				else if (x > y) return 1;
 				return 0;
 			});
 
-			for(let i = 0; i < children.length; i++) element.appendChild(children[i]);
+			for (let i = 0; i < children.length; i++) element.appendChild(children[i]);
 
 		},
 
-		insertHTMLBefore : function(element, html) {
+		insertHTMLBefore: function(element, html) {
 
 			let e = document.createElement("div");
 
@@ -1688,12 +2041,12 @@ var NeatoLib = {
 
 		},
 
-		insertAtIndex : function(idx, element, parent) {
-			if(idx >= parent.children.length) parent.appendChild(element);
+		insertAtIndex: function(idx, element, parent) {
+			if (idx >= parent.children.length) parent.appendChild(element);
 			else parent.insertBefore(element, parent.children[idx]);
 		},
 
-		insertHTMLAtIndex : function(idx, html, parent) {
+		insertHTMLAtIndex: function(idx, html, parent) {
 
 			let e = document.createElement("div");
 
@@ -1707,15 +2060,15 @@ var NeatoLib = {
 
 	},
 
-	Thread : {
+	Thread: {
 
-		sleep : function(timeout = 0) {
+		sleep: function(timeout = 0) {
 			return new Promise(p => setTimeout(p, timeout));
 		}
 
 	},
 
-	downloadFile : async function(url, path, filename, onCompleted) {
+	downloadFile: async function(url, path, filename, onCompleted) {
 
 		filename = filename.split("?")[0];
 
@@ -1724,24 +2077,29 @@ var NeatoLib = {
 		let progressToast, id = path.replace(/[^a-z0-9]/g, "");
 
 		const error = function(err) {
-			if(!err) return;
-			if(id) NeatoLib.showProgressToast(id, "Error saving " + filename + ". Click to retry.", 1, 1, { color : NeatoLib.Colors.DiscordDefaults.red, progressText : "ERROR", timeout : 5000  })
-					.addEventListener("click", function(e) {
-						NeatoLib.downloadFile(...def);
-						e.currentTarget.close();
-					});
+			if (!err) return;
+			if (id) NeatoLib.showProgressToast(id, "Error saving " + filename + ". Click to retry.", 1, 1, {
+					color: NeatoLib.Colors.DiscordDefaults.red,
+					progressText: "ERROR",
+					timeout: 5000
+				})
+				.addEventListener("click", function(e) {
+					NeatoLib.downloadFile(...def);
+					e.currentTarget.close();
+				});
 			throw err;
 		};
 
-		try{
+		try {
 
-			const fs = require("fs"), protocol = require(url.match(/[http&https]+/)[0]);
+			const fs = require("fs"),
+				protocol = require(url.match(/[http&https]+/)[0]);
 
-			if(!path.endsWith("/")) path += "/";
+			if (!path.endsWith("/")) path += "/";
 
 			path = path.split("?")[0] + filename;
 
-			if(fs.existsSync(path)) {
+			if (fs.existsSync(path)) {
 				NeatoLib.showToast(`"${filename}" already exists, random characters will be appended to the file name!`, "error");
 				const fileExtension = "." + path.split(".")[path.split(".").length - 1];
 				path = path.split(fileExtension).join(`${Math.random().toString(36).substring(10)}${fileExtension}`);
@@ -1753,35 +2111,49 @@ var NeatoLib = {
 
 			const request = protocol.get(url, function(req) {
 
-				let data = [], progress = 0, length;
-				
+				let data = [],
+					progress = 0,
+					length;
+
 				startingToast.close();
-				if(length = req.headers["content-length"]) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, { timeout : 10000 });
-				else progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", 1, 1, { color : NeatoLib.Colors.DiscordDefaults.blue, progressText : "File size unknown", timeout : 10000 });
-	
+				if (length = req.headers["content-length"]) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, {
+					timeout: 10000
+				});
+				else progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", 1, 1, {
+					color: NeatoLib.Colors.DiscordDefaults.blue,
+					progressText: "File size unknown",
+					timeout: 10000
+				});
+
 				req.on("data", function(dataChunk) {
 					data.push(dataChunk);
 					progress += dataChunk.length;
-					if(length) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, { timeout : 10000 });
+					if (length) progressToast = NeatoLib.showProgressToast(id, "Downloading " + filename + "...", progress, length, {
+						timeout: 10000
+					});
 				});
 
 				req.on("end", function() {
-					if(data.length == 0) return error("URL is invalid");
-					progressToast = NeatoLib.showProgressToast(id, "Finished downloading " + filename, progress, length, { timeout : 3000 });
+					if (data.length == 0) return error("URL is invalid");
+					progressToast = NeatoLib.showProgressToast(id, "Finished downloading " + filename, progress, length, {
+						timeout: 3000
+					});
 					fs.writeFile(path, Buffer.concat(data), error);
-					if(onCompleted) onCompleted(path, url);
+					if (onCompleted) onCompleted(path, url);
 				});
-				
+
 			});
-			
+
 			request.on("error", error);
 			request.end();
 
-		} catch(err) { error(err); }
+		} catch (err) {
+			error(err);
+		}
 
 	},
 
-	requestFile : function(url, name = "unknown.png", onCompleted) {
+	requestFile: function(url, name = "unknown.png", onCompleted) {
 
 		var http = require("https");
 
@@ -1789,39 +2161,43 @@ var NeatoLib = {
 
 			var data = [];
 
-			x.on("data", d => { data.push(d); });
+			x.on("data", d => {
+				data.push(d);
+			});
 
 			x.on("end", () => {
 
-				if(onCompleted != undefined) onCompleted(new File([Buffer.concat(data)], name));
+				if (onCompleted != undefined) onCompleted(new File([Buffer.concat(data)], name));
 
 			});
 
 		});
 
-		request.on("error", error => { NeatoLib.showToast("Failed to request file! Error: " + error.message, "error"); });
+		request.on("error", error => {
+			NeatoLib.showToast("Failed to request file! Error: " + error.message, "error");
+		});
 
 		request.end();
 
 	},
 
-	getClass : function(moduleName, className = moduleName, index = 0) {
+	getClass: function(moduleName, className = moduleName, index = 0) {
 		return NeatoLib.Modules.get(moduleName)[className].split(" ")[index];
 	},
 
-	getClasses : function(classes, returnAll = true) {
+	getClasses: function(classes, returnAll = true) {
 
 		var found = {};
 
-		for(var i = 0; i < classes.length; i++) {
+		for (var i = 0; i < classes.length; i++) {
 
 			var module = NeatoLib.Modules.get(classes[i]);
 
-			if(module != undefined) {
+			if (module != undefined) {
 
-				for(var ii in module) {
+				for (var ii in module) {
 
-					if(!returnAll && classes[i] != ii) continue;
+					if (!returnAll && classes[i] != ii) continue;
 
 					found[ii] = module[ii];
 
@@ -1835,34 +2211,36 @@ var NeatoLib = {
 
 	},
 
-	getSelectedGuild : function() {
+	getSelectedGuild: function() {
 		return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getGuildId").getGuildId());
 	},
 
-	getSelectedGuildId : function() {
+	getSelectedGuildId: function() {
 		return NeatoLib.Modules.get("getGuildId").getGuildId();
 	},
 
-	getSelectedTextChannel : function() {
+	getSelectedTextChannel: function() {
 		return NeatoLib.Modules.Stores.Channels.getChannel(NeatoLib.Modules.Stores.SelectedChannels.getChannelId());
 	},
 
-	getSelectedVoiceChannel : function() {
+	getSelectedVoiceChannel: function() {
 		return NeatoLib.Modules.Stores.Channels.getChannel(NeatoLib.Modules.Stores.SelectedChannels.getVoiceChannelId());
 	},
 
-	monkeyPatchInternal : function(module, funcName, newFunc) {
+	monkeyPatchInternal: function(module, funcName, newFunc) {
 
 		const unpatched = module[funcName];
 
 		module[funcName] = function() {
 			return newFunc({
-				module : this,
-				args : arguments,
-				unpatch : () => module[funcName] = unpatched,
-				unpatched : unpatched,
-				callDefault : () => unpatched.apply(this, arguments),
-				callDefaultWithArgs : function() { this.unpatched.apply(this.module, arguments); }
+				module: this,
+				args: arguments,
+				unpatch: () => module[funcName] = unpatched,
+				unpatched: unpatched,
+				callDefault: () => unpatched.apply(this, arguments),
+				callDefaultWithArgs: function() {
+					this.unpatched.apply(this.module, arguments);
+				}
 			});
 		};
 
@@ -1870,16 +2248,16 @@ var NeatoLib = {
 
 	},
 
-	patchInternalFunction : function(functionName, newFunction, pluginName, replace = false) {
+	patchInternalFunction: function(functionName, newFunction, pluginName, replace = false) {
 
 		let module = NeatoLib.Modules.get(functionName);
 
-		if(module == undefined) return console.warn("No module with function '" + functionName + "' found!");
+		if (module == undefined) return console.warn("No module with function '" + functionName + "' found!");
 
-		if(module[functionName + "_unpatched_" + pluginName] != undefined) return console.warn("This function is already patched by this plugin!");
+		if (module[functionName + "_unpatched_" + pluginName] != undefined) return console.warn("This function is already patched by this plugin!");
 
 		module[functionName + "_unpatched_" + pluginName] = module[functionName];
-		
+
 		module[functionName] = replace ? newFunction : function() {
 			newFunction.apply(module, arguments);
 			return module[functionName + "_unpatched_" + pluginName].apply(module, arguments);
@@ -1887,11 +2265,11 @@ var NeatoLib = {
 
 	},
 
-	unpatchInternalFunction : function(functionName, pluginName) {
+	unpatchInternalFunction: function(functionName, pluginName) {
 
 		let module = NeatoLib.Modules.get(functionName);
 
-		if(module == undefined) {
+		if (module == undefined) {
 
 			console.log("There are no modules that contain this function!");
 
@@ -1899,7 +2277,7 @@ var NeatoLib = {
 
 		}
 
-		if(module[functionName + "_unpatched_" + pluginName] == undefined) {
+		if (module[functionName + "_unpatched_" + pluginName] == undefined) {
 
 			console.log("This function is not patched!");
 
@@ -1912,11 +2290,11 @@ var NeatoLib = {
 
 	},
 
-	internalFunctionIsPatched : function(functionName, pluginName) {
+	internalFunctionIsPatched: function(functionName, pluginName) {
 
 		let module = NeatoLib.Modules.get(functionName);
 
-		if(module == undefined) {
+		if (module == undefined) {
 
 			console.log("There are no modules that contain this function!");
 
@@ -1928,35 +2306,35 @@ var NeatoLib = {
 
 	},
 
-	patchInternalFunctions : function(functionNames, newFunction, pluginName, replace = false) {
-		for(let i = 0; i < functionNames.length; i++) NeatoLib.patchInternalFunction(functionNames[i], newFunction, pluginName, replace);
+	patchInternalFunctions: function(functionNames, newFunction, pluginName, replace = false) {
+		for (let i = 0; i < functionNames.length; i++) NeatoLib.patchInternalFunction(functionNames[i], newFunction, pluginName, replace);
 	},
 
-	unpatchInternalFunctions : function(functionNames, pluginName) {
-		for(let i = 0; i < functionNames.length; i++) NeatoLib.unpatchInternalFunction(functionNames[i], pluginName);
+	unpatchInternalFunctions: function(functionNames, pluginName) {
+		for (let i = 0; i < functionNames.length; i++) NeatoLib.unpatchInternalFunction(functionNames[i], pluginName);
 	},
 
-	getLocalUser : function() {
+	getLocalUser: function() {
 		return NeatoLib.Modules.Stores.Users.getCurrentUser();
 	},
 
-	getLocalStatus : function() {
+	getLocalStatus: function() {
 		return NeatoLib.Modules.Stores.Activities.getStatus(NeatoLib.getLocalUser().id);
 	},
 
-	browseForFile : function(callback, options = {}) {
+	browseForFile: function(callback, options = {}) {
 
 		let fileBrowser = document.createElement("input");
 
 		fileBrowser.type = "file";
 		fileBrowser.style.display = "none";
 
-		if(options.directory == true) {
+		if (options.directory == true) {
 			fileBrowser.setAttribute("webkitdirectory", true);
 			fileBrowser.setAttribute("directory", true);
 		}
 
-		if(options.multiple == true) fileBrowser.setAttribute("multiple", true);
+		if (options.multiple == true) fileBrowser.setAttribute("multiple", true);
 
 		document.head.appendChild(fileBrowser);
 
@@ -1972,11 +2350,12 @@ var NeatoLib = {
 
 	},
 
-	shuffleArray : function(array) {
+	shuffleArray: function(array) {
 
-		let idx = array.length, temp, random;
+		let idx = array.length,
+			temp, random;
 
-		while(idx != 0) {
+		while (idx != 0) {
 			random = Math.floor(Math.random() * idx);
 			idx--;
 			temp = array[idx];
@@ -1988,42 +2367,50 @@ var NeatoLib = {
 
 	},
 
-	getPluginsFolderPath : function() {
+	getPluginsFolderPath: function() {
 
-		let proc = require("process"), path = require("path");
+		let proc = require("process"),
+			path = require("path");
 
-		switch(proc.platform) {
-			case "win32" : return path.resolve(proc.env.appdata, "BetterDiscord/plugins/");
-			case "darwin" : return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/plugins/");
-			default : path.resolve(proc.env.HOME, ".config/", "BetterDiscord/plugins/");
+		switch (proc.platform) {
+			case "win32":
+				return path.resolve(proc.env.appdata, "BetterDiscord/plugins/");
+			case "darwin":
+				return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/plugins/");
+			default:
+				path.resolve(proc.env.HOME, ".config/", "BetterDiscord/plugins/");
 		}
 
 	},
 
-	getThemesFolderPath : function() {
+	getThemesFolderPath: function() {
 
-		let proc = require("process"), path = require("path");
+		let proc = require("process"),
+			path = require("path");
 
-		switch(proc.platform) {
-			case "win32" : return path.resolve(proc.env.appdata, "BetterDiscord/themes/");
-			case "darwin" : return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/themes/");
-			default : path.resolve(proc.env.HOME, ".config/", "BetterDiscord/themes/");
+		switch (proc.platform) {
+			case "win32":
+				return path.resolve(proc.env.appdata, "BetterDiscord/themes/");
+			case "darwin":
+				return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/themes/");
+			default:
+				path.resolve(proc.env.HOME, ".config/", "BetterDiscord/themes/");
 		}
 
 	},
 
-	tryCreateToastContainer : function() {
+	tryCreateToastContainer: function() {
 
-		if(!document.getElementsByClassName("toasts").length) {
-			
+		if (!document.getElementsByClassName("toasts").length) {
+
 			const container = document.getElementsByClassName(NeatoLib.Modules.get("channels").channels)[0].nextSibling,
-			memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
-			form = container ? container.getElementsByTagName("form")[0] : undefined,
-			left = container ? container.getBoundingClientRect().left : 310,
-			right = memberlist ? memberlist.getBoundingClientRect().left : 0,
-			width = right ? right - container.getBoundingClientRect().left : container.offsetWidth,
-			bottom = form ? form.offsetHeight : 80,
-			toastWrapper = document.createElement("div");
+				memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
+				form = container ? container.getElementsByTagName("form")[0] : undefined,
+				left = container ? container.getBoundingClientRect().left : 310,
+				right = memberlist ? memberlist.getBoundingClientRect().left : 0,
+				width = right ? right - container.getBoundingClientRect().left : container.offsetWidth,
+				bottom = form ? form.offsetHeight : 80,
+				toastWrapper = document.createElement("div");
 
 			toastWrapper.classList.add("toasts");
 
@@ -2037,27 +2424,27 @@ var NeatoLib = {
 
 	},
 
-	showToast : function(text, type, options = {}) {
+	showToast: function(text, type, options = {}) {
 
 		this.tryCreateToastContainer();
 
 		const toast = document.createElement("div");
 
 		toast.classList.add("toast");
-		if(typeof type == "string") toast.classList.add("toast-" + type);
-		if(options.icon) toast.classList.add("icon");
-		if(options.color) toast.style.background = options.color;
+		if (typeof type == "string") toast.classList.add("toast-" + type);
+		if (options.icon) toast.classList.add("icon");
+		if (options.color) toast.style.background = options.color;
 
 		const destroy = toast.close = function() {
 			toast.classList.add("closing");
 			setTimeout(function() {
 				toast.remove();
-				if(!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
+				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
 		};
 
-		if(options.onClick) toast.addEventListener("click", options.onClick);
-		if(options.destroyOnClick) toast.addEventListener("click", destroy);
+		if (options.onClick) toast.addEventListener("click", options.onClick);
+		if (options.destroyOnClick) toast.addEventListener("click", destroy);
 
 		toast.innerHTML = text;
 
@@ -2069,7 +2456,7 @@ var NeatoLib = {
 
 	},
 
-	showProgressToast : function(id, label, val, max, options = {}) {
+	showProgressToast: function(id, label, val, max, options = {}) {
 
 		let bar;
 
@@ -2078,21 +2465,21 @@ var NeatoLib = {
 			bar.classList.add("closing");
 			setTimeout(function() {
 				bar.remove();
-				if(!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
+				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
 		};
 
-		const updateBar = function(){
+		const updateBar = function() {
 
 			bar.getElementsByClassName("toast-prog-bar-label")[0].innerHTML = label;
 
 			const prog = bar.getElementsByClassName("toast-prog-bar-progress")[0];
-			if(options.progressText) prog.innerHTML = options.progressText;
-			else if(!isNaN(parseInt((val / max) * 100))) prog.innerText = parseInt((val / max) * 100) + "%";
+			if (options.progressText) prog.innerHTML = options.progressText;
+			else if (!isNaN(parseInt((val / max) * 100))) prog.innerText = parseInt((val / max) * 100) + "%";
 			else prog.innerText = "ERROR";
 			prog.style.width = ((val / max) * 500) + "px";
 
-			if(options.color) prog.style.background = options.color;
+			if (options.color) prog.style.background = options.color;
 			else prog.style.background = NeatoLib.Colors.DiscordDefaults.green;
 
 			clearTimeout(bar.destroyTimeout);
@@ -2100,7 +2487,7 @@ var NeatoLib = {
 
 		};
 
-		if(bar = document.getElementById("neato-toast-prog-bar-" + id)) {
+		if (bar = document.getElementById("neato-toast-prog-bar-" + id)) {
 			updateBar();
 			return bar;
 		}
@@ -2108,7 +2495,7 @@ var NeatoLib = {
 		this.tryCreateToastContainer();
 
 		document.getElementsByClassName("toasts")[0].insertAdjacentHTML("beforeend",
-		`<div id="neato-toast-prog-bar-${id}" class="toast has-prog-bar">
+			`<div id="neato-toast-prog-bar-${id}" class="toast has-prog-bar">
 			<div class="toast-prog-bar-label">${label}</div>
 			<div class="toast-prog-bar-background">
 				<div class="toast-prog-bar-progress" style="width:0">0%</div>
@@ -2118,19 +2505,19 @@ var NeatoLib = {
 		bar = document.getElementById("neato-toast-prog-bar-" + id);
 		bar.close = destroy;
 
-		if(options.backgroundColor) bar.style.backgroundColor = options.backgroundColor;
+		if (options.backgroundColor) bar.style.backgroundColor = options.backgroundColor;
 
-		if(options.onClick) bar.addEventListener("click", options.onClick);
-		if(options.destroyOnClick) bar.addEventListener("click", destroy);
-		
+		if (options.onClick) bar.addEventListener("click", options.onClick);
+		if (options.destroyOnClick) bar.addEventListener("click", destroy);
+
 		updateBar();
 
 		return bar;
 
 	},
 
-	injectCSS : function(css) {
-		
+	injectCSS: function(css) {
+
 		let element = document.createElement("style");
 
 		element.type = "text/css";
@@ -2140,38 +2527,40 @@ var NeatoLib = {
 		document.head.appendChild(element);
 
 		return {
-			element : element,
-			getStyle : selector => {
+			element: element,
+			getStyle: selector => {
 				let selectorIDX = css.indexOf(selector);
-				if(selectorIDX == -1) return null;
+				if (selectorIDX == -1) return null;
 				return css.substring(selectorIDX, selectorIDX + css.substring(selectorIDX, css.length).indexOf("}")).split("{")[1].trim();
 			},
-			append : toAppend => {
+			append: toAppend => {
 				css += toAppend;
 				element.innerText = css;
 			},
-			destroy : () => {
+			destroy: () => {
 				element.remove();
 			}
 		};
 
 	},
 
-	getSnowflakeCreationDate : function(id) {
+	getSnowflakeCreationDate: function(id) {
 
 		let epoch = 1420070400000;
 
 		let toBinary = sf => {
 
-			let binary = "", high = parseInt(sf.slice(0, -10)) || 0, low = parseInt(sf.slice(-10));
+			let binary = "",
+				high = parseInt(sf.slice(0, -10)) || 0,
+				low = parseInt(sf.slice(-10));
 
-			while(low > 0 || high > 0) {
+			while (low > 0 || high > 0) {
 
 				binary = String(low & 1) + binary;
 
 				low = Math.floor(low / 2);
 
-				if(high > 0) {
+				if (high > 0) {
 					low += 5000000000 * (high % 2);
 					high = Math.floor(high / 2);
 				}
@@ -2190,68 +2579,74 @@ var NeatoLib = {
 
 var Metalloriff = NeatoLib;
 
-for(let pluginName in window.bdplugins) {
-	if(typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
+for (let pluginName in window.bdplugins) {
+	if (typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
 		setTimeout(() => {
-			if(window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
+			if (window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
 		}, 100);
 	}
 }
 
-if(window.activeNeatoEvents == undefined) window.activeNeatoEvents = [];
+if (window.activeNeatoEvents == undefined) window.activeNeatoEvents = [];
 
-if(window.neatoObserver) window.neatoObserver.disconnect();
+if (window.neatoObserver) window.neatoObserver.disconnect();
 window.neatoObserver = new MutationObserver(mutations => {
 
 	let call = type => {
-		for(let i = 0; i < window.activeNeatoEvents.length; i++) {
-			if(window.activeNeatoEvents[i].type == type) {
-				if(typeof(window.activeNeatoEvents[i].callback) == "function") {
-					try { window.activeNeatoEvents[i].callback(); }
-					catch(err) { console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback, err); }
+		for (let i = 0; i < window.activeNeatoEvents.length; i++) {
+			if (window.activeNeatoEvents[i].type == type) {
+				if (typeof(window.activeNeatoEvents[i].callback) == "function") {
+					try {
+						window.activeNeatoEvents[i].callback();
+					} catch (err) {
+						console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback, err);
+					}
 				}
 			}
 		}
 	};
 
-	for(let i = 0; i < mutations.length; i++) {
+	for (let i = 0; i < mutations.length; i++) {
 
-		if(mutations[i].removedNodes[0] != undefined && mutations[i].removedNodes[0] instanceof Element) {
-			if(mutations[i].removedNodes[0].classList.contains(NeatoLib.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
+		if (mutations[i].removedNodes[0] != undefined && mutations[i].removedNodes[0] instanceof Element) {
+			if (mutations[i].removedNodes[0].classList.contains(NeatoLib.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
 				call("switch");
 			}
 		}
 
 		let added = mutations[i].addedNodes[0];
 
-		if(added == undefined || !(added instanceof Element)) continue;
+		if (added == undefined || !(added instanceof Element)) continue;
 
-		if(added.classList.contains(NeatoLib.Events.classes.layer)) call("settings");
+		if (added.classList.contains(NeatoLib.Events.classes.layer)) call("settings");
 
-		if(added.classList.contains(NeatoLib.Events.classes.activityFeed) || added.id == "friends") call("switch");
+		if (added.classList.contains(NeatoLib.Events.classes.activityFeed) || added.id == "friends") call("switch");
 
-		if(added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
+		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if ((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
 
 	}
 
 });
-window.neatoObserver.observe(document, { childList : true, subtree : true });
+window.neatoObserver.observe(document, {
+	childList: true,
+	subtree: true
+});
 
 NeatoLib.Modules.Stores = {
-	Guilds : NeatoLib.Modules.get(["getGuild", "getGuilds"]),
-	Channels : NeatoLib.Modules.get(["getChannel", "getChannels"]),
-	SelectedChannels : NeatoLib.Modules.get(["getChannelId", "getVoiceChannelId"]),
-	Users : NeatoLib.Modules.get(["getUser", "getUsers"]),
-	Members : NeatoLib.Modules.get(["getMember", "getMembers"]),
-	Activities : NeatoLib.Modules.get(["getActivity", "getActivities"])
+	Guilds: NeatoLib.Modules.get(["getGuild", "getGuilds"]),
+	Channels: NeatoLib.Modules.get(["getChannel", "getChannels"]),
+	SelectedChannels: NeatoLib.Modules.get(["getChannelId", "getVoiceChannelId"]),
+	Users: NeatoLib.Modules.get(["getUser", "getUsers"]),
+	Members: NeatoLib.Modules.get(["getMember", "getMembers"]),
+	Activities: NeatoLib.Modules.get(["getActivity", "getActivities"])
 };
 
 NeatoLib.Events.classes = {
-	activityFeed : NeatoLib.Modules.get("activityFeed").activityFeed.split(" ")[0],
-	layer : NeatoLib.Modules.get("layer").layer.split(" ")[0],
-	socialLinks : NeatoLib.Modules.get("socialLinks").socialLinks.split(" ")[0]
+	activityFeed: NeatoLib.Modules.get("activityFeed").activityFeed.split(" ")[0],
+	layer: NeatoLib.Modules.get("layer").layer.split(" ")[0],
+	socialLinks: NeatoLib.Modules.get("socialLinks").socialLinks.split(" ")[0]
 };
 
 NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
@@ -2259,7 +2654,7 @@ NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
 NeatoLib.getSelectedServer = NeatoLib.getSelectedGuild;
 NeatoLib.getSelectedServerId = NeatoLib.getSelectedGuildId;
 
-if(window.neatoStyles) window.neatoStyles.destroy();
+if (window.neatoStyles) window.neatoStyles.destroy();
 window.neatoStyles = NeatoLib.injectCSS(`
 
 	.toast.has-prog-bar {
@@ -2298,5 +2693,15 @@ window.neatoStyles = NeatoLib.injectCSS(`
 	#pluginNotice {-webkit-app-region: drag;border-radius:0;} #outdatedPlugins {font-weight:700;} #outdatedPlugins>span {-webkit-app-region: no-drag;color:#fff;cursor:pointer;} #outdatedPlugins>span:hover {text-decoration:underline;}
 
 	.toasts{position:fixed;display:flex;top:0;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;z-index:4000}@keyframes toast-up{from{transform:translateY(0);opacity:0}}.toast{animation:toast-up .3s ease;transform:translateY(-10px);background:#36393F;padding:10px;border-radius:5px;box-shadow:0 0 0 1px rgba(32,34,37,.6),0 2px 10px 0 rgba(0,0,0,.2);font-weight:500;color:#fff;user-select:text;font-size:14px;opacity:1;margin-top:10px}@keyframes toast-down{to{transform:translateY(0);opacity:0}}.toast.closing{animation:toast-down .2s ease;animation-fill-mode:forwards;opacity:1;transform:translateY(-10px)}.toast.icon{padding-left:30px;background-size:20px 20px;background-repeat:no-repeat;background-position:6px 50%}.toast.toast-info{background-color:#4a90e2}.toast.toast-info.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMSAxNWgtMnYtNmgydjZ6bTAtOGgtMlY3aDJ2MnoiLz48L3N2Zz4=)}.toast.toast-success{background-color:#43b581}.toast.toast-success.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptLTIgMTVsLTUtNSAxLjQxLTEuNDFMMTAgMTQuMTdsNy41OS03LjU5TDE5IDhsLTkgOXoiLz48L3N2Zz4=)}.toast.toast-danger,.toast.toast-error{background-color:#f04747}.toast.toast-danger.icon,.toast.toast-error.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTEyIDJDNi40NyAyIDIgNi40NyAyIDEyczQuNDcgMTAgMTAgMTAgMTAtNC40NyAxMC0xMFMxNy41MyAyIDEyIDJ6bTUgMTMuNTlMMTUuNTkgMTcgMTIgMTMuNDEgOC40MSAxNyA3IDE1LjU5IDEwLjU5IDEyIDcgOC40MSA4LjQxIDcgMTIgMTAuNTkgMTUuNTkgNyAxNyA4LjQxIDEzLjQxIDEyIDE3IDE1LjU5eiIvPiAgICA8cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PC9zdmc+)}.toast.toast-warn,.toast.toast-warning{background-color:#FFA600;color:#fff}.toast.toast-warn.icon,.toast.toast-warning.icon{background-image:url(data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjRkZGRkZGIiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gICAgPHBhdGggZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPiAgICA8cGF0aCBkPSJNMSAyMWgyMkwxMiAyIDEgMjF6bTEyLTNoLTJ2LTJoMnYyem0wLTRoLTJ2LTRoMnY0eiIvPjwvc3ZnPg==)}
-	
+
 `);
+
+if (!document.getElementById("material-icons")) {
+	const link = document.createElement("link");
+
+	link.id = "material-icons";
+	link.rel = "stylesheet";
+	link.href = "https://fonts.googleapis.com/icon?family=Material+Icons";
+
+	document.head.appendChild(link);
+}

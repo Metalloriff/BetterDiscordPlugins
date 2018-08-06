@@ -262,15 +262,15 @@ var NeatoLib = {
 						line-height: 24px;
 						margin-left: 5px;
 					}
-					
+
 					:not(.neato-setting-array-items) > .neato-setting {
 						margin-top: 20px;
 					}
-					
+
 					.neato-setting-array-items > .neato-setting {
 						margin-top: 10px;
 					}
-					
+
 					.neato-textfield {
 						display: block;
 						color: white;
@@ -281,16 +281,16 @@ var NeatoLib = {
 						padding: 10px;
 						width: 100%;
 					}
-					
+
 					.neato-setting-array .neato-textfield {
 						display: inline;
 						transition: width 0.3s;
 					}
-					
+
 					.neato-setting-array .neato-setting:hover .neato-textfield {
 						width: calc(100% - 45px);
 					}
-					
+
 					.neato-setting-array .neato-array-remove-button {
 						width: 0;
 						color: white;
@@ -299,16 +299,16 @@ var NeatoLib = {
 						font-size: 40px;
 						transition: width 0.3s;
 					}
-					
+
 					.neato-setting-array .neato-setting:hover .neato-array-remove-button {
 						width: 40px;
 					}
-					
+
 					.neato-setting-array-buttons {
 						margin-top: 10px;
 						text-align: center;
 					}
-					
+
 					.neato-radio-button {
 						display: flex;
 						background: rgba(0, 0, 0, 0.2);
@@ -320,7 +320,7 @@ var NeatoLib = {
 						transition: all 0.3s;
 						user-select: none;
 					}
-					
+
 					.neato-radio-button .nrb-box {
 						width: 24px;
 						height: 24px;
@@ -329,20 +329,20 @@ var NeatoLib = {
 						border-radius: 100%;
 						margin-right: 5px;
 					}
-					
+
 					.neato-radio-button.nrb-selected {
 						background: #7289da;
 						box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 					}
-					
+
 					.neato-radio-button.nrb-selected .nrb-box {
 						background: white;
 					}
-					
+
 					.neato-radio-button * {
 						cursor: pointer;
 					}
-					
+
 					.neato-settings [data-description]::after {
 						content: attr(data-description);
 						margin-left: 10px;
@@ -1099,7 +1099,7 @@ var NeatoLib = {
 		},
 
 		load: function(plugin, defaultSettings) {
-			return NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings);
+			return NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings || plugin.defaultSettings);
 		}
 
 	},

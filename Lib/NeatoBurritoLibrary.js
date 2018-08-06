@@ -257,7 +257,97 @@ var NeatoLib = {
 
 			panel.insertAdjacentHTML("beforeEnd", `
 				<style>
-
+					.neato-setting-label {
+						color: white;
+						line-height: 24px;
+						margin-left: 5px;
+					}
+					
+					:not(.neato-setting-array-items) > .neato-setting {
+						margin-top: 20px;
+					}
+					
+					.neato-setting-array-items > .neato-setting {
+						margin-top: 10px;
+					}
+					
+					.neato-textfield {
+						display: block;
+						color: white;
+						background-color: rgba(0, 0, 0, 0.2);
+						border: none;
+						border-radius: 5px;
+						height: 40px;
+						padding: 10px;
+						width: 100%;
+					}
+					
+					.neato-setting-array .neato-textfield {
+						display: inline;
+						transition: width 0.3s;
+					}
+					
+					.neato-setting-array .neato-setting:hover .neato-textfield {
+						width: calc(100% - 45px);
+					}
+					
+					.neato-setting-array .neato-array-remove-button {
+						width: 0;
+						color: white;
+						float: right;
+						cursor: pointer;
+						font-size: 40px;
+						transition: width 0.3s;
+					}
+					
+					.neato-setting-array .neato-setting:hover .neato-array-remove-button {
+						width: 40px;
+					}
+					
+					.neato-setting-array-buttons {
+						margin-top: 10px;
+						text-align: center;
+					}
+					
+					.neato-radio-button {
+						display: flex;
+						background: rgba(0, 0, 0, 0.2);
+						padding: 10px;
+						border-radius: 5px;
+						cursor: pointer;
+						position: relative;
+						margin: 10px;
+						transition: all 0.3s;
+						user-select: none;
+					}
+					
+					.neato-radio-button .nrb-box {
+						width: 24px;
+						height: 24px;
+						border: none;
+						background: rgba(0, 0, 0, 0.5);
+						border-radius: 100%;
+						margin-right: 5px;
+					}
+					
+					.neato-radio-button.nrb-selected {
+						background: #7289da;
+						box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+					}
+					
+					.neato-radio-button.nrb-selected .nrb-box {
+						background: white;
+					}
+					
+					.neato-radio-button * {
+						cursor: pointer;
+					}
+					
+					.neato-settings [data-description]::after {
+						content: attr(data-description);
+						margin-left: 10px;
+						opacity: 0.5;
+					}
 				</style>
 			`);
 

@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.6.19",
+	version: "0.7.19",
 
 	parseVersion: function(version) {
 
@@ -2072,27 +2072,36 @@ var NeatoLib = {
 
 	DOM: {
 
-		searchForParentElementByClassName: function(e, className) {
+		searchForParentElement: function(element, filter) {
+			if (!element) return null;
 
-			if (!e) return null;
-
-			if (e.classList.contains(className)) return e;
-
-			let element = e;
+			if (filter(element)) return element;
 
 			while (element && element.parentElement && element.parentElement != document) {
+				element = element.parentElement;
 
+				if (filter(element)) return element;
+
+				for (let i = 0; i < element.children.length; i++)
+					if (filter(element.children[i])) return element.children[i];
+			}
+		},
+
+		searchForParentElementByClassName: function(element, className) {
+			if (!element) return null;
+
+			if (element.classList.contains(className)) return element;
+
+			while (element && element.parentElement && element.parentElement != document) {
 				element = element.parentElement;
 
 				if (element.classList.contains(className)) return element;
 
 				for (let i = 0; i < element.children.length; i++)
 					if (element.children[i].classList.contains(className)) return element.children[i];
-
 			}
 
 			return null;
-
 		},
 
 		createElement: function(values, options = {}) {

@@ -1,42 +1,41 @@
-//META{"name":"ViewGuildRelationships"}*//
+//META{"name":"ViewGuildRelationships","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ViewGuildRelationships.plugin.js"}*//
 
 class ViewGuildRelationships {
-	
-    getName() { return "View Guild Relationships"; }
-    getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-    getVersion() { return "1.1.6"; }
-    getAuthor() { return "Metalloriff"; }
 
-    load() {}
+  getName() { return "View Guild Relationships"; }
+  getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
+  getVersion() { return "1.1.7"; }
+  getAuthor() { return "Metalloriff"; }
 
-    start() {
+	load() {}
 
-        let libLoadedEvent = () => {
-            try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-        };
+	start() {
+		const libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if (!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js?forceNew=" + performance.now());
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
-        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
-		
-	}
-	
-	onLibLoaded(){
 
-		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.12")) return;
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
+	}
+
+	onLibLoaded() {
+		if (!NeatoLib.hasRequiredLibVersion(this, "0.1.13")) return;
 
 		NeatoLib.Updates.check(this);
 
 		this.style = NeatoLib.injectCSS(`
-		
+
 			.vgr-separator {
 				font-weight: bold;
 				color: white;
@@ -109,33 +108,26 @@ class ViewGuildRelationships {
 		document.addEventListener("contextmenu", this.contextMenuEvent);
 
 		NeatoLib.Events.onPluginLoaded(this);
-		
 	}
-	
-	onContextMenu(e){
 
-		let contextMenu = NeatoLib.ContextMenu.get();
+	onContextMenu(e) {
+		const contextMenu = NeatoLib.ContextMenu.get();
 
-		if(contextMenu && e.target.classList.contains("guild-icon")) {
-
-			let gid = e.target.parentElement.href.match(/\d+/);
-
-			if(gid) contextMenu.firstChild.appendChild(NeatoLib.ContextMenu.createItem("View Relationships", () => this.getRelationships(gid[0])));
-
+		if (contextMenu && e.target.classList.contains(NeatoLib.getClass("guildIcon"))) {
+			const gid = e.target.parentElement.href.match(/\d+/);
+			if (gid) contextMenu.firstChild.appendChild(NeatoLib.ContextMenu.createItem("View Relationships", () => this.getRelationships(gid[0])));
 		}
-		
 	}
-	
-	getRelationships(gid){
 
+	getRelationships(gid) {
 		NeatoLib.ContextMenu.close();
 
-		let relationships = this.relationshipModule.getRelationships(), guild = this.guildModule.getGuild(gid);
+		let relationships = this.relationshipModule.getRelationships(),
+			guild = this.guildModule.getGuild(gid);
 
 		let win = NeatoLib.UI.createBasicScrollList("vgr-relationshipswindow", "Relationships in " + guild.name);
 
 		win.scroller.insertAdjacentHTML("beforeend", `
-
 			<div id="vgr-friends-separator" onclick="if(this.classList.contains('collapsed')) this.classList.remove('collapsed'); else this.classList.add('collapsed');" class="vgr-separator">Friends<div class="vgr-nonefound">No friends found here.</div></div>
 
 			<div id="vgr-blocked-separator" onclick="if(this.classList.contains('collapsed')) this.classList.remove('collapsed'); else this.classList.add('collapsed');" class="vgr-separator">Blocked Users<div class="vgr-nonefound">No blocked users found here.</div></div>
@@ -143,13 +135,16 @@ class ViewGuildRelationships {
 			<div id="vgr-incoming-separator" onclick="if(this.classList.contains('collapsed')) this.classList.remove('collapsed'); else this.classList.add('collapsed');" class="vgr-separator">Incoming Friend Requests<div class="vgr-nonefound">No incoming friend requests found here.</div></div>
 
 			<div id="vgr-outgoing-separator" onclick="if(this.classList.contains('collapsed')) this.classList.remove('collapsed'); else this.classList.add('collapsed');" class="vgr-separator">Outgoing Friend Requests<div class="vgr-nonefound">No outgoing friend requests found here.</div></div>
-
 		`);
 
-		let friends = document.getElementById("vgr-friends-separator"), noFriendsFound = friends.firstElementChild,
-		blocked = document.getElementById("vgr-blocked-separator"), noBlockedFound = blocked.firstElementChild,
-		incoming = document.getElementById("vgr-incoming-separator"), noIncomingFound = incoming.firstElementChild,
-		outgoing = document.getElementById("vgr-outgoing-separator"), noOutgoingFound = outgoing.firstElementChild;
+		let friends = document.getElementById("vgr-friends-separator"),
+			noFriendsFound = friends.firstElementChild,
+			blocked = document.getElementById("vgr-blocked-separator"),
+			noBlockedFound = blocked.firstElementChild,
+			incoming = document.getElementById("vgr-incoming-separator"),
+			noIncomingFound = incoming.firstElementChild,
+			outgoing = document.getElementById("vgr-outgoing-separator"),
+			noOutgoingFound = outgoing.firstElementChild;
 
 		let friendItem = user => {
 			return `
@@ -160,61 +155,60 @@ class ViewGuildRelationships {
 			`;
 		};
 
-		for(let uid in relationships) {
+		for (let uid in relationships) {
+			let user = this.userModule.getUser(uid),
+				member = this.memberModule.getMember(gid, uid),
+				added;
 
-			let user = this.userModule.getUser(uid), member = this.memberModule.getMember(gid, uid), added;
+			if (!user || !member) continue;
 
-			if(!user || !member) continue;
-
-			if(relationships[uid] == 1) {
-				if(noFriendsFound) noFriendsFound.remove();
+			if (relationships[uid] == 1) {
+				if (noFriendsFound) noFriendsFound.remove();
 				friends.insertAdjacentHTML("beforeend", friendItem(user));
 				added = friends.lastElementChild;
 			}
 
-			if(relationships[uid] == 2) {
-				if(noBlockedFound) noBlockedFound.remove();
+			if (relationships[uid] == 2) {
+				if (noBlockedFound) noBlockedFound.remove();
 				blocked.insertAdjacentHTML("beforeend", friendItem(user));
 				added = blocked.lastElementChild;
 			}
 
-			if(relationships[uid] == 3) {
-				if(noIncomingFound) noIncomingFound.remove();
+			if (relationships[uid] == 3) {
+				if (noIncomingFound) noIncomingFound.remove();
 				incoming.insertAdjacentHTML("beforeend", friendItem(user));
 				added = incoming.lastElementChild;
 			}
 
-			if(relationships[uid] == 4) {
-				if(noOutgoingFound) noOutgoingFound.remove();
+			if (relationships[uid] == 4) {
+				if (noOutgoingFound) noOutgoingFound.remove();
 				outgoing.insertAdjacentHTML("beforeend", friendItem(user));
 				added = outgoing.lastElementChild;
 			}
 
-			if(added) {
-				if(member && member.colorString) added.style.color = member.colorString;
+			if (added) {
+				if (member && member.colorString) added.style.color = member.colorString;
 				added.addEventListener("contextmenu", e => this.onFriendItemContext(user, Array.filter(Object.values(this.channelModule.getChannels()), c => c.guild_id == gid)[0], e));
 			}
-
 		}
 
-		if(!noFriendsFound) NeatoLib.DOM.sortChildren(friends);
-		if(!noBlockedFound) NeatoLib.DOM.sortChildren(blocked);
-		if(!noIncomingFound) NeatoLib.DOM.sortChildren(incoming);
-		if(!noOutgoingFound) NeatoLib.DOM.sortChildren(outgoing);
-		
+		if (!noFriendsFound) NeatoLib.DOM.sortChildren(friends);
+		if (!noBlockedFound) NeatoLib.DOM.sortChildren(blocked);
+		if (!noIncomingFound) NeatoLib.DOM.sortChildren(incoming);
+		if (!noOutgoingFound) NeatoLib.DOM.sortChildren(outgoing);
 	}
-	
-	onFriendItemContext(u, c, e){
-		if(u && c) NeatoLib.Modules.get("openUserContextMenu").openUserContextMenu(e, u, c);
-		if(NeatoLib.ContextMenu.get()) {
+
+	onFriendItemContext(u, c, e) {
+		if (u && c) NeatoLib.Modules.get("openUserContextMenu").openUserContextMenu(e, u, c);
+		if (NeatoLib.ContextMenu.get()) {
 			NeatoLib.ContextMenu.get().style.zIndex = "10000";
 			NeatoLib.ContextMenu.get().firstChild.firstChild.addEventListener("click", () => document.getElementById("vgr-relationshipswindow").remove());
 		}
 	}
-	
-    stop() {
+
+	stop() {
 		document.removeEventListener("contextmenu", this.contextMenuEvent);
-		if(this.style) this.style.destroy();
+		if (this.style) this.style.destroy();
 	}
-	
+
 }

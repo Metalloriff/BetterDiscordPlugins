@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.7.19",
+	version: "0.8.19",
 
 	parseVersion: function(version) {
 
@@ -375,13 +375,13 @@ var NeatoLib = {
 
 				tswitch.appendChild(tcheckbox);
 
-				tswitch.addEventListener("click", () => {
+				tswitch.addEventListener("click", e => {
 					value = !value;
 
 					if (value == true) tswitch.className = tswitch.className.replace(NeatoLib.getClass("valueUnchecked"), NeatoLib.getClass("valueChecked"));
 					else tswitch.className = tswitch.className.replace(NeatoLib.getClass("valueChecked"), NeatoLib.getClass("valueUnchecked"));
 
-					callback(value);
+					callback(value, e);
 				});
 
 				element.appendChild(tswitch);
@@ -404,36 +404,36 @@ var NeatoLib = {
 				input.addEventListener("focusout", e => {
 					switch (type) {
 						case "number": case "float":
-							if (!e.target.value) {
-								callback(e.target.value = last = 0);
+							if (!input.value) {
+								callback(input.value = last = 0, e);
 								break;
 							}
 
-							if (isNaN(e.target.value)) {
+							if (isNaN(input.value)) {
 								NeatoLib.showToast("Value must be a number!", "error");
-								e.target.value = last;
+								input.value = last;
 								break;
 							}
 
-							callback(last = parseFloat(e.target.value));
+							callback(last = parseFloat(input.value), e);
 						break;
 
 						case "whole number": case "int": case "integer":
-							if (!e.target.value) {
-								callback(e.target.value = last = 0);
+							if (!input.value) {
+								callback(input.value = last = 0, e);
 								break;
 							}
 
-							if (isNaN(e.target.value)) {
+							if (isNaN(input.value)) {
 								NeatoLib.showToast("Value must be a number!", "error");
-								e.target.value = last;
+								input.value = last;
 								break;
 							}
 
-							callback(last = parseInt(e.target.value));
+							callback(last = parseInt(input.value), e);
 						break;
 
-						default: callback(e.target.value);
+						default: callback(input.value, e);
 					}
 				});
 
@@ -468,8 +468,8 @@ var NeatoLib = {
 					c.appendChild(t);
 					c.appendChild(createLabel(choices[choice].label, choices[choice].description, choices[choice].tooltip));
 
-					c.addEventListener("click", () => {
-						callback(value = choice);
+					c.addEventListener("click", e => {
+						callback(value = choice, e);
 						update();
 					});
 
@@ -505,18 +505,20 @@ var NeatoLib = {
 							addButton.style = clearButton.style = "display:inline;margin:0 10px";
 
 							addButton.textContent = "Add";
-							addButton.addEventListener("click", () => {
+							addButton.addEventListener("click", e => {
 								plugin.settings[setting].push("");
 								array.innerHTML = "";
 								repop();
+								if (typeof field.callback == "function") field.callback({ type: "add", event: e, array: array, panel: panel });
 								plugin.saveSettings();
 							});
 
 							clearButton.textContent = "Clear";
-							clearButton.addEventListener("click", () => {
+							clearButton.addEventListener("click", e => {
 								plugin.settings[setting] = [];
 								array.innerHTML = "";
 								repop();
+								if (typeof field.callback == "function") field.callback({ type: "clear", event: e, array: array, panel: panel });
 								plugin.saveSettings();
 							});
 
@@ -525,10 +527,11 @@ var NeatoLib = {
 								button.className = "material-icons neato-array-remove-button";
 								button.textContent = "close";
 
-								button.addEventListener("click", () => {
+								button.addEventListener("click", e => {
 									plugin.settings[setting].splice(i, 1);
 									array.innerHTML = "";
 									repop();
+									if (typeof field.callback == "function") field.callback({ type: "remove", event: e, array: array, panel: panel });
 									plugin.saveSettings();
 								});
 
@@ -549,7 +552,8 @@ var NeatoLib = {
 						panel.appendChild(list);
 					}
 
-					const set = nv => {
+					const set = (nv, e) => {
+						if (typeof field.callback == "function") field.callback({ type: "change", oldValue: plugin.settings[setting], newValue: nv, event: e, panel: panel });
 						plugin.settings[setting] = nv;
 						plugin.saveSettings();
 					};
@@ -559,40 +563,85 @@ var NeatoLib = {
 							if (array) {
 								(repop = () => {
 									for (let i in plugin.settings[setting]) {
-										array.appendChild(createToggleSwitch(null, null, null, plugin.settings[setting][i], nv => {
+										const element = createToggleSwitch(null, null, null, plugin.settings[setting][i], (nv, e) => {
+											if (typeof field.callback == "function") field.callback({ type: "change", oldValue: plugin.settings[setting][i], newValue: nv, event: e, panel: panel });
 											plugin.settings[setting][i] = nv;
 											plugin.saveSettings();
-										}));
+										});
+
+										if (field.events)
+											for (let event in field.events)
+												if (event == "start" || event == "init") field.events[i](element);
+												else element.addEventListener(event, field.events[i]);
+
+										array.appendChild(element);
+
 										if (field.array) insertDeleteButton(i);
 									}
 								})();
 							} else {
-								panel.appendChild(createToggleSwitch(field.label, field.description, field.tooltip, plugin.settings[setting], set));
+								const element = createToggleSwitch(field.label, field.description, field.tooltip, plugin.settings[setting], set);
+
+								if (field.events)
+									for (let event in field.events)
+										if (event == "start" || event == "init") field.events[i](element);
+										else element.addEventListener(event, field.events[i]);
+
+								panel.appendChild(element);
 							}
 						break;
 
 						case "custom":
 							if (field.element) panel.appendChild(field.element);
 							if (field.html) panel.insertAdjacentHTML("beforeEnd", field.html);
+							if (field.createElement) field.createElement(panel);
+
+							if (field.events)
+								for (let event in field.events)
+									if (event == "start" || event == "init") field.events[i](panel.lastChild);
+									else panel.lastChild.addEventListener(event, field.events[i]);
 						break;
 
 						case "radio": case "radio group":
-							panel.appendChild(createRadioGroup(field.label, field.description, field.tooltip, plugin.settings[setting], field.choices, set));
+							const element = createRadioGroup(field.label, field.description, field.tooltip, plugin.settings[setting], field.choices, set);
+
+							if (field.events)
+								for (let event in field.events)
+									if (event == "start" || event == "init") field.events[i](element);
+									else element.addEventListener(event, field.events[i]);
+
+							panel.appendChild(element);
 						break;
 
 						default:
 							if (array) {
 								(repop = () => {
 									for (let i in plugin.settings[setting]) {
-										array.appendChild(createTextField(null, null, null, plugin.settings[setting][i], field.type, nv => {
+										const element = createTextField(null, null, null, plugin.settings[setting][i], field.type, (nv, e) => {
+										if (typeof field.callback == "function") field.callback({ type: "change", oldValue: plugin.settings[i], newValue: nv, event: e, panel: panel });
 											plugin.settings[setting][i] = nv;
 											plugin.saveSettings();
-										}));
+										});
+
+										if (field.events)
+											for (let event in field.events)
+												if (event == "start" || event == "init") field.events[i](element);
+												else element.addEventListener(event, field.events[i]);
+
+										array.appendChild(element);
+
 										if (field.array) insertDeleteButton(i);
 									}
 								})();
 							} else {
-								panel.appendChild(createTextField(field.label, field.description, field.tooltip, plugin.settings[setting], field.type, set));
+								const element = createTextField(field.label, field.description, field.tooltip, plugin.settings[setting], field.type, set);
+
+								if (field.events)
+									for (let event in field.events)
+										if (event == "start" || event == "init") field.events[i](element);
+										else element.addEventListener(event, field.events[i]);
+
+								panel.appendChild(element);
 							}
 
 					}

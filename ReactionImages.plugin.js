@@ -1,109 +1,81 @@
-//META{"name":"ReactionImages"}*//
+//META{"name":"ReactionImages","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ReactionImages.plugin.js"}*//
 
 class ReactionImages {
-	
-    getName() { return "ReactionImages"; }
-    getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
-    getVersion() { return "1.0.3"; }
+
+	getName() { return "ReactionImages"; }
+	getDescription() { return "Allows you to set reaction image folders and send reaction images with 'Folder Name/reaction image name'."; }
+	getVersion() { return "1.1.3"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+
 		};
 	}
 
-    load() {}
+	load() {}
 
-    start() {
-
-        let libLoadedEvent = () => {
-            try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); }
-        };
+	start() {
+		const libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
+		if (!lib) {
 			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
-        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-        else lib.addEventListener("load", libLoadedEvent);
 
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
+	}
+
+	get settingFields() {
+		return {
+			folderPaths: { label: "Reaction image folders", description: "Use them by typing 'Folder Name/' or 'Folder Name/image name' in chat.", type: "string", array: true, callback: e => {
+				const applyChanges = () => {
+					setTimeout(() => {
+						this.settings.folders = {};
+
+						for (let i = 0; i < this.settings.folderPaths.length; i++) {
+							const splitPath = this.settings.folderPaths[i].split("/");
+
+							this.settings.folders[splitPath[splitPath.length - 1]] = {
+								path: this.settings.folderPaths[i],
+								files: []
+							};
+						}
+
+						this.refreshFolderDatas();
+					}, 0);
+				};
+
+				if (e.type == "add") {
+					NeatoLib.browseForFile(folder => {
+						e.array.lastChild.getElementsByTagName("input")[0].value = this.settings.folderPaths[this.settings.folderPaths.length - 1] = folder.path.split("\\").join("/");
+						applyChanges();
+					}, { directory: true });
+				} else applyChanges();
+			}},
+			resultCap: { label: "Image result cap", tooltip: "The maximum amount of images that will be displayed on the autocomplete.", type: "int" }
+		};
+	}
+
+	get defaultSettings() {
+		return {
+			displayUpdateNotes: true,
+			folders: {},
+			resultCap: 15
+		};
 	}
 
 	getSettingsPanel() {
-
-		setTimeout(() => {
-
-			let group = NeatoLib.Settings.Elements.createGroup("Reaction folders"), list = group.lastChild;
-
-			group.style.padding = "20px 0px";
-
-			group.insertAdjacentHTML("afterbegin", `<style>.ri-selected{background-color:#7289da;border-radius:5px;}</style>`);
-
-			let populateList = () => {
-
-				list.innerHTML = "";
-
-				this.selectedFolder = undefined;
-
-				for(let i in this.settings.folders) {
-
-					list.appendChild(NeatoLib.Settings.Elements.createTextField(i, "text", this.settings.folders[i].path, e => {
-
-						let newPath = e.target.value, newName = newPath.substring(newPath.lastIndexOf("/") + 1, newPath.length);
-
-						if(this.fs.existsSync(newPath) && newName != i) {
-							this.settings.folders[newName] = { path : newPath, files : [] };
-							delete this.settings.folders[i];
-							this.refreshFolderDatas();
-							populateList();
-						} else if(newName != i) NeatoLib.showToast("This folder does not exist!", "error");
-
-					}));
-
-					list.lastChild.setAttribute("id", "ri-" + i);
-
-					list.lastChild.addEventListener("click", e => {
-						for(let selected of document.getElementsByClassName("ri-selected")) selected.classList.remove("ri-selected");
-						this.selectedFolder = i;
-						e.currentTarget.classList.add("ri-selected");
-					});
-
-				}
-
-				list.appendChild(NeatoLib.Settings.Elements.createButton("Add Folder", () => {
-					NeatoLib.browseForFile(folder => {
-						let path = folder.path.split("\\").join("/");
-						this.settings.folders[path.substring(path.lastIndexOf("/") + 1, path.length)] = { path : path, files : [] };
-						this.refreshFolderDatas();
-						populateList();
-					}, { directory : true });
-				}, "margin-right:20px;margin-top:20px;"));
-
-				list.appendChild(NeatoLib.Settings.Elements.createButton("Remove Selected Folder", () => {
-					delete this.settings.folders[this.selectedFolder];
-					this.refreshFolderDatas();
-					populateList();
-				}, "margin-left:20px"));
-
-			};
-
-			NeatoLib.Settings.pushElement(group, this.getName());
-
-			populateList();
-
-			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createHint("Hint: Hold shift when clicking a reaction image to send the image alone, without the message and without clearing the chat box."), this.getName());
-
-			NeatoLib.Settings.pushChangelogElements(this);
-
-		}, 0);
-
-		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
-		
+		this.settings.folderPaths = Array.from(Object.values(this.settings.folders), folder => folder.path);
+		return NeatoLib.Settings.createPanel(this);
 	}
 
 	saveSettings() {
@@ -111,39 +83,33 @@ class ReactionImages {
 	}
 
 	onLibLoaded() {
+		if (!NeatoLib.hasRequiredLibVersion(this, "0.8.19")) return;
 
 		NeatoLib.Updates.check(this);
-		
-		this.settings = NeatoLib.Settings.load(this, {
-			displayUpdateNotes : true,
-			folders : {}
-		});
-		
-        //if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
-        
+
+		this.settings = NeatoLib.Settings.load(this);
+
+		//if (this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+
 		this.fs = require("fs");
-		
-		this.refreshFolderDatas();
 
-        this.onChatInput = (e, shuffle) => {
-
-			if(e.key.includes("Arrow")) return;
+		this.onChatInput = async (e, shuffle) => {
+			if (e.key.includes("Arrow")) return;
 
 			let noneFound = true, autocomplete = document.getElementById("ri-autocomplete");
 
-			for(let folderName in this.folders) {
+			const chatbox = e.target;
 
-				let chatbox = e.target, idx = chatbox.value.lastIndexOf(folderName + "/");
+			for (let folderName in this.folders) {
+				const idx = chatbox.value.lastIndexOf(folderName + "/");
 
-				if(idx == -1) continue;
+				if (idx == -1) continue;
 				else noneFound = false;
 
-				let folder = this.folders[folderName], sendFile = NeatoLib.Modules.get("upload").upload;
+				const folder = this.folders[folderName];
 
-				if(folder) {
-
-					if(!autocomplete) {
-
+				if (folder) {
+					if (!autocomplete) {
 						chatbox.parentElement.insertAdjacentHTML("beforeend", `
 							<div id="ri-autocomplete" class="autocomplete-1vrmpx autocomplete-i9yVHs" style="width:inherit">
 								<div class="autocompleteInner-zh20B_">
@@ -153,7 +119,7 @@ class ReactionImages {
 										</div>
 									</div>
 									<div id="ri-autocomplete-list" class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 horizontalAutocompletes-x8hlrn scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="flex: 1 1 auto;">
-										
+
 									</div>
 								</div>
 							</div>
@@ -161,33 +127,30 @@ class ReactionImages {
 
 						autocomplete = document.getElementById("ri-autocomplete");
 
-						let buttons = document.getElementsByClassName("selector-2IcQBU")[0];
+						const buttons = document.getElementsByClassName("selector-2IcQBU")[0], shuffleButton = document.createElement("div");
 
-						let shuffleButton = document.createElement("img");
-
-						shuffleButton.src = "https://material.io/tools/icons/static/icons/round-shuffle-24px.svg";
-						shuffleButton.style.filter = "invert(40%)";
-						shuffleButton.style.cursor = "pointer";
+						shuffleButton.className = "material-icons";
+						shuffleButton.textContent = "shuffle"
+						shuffleButton.style = "color:white;opacity:0.4;cursor:pointer";
 
 						shuffleButton.addEventListener("click", () => this.onChatInput(e, true));
 
 						buttons.appendChild(shuffleButton);
 
-						NeatoLib.Tooltip.bind("Shuffle", shuffleButton);
-
+						NeatoLib.Tooltip.attach("Shuffle", shuffleButton);
 					}
 
-					let list = document.getElementById("ri-autocomplete-list");
+					const list = document.getElementById("ri-autocomplete-list"), searchFilter = chatbox.value.substring(idx + folderName.length + 1, chatbox.length);
+					let filteredResults = searchFilter ? folder.files.filter(file => file.fileName.toLowerCase().includes(searchFilter)) : folder.files;
 
 					list.innerHTML = "";
 
-					let i = 0, searchFilter = chatbox.value.substring(idx + folderName.length + 1, chatbox.length), filteredResults = searchFilter ? Array.filter(folder.files, x => x.fileName.toLowerCase().includes(searchFilter)) : folder.files;
+					if (shuffle) filteredResults = NeatoLib.shuffleArray(filteredResults);
 
-					if(shuffle) filteredResults = NeatoLib.shuffleArray(filteredResults);
+					let i = 0;
 
-					for(let file of filteredResults) {
-
-						if(i >= 15) continue;
+					for (let file of filteredResults) {
+						if (i >= this.settings.resultCap) break;
 
 						list.insertAdjacentHTML("beforeend", `
 							<div class="horizontalAutocomplete-1DAQoM autocompleteRowHorizontal-32jwnH autocompleteRow-2OthDa">
@@ -195,100 +158,115 @@ class ReactionImages {
 							</div>
 						`);
 
-						let images = list.getElementsByTagName("img");
-						
-						new PluginTooltip.Tooltip($(images[images.length - 1]), file.fileName, { side : "top" });
+						const images = list.getElementsByTagName("img");
+
+						NeatoLib.Tooltip.attach(file.fileName, images[images.length - 1]);
 
 						images[images.length - 1].addEventListener("click", e => {
+							const channel = NeatoLib.getSelectedTextChannel();
 
-							let channel = NeatoLib.getSelectedTextChannel();
-
-							if(e.shiftKey) sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
+							if (e.shiftKey) NeatoLib.Modules.get("upload").upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
 							else {
-								
-								sendFile(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content :  chatbox.value.substring(0, idx), tts : false });
-
-								chatbox.select();
-								document.execCommand("delete");
-
-								autocomplete.outerHTML = "";
-
+								NeatoLib.Modules.get("upload").upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content: chatbox.value.substring(0, idx), tts: false });
+								NeatoLib.Chatbox.setText("");
+								autocomplete.remove();
 							}
-
 						});
 
 						i++;
-
 					}
-
-				} else if(autocomplete) autocomplete.outerHTML = "";
-
+				} else if (autocomplete) autocomplete.remove();
 			}
 
-			if(noneFound && autocomplete) autocomplete.outerHTML = "";
+			if (noneFound && autocomplete) autocomplete.remove();
+		};
 
-        };
+		this.switch();
+		NeatoLib.Events.attach("switch", this.switchEvent = () => this.switch());
+
+		setTimeout(() => this.refreshFolderDatas(), 10000);
 
 		NeatoLib.Events.onPluginLoaded(this);
-		
-		this.switch();
-
-		this.switchEvent = () => this.switch();
-
-		NeatoLib.Events.attach("switch", this.switchEvent);
-
 	}
 
-	refreshFolderDatas() {
-		NeatoLib.showToast("ReactionImages: Loading reaction data and generating icons, Discord may freeze temporarily.");
-		this.folders = jQuery.extend(true, {}, this.settings.folders);
-		for(let i in this.folders) {
+	async refreshFolderDatas() {
+		NeatoLib.showToast("ReactionImages: Loading reaction data and generating icons.");
+		this.folders = JSON.parse(JSON.stringify(this.settings.folders));
+
+		let completed = 0;
+
+		for (let i in this.folders) {
+			if (!this.settings.folders[i].path) continue;
+
 			this.folders[i].files = [];
-			let list = this.fs.readdirSync(this.settings.folders[i].path);
-			for(let ii = 0; ii < list.length; ii++) {
 
-				if(list[ii].indexOf(".") == -1) continue;
+			this.fs.readdir(this.settings.folders[i].path, async (err, list) => {
+				if (err) return console.error(err);
 
-				let data = this.fs.readFileSync(this.settings.folders[i].path + "/" + list[ii], { encoding : "base64" });
+				for (let ii = 0; ii < list.length; ii++) {
+					if (!list[ii].includes(".")) continue;
 
-				let fileType = list[ii].substring(list[ii].lastIndexOf(".") + 1, list[ii].length);
+					const ext = list[ii].split(".")[list[ii].split(".").length - 1];
+					if (!["jpg", "jpeg", "png", "gif", "bmp"].includes(ext)) continue;
 
-				if(fileType != "jpg" && fileType != "png" && fileType != "gif") continue;
+					const data = await new Promise(resolve => this.fs.readFile(this.settings.folders[i].path + "/" + list[ii], "base64", (err, res) => resolve(res)));
+					if (!data) continue;
 
-				let generatedFile = this.settings.folders[i].files.find(x => x.fileName == list[ii] && x.size == data.length);
+					const generatedFile = this.settings.folders[i].files.find(x => x.fileName == list[ii] && x.size == data.length);
 
-				if(generatedFile) {
-					this.folders[i].files.push({ fileName : list[ii], type : fileType, size : data.length, data : data, iconData : generatedFile.iconData, path : this.settings.folders[i].path + "/" + list[ii] });
-					continue;
+					if (generatedFile) {
+						this.folders[i].files.push({
+							fileName: list[ii],
+							type: ext,
+							size: data.length,
+							data: data,
+							iconData: generatedFile.iconData,
+							path: this.settings.folders[i].path + "/" + list[ii]
+						});
+						continue;
+					}
+
+					const existing = this.settings.folders[i].files.findIndex(f => f.fileName == list[ii]);
+					if (existing != -1) delete this.settings.folders[i].files[existing];
+
+					let icon = new Image();
+
+					icon.onload = () => {
+						const iconData = this.compressImageToIcon(icon);
+
+						this.settings.folders[i].files.push({
+							fileName: list[ii],
+							size: data.length,
+							iconData: iconData
+						});
+
+						this.folders[i].files.push({
+							fileName: list[ii],
+							type: ext,
+							size: data.length,
+							data: data,
+							iconData: iconData,
+							path: this.settings.folders[i].path + "/" + list[ii]
+						});
+
+						icon = null;
+					}
+
+					icon.src = `data:image/${ext};base64,${data}`;
 				}
 
-				let fileWithExistingName = this.settings.folders[i].files.findIndex(x => x.fileName == list[ii]);
-
-				if(fileWithExistingName != -1) delete this.settings.folders[i].files[fileWithExistingName];
-
-				let icon = new Image();
-
-				icon.onload = () => {
-
-					let iconData = this.compressImageToIcon(icon);
-
-					this.settings.folders[i].files.push({ fileName : list[ii], size : data.length, iconData : iconData });
-					this.folders[i].files.push({ fileName : list[ii], type : fileType, size : data.length, data : data, iconData : iconData, path : this.settings.folders[i].path + "/" + list[ii] });
-
-					icon = null;
-
-				};
-
-				icon.src = `data:image/${fileType};base64, ${data}`;
-
-			}
+				completed++;
+			});
 		}
-		setTimeout(() => this.saveSettings(), 0);
+
+		while (completed < Object.keys(this.folders).length) await NeatoLib.Thread.sleep(100);
+
+		NeatoLib.showToast("ReactionImages: Finished loading files and generating icons.", "success");
+		setTimeout(() => this.saveSettings(), 100);
 	}
 
 	compressImageToIcon(unconverted) {
-		
-		let canvas = document.createElement("canvas"), context = canvas.getContext("2d");
+		const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
 
 		canvas.width = 100;
 		canvas.height = 100;
@@ -296,22 +274,19 @@ class ReactionImages {
 		context.drawImage(unconverted, 0, 0, 100, 100);
 
 		return canvas.toDataURL("image/jpeg", 0.3);
-
 	}
 
-    switch() {
+	switch () {
+		if (!this.ready) return;
 
-        if(!this.ready) return;
+		this.chatbox = NeatoLib.Chatbox.get();
 
-        this.chatbox = NeatoLib.Chatbox.get();
+		if (this.chatbox) this.chatbox.addEventListener("keyup", this.onChatInput);
+	}
 
-        if(this.chatbox) this.chatbox.addEventListener("keyup", this.onChatInput);
-
-    }
-	
-    stop() {
-		if(this.chatbox) this.chatbox.removeEventListener("keyup", this.onChatInput);
+	stop() {
+		if (this.chatbox) this.chatbox.removeEventListener("keyup", this.onChatInput);
 		NeatoLib.Events.detach("switch", this.switchEvent);
 	}
-	
+
 }

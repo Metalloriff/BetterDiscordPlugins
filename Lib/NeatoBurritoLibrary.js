@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.8.19",
+	version: "0.8.20",
 
 	parseVersion: function(version) {
 
@@ -33,7 +33,7 @@ var NeatoLib = {
 				let req = require("request"),
 					vm = require("vm");
 
-				setTimeout(() => {
+				NeatoLib.setTimeout(() => {
 
 					req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
 
@@ -44,7 +44,7 @@ var NeatoLib = {
 
 						new Promise(exec => exec(lib.runInThisContext())).then(() => {
 							NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
-							setTimeout(() => plugin.start(), 1000);
+							NeatoLib.setTimeout(() => plugin.start(), 1000);
 						});
 
 					});
@@ -243,7 +243,7 @@ var NeatoLib = {
 	Settings: {
 
 		createPanel: function(plugin) {
-			setTimeout(() => {
+			NeatoLib.setTimeout(() => {
 				this.create(plugin);
 				this.pushChangelogElements(plugin);
 			});
@@ -1120,7 +1120,7 @@ var NeatoLib = {
 
 			document.querySelector(".button-2b6hmh:nth-child(3)").click();
 
-			setTimeout(() => {
+			NeatoLib.setTimeout(() => {
 
 				var bdActions = document.querySelectorAll("#bd-settings-sidebar .ui-tab-bar-item");
 
@@ -1128,7 +1128,7 @@ var NeatoLib = {
 					if (bdActions[i].textContent == "Plugins") bdActions[i].click();
 				}
 
-				setTimeout(() => {
+				NeatoLib.setTimeout(() => {
 
 					var settingsBox = document.querySelector(`li[data-name="${name}"]`),
 						settingsButton = settingsBox.getElementsByClassName("bda-settings-button")[0];
@@ -1896,7 +1896,7 @@ var NeatoLib = {
 			};
 
 			document.addEventListener("click", onClick);
-			setTimeout(() => {
+			NeatoLib.setTimeout(() => {
 				document.addEventListener("contextmenu", onClick);
 			}, 0);
 			document.addEventListener("keyup", onKeyUp);
@@ -2087,7 +2087,7 @@ var NeatoLib = {
 
 			if (delay) {
 				const display = element.tooltip.event.mouseenter;
-				element.tooltip.event.mouseenter = () => delayTimeout = setTimeout(display, delay);
+				element.tooltip.event.mouseenter = () => delayTimeout = NeatoLib.setTimeout(display, delay);
 			}
 
 			element.addEventListener("mouseenter", element.tooltip.event.mouseenter);
@@ -2211,7 +2211,7 @@ var NeatoLib = {
 	Thread: {
 
 		sleep: function(timeout = 0) {
-			return new Promise(p => setTimeout(p, timeout));
+			return new Promise(p => NeatoLib.setTimeout(p, timeout));
 		}
 
 	},
@@ -2585,7 +2585,7 @@ var NeatoLib = {
 
 		const destroy = toast.close = function() {
 			toast.classList.add("closing");
-			setTimeout(function() {
+			NeatoLib.setTimeout(function() {
 				toast.remove();
 				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
@@ -2598,7 +2598,7 @@ var NeatoLib = {
 
 		document.getElementsByClassName("toasts")[0].appendChild(toast);
 
-		setTimeout(destroy, options.timeout || 3000);
+		NeatoLib.setTimeout(destroy, options.timeout || 3000);
 
 		return toast;
 
@@ -2611,7 +2611,7 @@ var NeatoLib = {
 		const destroy = function() {
 			clearTimeout(bar.destroyTimeout);
 			bar.classList.add("closing");
-			setTimeout(function() {
+			NeatoLib.setTimeout(function() {
 				bar.remove();
 				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
@@ -2631,7 +2631,7 @@ var NeatoLib = {
 			else prog.style.background = NeatoLib.Colors.DiscordDefaults.green;
 
 			clearTimeout(bar.destroyTimeout);
-			bar.destroyTimeout = setTimeout(destroy, options.timeout || 1500);
+			bar.destroyTimeout = NeatoLib.setTimeout(destroy, options.timeout || 1500);
 
 		};
 
@@ -2693,17 +2693,14 @@ var NeatoLib = {
 	},
 
 	getSnowflakeCreationDate: function(id) {
+		const epoch = 1420070400000;
 
-		let epoch = 1420070400000;
-
-		let toBinary = sf => {
-
+		const toBinary = sf => {
 			let binary = "",
 				high = parseInt(sf.slice(0, -10)) || 0,
 				low = parseInt(sf.slice(-10));
 
 			while (low > 0 || high > 0) {
-
 				binary = String(low & 1) + binary;
 
 				low = Math.floor(low / 2);
@@ -2712,16 +2709,22 @@ var NeatoLib = {
 					low += 5000000000 * (high % 2);
 					high = Math.floor(high / 2);
 				}
-
 			}
 
 			return binary;
-
 		};
 
 		return new Date(parseInt(toBinary(id).padStart(64).substring(0, 42), 2) + epoch);
-
 	},
+
+	setTimeout: function(func, delay) { //Thanks square! SeemsGood
+		try {
+			const setTimeout = NeatoLib.Modules.get("_wrappedBuiltIns")._wrappedBuiltIns.find(([obj, name, func]) => obj == global && name == "setTimeout")[2];
+			return setTimeout(func, delay);
+		} finally {
+			return global.setTimeout(func, delay);
+		}
+	}
 
 };
 
@@ -2729,7 +2732,7 @@ var Metalloriff = NeatoLib;
 
 for (let pluginName in window.bdplugins) {
 	if (typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
-		setTimeout(() => {
+		NeatoLib.setTimeout(() => {
 			if (window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
 		}, 100);
 	}

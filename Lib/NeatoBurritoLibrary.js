@@ -2360,11 +2360,11 @@ var NeatoLib = {
 	},
 
 	getSelectedGuild: function() {
-		return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getGuildId").getGuildId());
+		return NeatoLib.Modules.get("getGuild").getGuild(NeatoLib.Modules.get("getLastSelectedGuildId").getGuildId());
 	},
 
 	getSelectedGuildId: function() {
-		return NeatoLib.Modules.get("getGuildId").getGuildId();
+		return NeatoLib.Modules.get("getLastSelectedGuildId").getGuildId();
 	},
 
 	getSelectedTextChannel: function() {

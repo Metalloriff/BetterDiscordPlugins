@@ -1148,7 +1148,7 @@ var NeatoLib = {
 		},
 
 		load: function(plugin, defaultSettings) {
-			return NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings || plugin.defaultSettings);
+			return plugin.settings = NeatoLib.Data.load(plugin.getName().split(" ").join(""), "settings", defaultSettings || plugin.defaultSettings);
 		}
 
 	},

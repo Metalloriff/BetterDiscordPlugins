@@ -2217,8 +2217,7 @@ var NeatoLib = {
 	},
 
 	downloadFile: async function(url, path, filename, onCompleted) {
-
-		filename = filename.split("?")[0];
+		filename = filename.split("?")[0].split(":")[0];
 
 		const def = [url, path, filename, onCompleted];
 
@@ -2239,7 +2238,6 @@ var NeatoLib = {
 		};
 
 		try {
-
 			const fs = require("fs"),
 				protocol = require(url.match(/[http&https]+/)[0]);
 
@@ -2258,7 +2256,6 @@ var NeatoLib = {
 			const startingToast = NeatoLib.showToast(`[<span style="color:${NeatoLib.Colors.DiscordDefaults.blue}">${filename}</span>]: Preparing download...`);
 
 			const request = protocol.get(url, function(req) {
-
 				let data = [],
 					progress = 0,
 					length;
@@ -2289,36 +2286,26 @@ var NeatoLib = {
 					fs.writeFile(path, Buffer.concat(data), error);
 					if (onCompleted) onCompleted(path, url);
 				});
-
 			});
 
 			request.on("error", error);
 			request.end();
-
 		} catch (err) {
 			error(err);
 		}
-
 	},
 
 	requestFile: function(url, name = "unknown.png", onCompleted) {
+		const http = require("https");
 
-		var http = require("https");
+		const request = http.request(url, x => {
+			const data = [];
 
-		var request = http.request(url, x => {
-
-			var data = [];
-
-			x.on("data", d => {
-				data.push(d);
-			});
+			x.on("data", d => data.push(d));
 
 			x.on("end", () => {
-
 				if (onCompleted != undefined) onCompleted(new File([Buffer.concat(data)], name));
-
 			});
-
 		});
 
 		request.on("error", error => {
@@ -2326,7 +2313,6 @@ var NeatoLib = {
 		});
 
 		request.end();
-
 	},
 
 	getClass: function(moduleName, className = moduleName, index = 0) {

@@ -33,7 +33,7 @@ var NeatoLib = {
 				let req = require("request"),
 					vm = require("vm");
 
-				NeatoLib.setTimeout(() => {
+				setTimeout(() => {
 
 					req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
 
@@ -44,7 +44,7 @@ var NeatoLib = {
 
 						new Promise(exec => exec(lib.runInThisContext())).then(() => {
 							NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
-							NeatoLib.setTimeout(() => plugin.start(), 1000);
+							setTimeout(() => plugin.start(), 1000);
 						});
 
 					});
@@ -243,7 +243,7 @@ var NeatoLib = {
 	Settings: {
 
 		createPanel: function(plugin) {
-			NeatoLib.setTimeout(() => {
+			setTimeout(() => {
 				this.create(plugin);
 				this.pushChangelogElements(plugin);
 			});
@@ -1120,7 +1120,7 @@ var NeatoLib = {
 
 			document.querySelector(".button-2b6hmh:nth-child(3)").click();
 
-			NeatoLib.setTimeout(() => {
+			setTimeout(() => {
 
 				var bdActions = document.querySelectorAll("#bd-settings-sidebar .ui-tab-bar-item");
 
@@ -1128,7 +1128,7 @@ var NeatoLib = {
 					if (bdActions[i].textContent == "Plugins") bdActions[i].click();
 				}
 
-				NeatoLib.setTimeout(() => {
+				setTimeout(() => {
 
 					var settingsBox = document.querySelector(`li[data-name="${name}"]`),
 						settingsButton = settingsBox.getElementsByClassName("bda-settings-button")[0];
@@ -1896,7 +1896,7 @@ var NeatoLib = {
 			};
 
 			document.addEventListener("click", onClick);
-			NeatoLib.setTimeout(() => {
+			setTimeout(() => {
 				document.addEventListener("contextmenu", onClick);
 			}, 0);
 			document.addEventListener("keyup", onKeyUp);
@@ -2087,7 +2087,7 @@ var NeatoLib = {
 
 			if (delay) {
 				const display = element.tooltip.event.mouseenter;
-				element.tooltip.event.mouseenter = () => delayTimeout = NeatoLib.setTimeout(display, delay);
+				element.tooltip.event.mouseenter = () => delayTimeout = setTimeout(display, delay);
 			}
 
 			element.addEventListener("mouseenter", element.tooltip.event.mouseenter);
@@ -2211,7 +2211,7 @@ var NeatoLib = {
 	Thread: {
 
 		sleep: function(timeout = 0) {
-			return new Promise(p => NeatoLib.setTimeout(p, timeout));
+			return new Promise(p => setTimeout(p, timeout));
 		}
 
 	},
@@ -2574,7 +2574,7 @@ var NeatoLib = {
 
 		const destroy = toast.close = function() {
 			toast.classList.add("closing");
-			NeatoLib.setTimeout(function() {
+			setTimeout(function() {
 				toast.remove();
 				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
@@ -2587,7 +2587,7 @@ var NeatoLib = {
 
 		document.getElementsByClassName("toasts")[0].appendChild(toast);
 
-		NeatoLib.setTimeout(destroy, options.timeout || 3000);
+		setTimeout(destroy, options.timeout || 3000);
 
 		return toast;
 
@@ -2600,7 +2600,7 @@ var NeatoLib = {
 		const destroy = function() {
 			clearTimeout(bar.destroyTimeout);
 			bar.classList.add("closing");
-			NeatoLib.setTimeout(function() {
+			setTimeout(function() {
 				bar.remove();
 				if (!document.getElementsByClassName("toast").length) document.getElementsByClassName("toasts")[0].remove();
 			}, 300);
@@ -2620,7 +2620,7 @@ var NeatoLib = {
 			else prog.style.background = NeatoLib.Colors.DiscordDefaults.green;
 
 			clearTimeout(bar.destroyTimeout);
-			bar.destroyTimeout = NeatoLib.setTimeout(destroy, options.timeout || 1500);
+			bar.destroyTimeout = setTimeout(destroy, options.timeout || 1500);
 
 		};
 
@@ -2706,7 +2706,7 @@ var NeatoLib = {
 		return new Date(parseInt(toBinary(id).padStart(64).substring(0, 42), 2) + epoch);
 	},
 
-	setTimeout: function(func, delay) { //Thanks square! SeemsGood
+	setTimeout: function(func, delay) {
 		try {
 			const setTimeout = NeatoLib.Modules.get("_wrappedBuiltIns")._wrappedBuiltIns.find(([obj, name, func]) => obj == global && name == "setTimeout")[2];
 			return setTimeout(func, delay);
@@ -2721,7 +2721,7 @@ var Metalloriff = NeatoLib;
 
 for (let pluginName in window.bdplugins) {
 	if (typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
-		NeatoLib.setTimeout(() => {
+		setTimeout(() => {
 			if (window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
 		}, 100);
 	}

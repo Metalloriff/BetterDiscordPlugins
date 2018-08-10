@@ -2217,7 +2217,7 @@ var NeatoLib = {
 	},
 
 	downloadFile: async function(url, path, filename, onCompleted) {
-		filename = filename.split("?")[0].split(":")[0];
+		filename = filename.split(/[:|?|%]/)[0];
 
 		const def = [url, path, filename, onCompleted];
 
@@ -2282,6 +2282,9 @@ var NeatoLib = {
 					if (data.length == 0) return error("URL is invalid");
 					progressToast = NeatoLib.showProgressToast(id, "Finished downloading " + filename, progress, length, {
 						timeout: 3000
+					});
+					progressToast.addEventListener("click", () => {
+						window.open("file:///" + path.substring(0, path.lastIndexOf("/")));
 					});
 					fs.writeFile(path, Buffer.concat(data), error);
 					if (onCompleted) onCompleted(path, url);

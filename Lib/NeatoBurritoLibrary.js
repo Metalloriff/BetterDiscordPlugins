@@ -501,7 +501,7 @@ var NeatoLib = {
 
 						if (field.array) {
 							const addButton = document.createElement("button"), clearButton = document.createElement("button");
-							addButton.className = clearButton.className = `${NeatoLib.getClass("button")} ${NeatoLib.getClass("lookFilled")} ${NeatoLib.getClass("colorBrand")} ${NeatoLib.getClass("sizeMedium")} ${NeatoLib.getClass("grow")}`;
+							addButton.className = clearButton.className = [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("button", "sizeMedium"), NeatoLib.getClass("grow")].join(" ");
 							addButton.style = clearButton.style = "display:inline;margin:0 10px";
 
 							addButton.textContent = "Add";
@@ -835,7 +835,7 @@ var NeatoLib = {
 				let element = document.createElement("button");
 
 				element.setAttribute("style", `display:inline-block;${style}`);
-				element.setAttribute("class", "button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN");
+				element.setAttribute("class", [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("button", "sizeMedium"), NeatoLib.getClass("grow")].join(" "));
 
 				for (let key in attributes) element.setAttribute(key, attributes[key]);
 

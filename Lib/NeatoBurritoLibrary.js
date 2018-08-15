@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.8.20",
+	version: "0.9.20",
 
 	parseVersion: function(version) {
 
@@ -2732,12 +2732,12 @@ if (window.activeNeatoEvents == undefined) window.activeNeatoEvents = [];
 if (window.neatoObserver) window.neatoObserver.disconnect();
 window.neatoObserver = new MutationObserver(mutations => {
 
-	let call = type => {
+	let call = (type, ...args) => {
 		for (let i = 0; i < window.activeNeatoEvents.length; i++) {
 			if (window.activeNeatoEvents[i].type == type) {
 				if (typeof(window.activeNeatoEvents[i].callback) == "function") {
 					try {
-						window.activeNeatoEvents[i].callback();
+						window.activeNeatoEvents[i].callback(...args);
 					} catch (err) {
 						console.warn("Unable to call " + window.activeNeatoEvents[i].type + " event.", window.activeNeatoEvents[i].callback, err);
 					}
@@ -2765,6 +2765,8 @@ window.neatoObserver = new MutationObserver(mutations => {
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
 		if ((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+
+		if (window.neatoObserver.addedTextarea != (window.neatoObserver.addedTextarea = added.getElementsByClassName(NeatoLib.getClass("textAreaEdit", "textArea"))[0]) && window.neatoObserver.addedTextarea) call("chatbox", window.neatoObserver.addedTextarea);
 
 	}
 

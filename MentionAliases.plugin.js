@@ -4,7 +4,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.18"; }
+    getVersion() { return "0.8.19"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -307,7 +307,7 @@ class MentionAliases {
 
 					if(uid && !document.getElementById("ma-aliasfield")) {
 
-						NeatoLib.DOM.insertHTMLBefore(popout.getElementsByClassName(this.classes.footer)[0], `
+						NeatoLib.DOM.insertHTMLBefore(popout.getElementsByClassName("footer-1fjuF6")[0], `
 						<div class="body-3iLsc4">
 							<div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Alias</div>
 							<div class="note-3kmerW note-3HfJZ5">
@@ -330,9 +330,16 @@ class MentionAliases {
 
 				if(m[i].addedNodes.length && m[i].addedNodes[0] instanceof Element) {
 
-					if(m[i].addedNodes[0].classList.contains(this.classes.modal)) {
+					const addedTextArea = m[i].addedNodes[0].getElementsByTagName("textarea")[0];
 
-						let popout = m[i].addedNodes[0].getElementsByClassName(this.classes.inner)[0], uid;
+					if (addedTextArea) {
+						addedTextArea.removeEventListener("keydown", this.keydownEvent);
+						addedTextArea.addEventListener("keydown", this.keydownEvent);
+					}
+
+					if(m[i].addedNodes[0].classList.contains("modal-1UGdnR")) {
+
+						let popout = m[i].addedNodes[0].getElementsByClassName("inner-1JeGVc")[0], uid;
 				
 						if(popout && popout.getElementsByClassName("discriminator").length && (popout.getElementsByClassName(NeatoLib.getClass("body")).length || popout.getElementsByClassName(NeatoLib.getClass("userInfoSection")).length)) uid = NeatoLib.ReactData.getProp(popout.getElementsByClassName("discriminator")[0], "user.id");
 						else return;
@@ -378,8 +385,7 @@ class MentionAliases {
 			this.selectedGuild = NeatoLib.getSelectedGuild();
 
 			if(document.getElementsByClassName("ma-alias-menu").length) document.getElementsByClassName("ma-alias-menu")[0].remove();
-	
-			this.attach();
+			
 			this.scanMembers();
 
 			if(this.settings.displayTags) this.updateAllTags();
@@ -589,8 +595,8 @@ class MentionAliases {
 
 		if(existingTag) existingTag.remove();
 
-		if(alias) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">${alias}</span>`);
-		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !nameTag.getElementsByClassName("ma-ownertag").length) nameTag.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">Owner</span>`);
+		if(alias) nameTag.insertAdjacentHTML("beforeend", `<span class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">${alias}</span>`);
+		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !nameTag.getElementsByClassName("ma-ownertag").length) nameTag.insertAdjacentHTML("beforeend", `<span class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag ma-ownertag" style="background-color: ${color}; color: ${color && NeatoLib.Colors.getBrightness(color) > 0.65 ? "black" : "white"}">Owner</span>`);
 		
 	}
 	
@@ -605,7 +611,7 @@ class MentionAliases {
 
 		if(alias) {
 			let tag = document.createElement("span");
-			tag.className = "botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag";
+			tag.className = [NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot"), "ma-usertag"].join(" ");
 			tag.innerText = alias;
 			added.firstChild.insertBefore(tag, added.getElementsByTagName("button")[0]);
 		}
@@ -623,8 +629,8 @@ class MentionAliases {
 
 		let par = added.getElementsByClassName("userDefault-1qtQob")[0];
 
-		if(alias) par.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag" style="vertical-align:middle;">${alias}</span>`);
-		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !added.getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag" style="vertical-align:middle;">Owner</span>`);
+		if(alias) par.insertAdjacentHTML("beforeend", `<span class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag" style="vertical-align:middle;">${alias}</span>`);
+		if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !added.getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag ma-ownertag" style="vertical-align:middle;">Owner</span>`);
 
 	}
 	
@@ -646,8 +652,8 @@ class MentionAliases {
 
 			let par = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper"))[0] || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
 			if(par) {
-				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag">${alias}</span>`);
-				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="botTagRegular-2HEhHi botTag-2WPJ74 ma-usertag ma-ownertag">Server Owner</span>`);
+				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag">${alias}</span>`);
+				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag ma-ownertag">Server Owner</span>`);
 			}
 
 		}
@@ -735,16 +741,6 @@ class MentionAliases {
 		menu.push(NeatoLib.ContextMenu.createSubMenu("Groups", groupsMenu));
 
 		(NeatoLib.ContextMenu.get().children[1] || NeatoLib.ContextMenu.get().firstChild).appendChild(NeatoLib.ContextMenu.createSubMenu("Mention Aliases", menu));
-
-	}
-	
-	attach() {
-
-		const chatbox = NeatoLib.Chatbox.get();
-		if(!chatbox) return;
-
-		chatbox.removeEventListener("keydown", this.chatboxEvent);
-		chatbox.addEventListener("keydown", this.chatboxEvent);
 
 	}
 	

@@ -4,7 +4,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.2.5"; }
+    getVersion() { return "0.2.6"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -21,37 +21,32 @@ class ShareButton {
 
     load() {}
 
-    start() {
-
-        let libLoadedEvent = () => {
-            try{ this.onLibLoaded(); }
-            catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-        };
+	start() {
+		const libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
 		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(!lib) {
+		if (!lib) {
 			lib = document.createElement("script");
 			lib.id = "NeatoBurritoLibrary";
 			lib.type = "text/javascript";
 			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
-		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-        if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
 
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
 	}
     
     getSettingsPanel() {
-
         setTimeout(() => {
-
             Metalloriff.Settings.pushChangelogElements(this);
-
         }, 0);
 
         return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
-
     }
 
     saveSettings() {
@@ -59,7 +54,6 @@ class ShareButton {
     }
 	
 	onLibLoaded() {
-
         NeatoLib.Updates.check(this);
 
         this.settings = NeatoLib.Settings.load(this, {
@@ -112,7 +106,6 @@ class ShareButton {
     saveData() { PluginUtilities.saveData("ShareButton", "data", { recentChannels : this.recentChannels, pinnedChannels : this.pinnedChannels }); }
 
     onContextMenu(e) {
-
         if(e.target.localName != "img" && e.target.localName != "video" && !e.target.className.includes("markup")) return;
 
         let choices = [], pinnedChannelsItem = [], recentChannelsItem = [];
@@ -143,23 +136,19 @@ class ShareButton {
         };
 
         for(let i = 0; i < this.pinnedChannels.length; i++) {
-
             let channel = this.channelModule.getChannel(this.pinnedChannels[i]);
 
             if(!channel) continue;
 
             pinnedChannelsItem.push(NeatoLib.ContextMenu.createItem("#" + channel.name, ce => channelClick(channel, ce), { hint : this.guildModule.getGuild(channel.guild_id).name }));
-
         }
 
         for(let i = 0; i < this.recentChannels.length; i++) {
-
             let channel = this.channelModule.getChannel(this.recentChannels[i]);
 
             if(!channel) continue;
 
             recentChannelsItem.push(NeatoLib.ContextMenu.createItem("#" + channel.name, ce => channelClick(channel, ce), { hint : this.guildModule.getGuild(channel.guild_id).name }));
-
         }
 
         let open = () => { this.openShareMenu(e); NeatoLib.ContextMenu.close(); };
@@ -169,19 +158,15 @@ class ShareButton {
         choices.push(NeatoLib.ContextMenu.createItem("Open Share Menu", open));
 
         NeatoLib.ContextMenu.get().insertAdjacentElement("afterBegin", NeatoLib.ContextMenu.createSubMenu("Share", [NeatoLib.ContextMenu.createGroup(choices)], { callback : open }));
-
     }
 
     openShareMenu(e, definedName, definedData) {
-
         if(document.getElementById("sb-menu")) return document.getElementById("sb-menu").remove();
 
         let menu = NeatoLib.UI.createBasicScrollList("sb-menu", "Share");
 
         menu.window.insertAdjacentHTML("afterBegin", `
-        
             <style>
-            
             #sb-menu {
                 z-index: 1000;
                 position: absolute;
@@ -252,9 +237,7 @@ class ShareButton {
                 font-size: 25px;
                 font-weight: 500;
             }
-
             </style>
-        
         `);
         
         let url, filename;
@@ -263,7 +246,6 @@ class ShareButton {
             url = definedData;
             filename = definedName;
         } else {
-
             url = e.target.src;
 
             if(!url) {
@@ -273,7 +255,6 @@ class ShareButton {
                 if(url.indexOf("?") != -1) url = url.substring(url.substring(0, url.lastIndexOf("?")));
                 filename = url.substring(url.lastIndexOf("/") + 1, url.length);
             }
-
         }
 
         let msg = NeatoLib.ReactData.getProps(e.target).message;
@@ -285,25 +266,21 @@ class ShareButton {
         let recentChannels, pinnedChannels;
 
         let updateChannels = () => {
-
             let ci = document.getElementsByClassName("sb-channel-item-button");
 
             for(let i = 0; i < ci.length; i++) {
                 ci[i].onclick = channelClickEvent;
                 ci[i].oncontextmenu = channelContextEvent;
             }
-
         },
         
         updateRecentChannels = () => {
-
             if(recentChannels) {
                 recentChannels.remove();
                 recentChannels = null;
             }
 
             for(let i = 0; i < this.recentChannels.length; i++) {
-
                 let channel = this.channelModule.getChannel(this.recentChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
 
                 if(!channel || !guild) continue;
@@ -321,22 +298,17 @@ class ShareButton {
                 ci.innerHTML = `<div class="sb-channel-item">#${channel.name} - ${guild.name}</div>`;
 
                 recentChannels.appendChild(ci);
-
             }
-
-            updateChannels();
-
+            updateChannels()
         },
         
         updatePinnedChannels = () => {
-            
             if(pinnedChannels) {
                 pinnedChannels.remove();
                 pinnedChannels = null;
             }
 
             for(let i = 0; i < this.pinnedChannels.length; i++) {
-
                 let channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
 
                 if(!channel || !guild) continue;
@@ -354,19 +326,14 @@ class ShareButton {
                 ci.innerHTML = `<div class="sb-channel-item">#${channel.name} - ${guild.name}</div>`;
 
                 pinnedChannels.appendChild(ci);
-
             }
-
             updateChannels();
-
         };
 
         let guilds = this.sortedGuildModule.getSortedGuilds(), guildsParent, allChannels = Object.values(this.channelModule.getChannels()).sort((x, y) => x.position - y.position);
 
         for(let i = 0; i < guilds.length; i++) {
-
             if(!guildsParent) {
-
                 menu.scroller.insertAdjacentHTML("beforeEnd", 
                 `<div id="sb-servers">
                     <div class ="sb-label">Servers</div>
@@ -381,13 +348,11 @@ class ShareButton {
                 guildsParent = document.getElementById("sb-servers");
                 
                 document.getElementsByClassName("sb-dm-item")[0].onclick = e => {
-
                     if(e.target.classList.contains("sb-dm-subitem")) return;
 
                     let par = e.currentTarget.getElementsByClassName("sb-server-item-channels")[0], dms = this.dmModule.getPrivateChannelIds();
 
                     let dmClickEvent = e => {
-
                         this.sendMessage(e);
 
                         e.currentTarget.style.backgroundColor = "#43b581";
@@ -397,20 +362,16 @@ class ShareButton {
 
                         e.currentTarget.onclick = null;
                         getEventListeners(e.currentTarget).click[0].remove();
-
                     };
 
                     if(par.children.length) {
                         par.innerHTML = "";
                         e.currentTarget.style.backgroundColor = "";
                     } else {
-
                         for(let di = 0; di < dms.length; di++) {
-
                             let dm = this.channelModule.getChannel(dms[di]);
 
                             if(dm.recipients.length > 1) {
-
                                 let item = document.createElement("div");
 
                                 item.className = "sb-server-item sb-dm-subitem sb-button";
@@ -426,9 +387,7 @@ class ShareButton {
                                 item.addEventListener("click", dmClickEvent);
 
                                 par.appendChild(item);
-
                             } else {
-
                                 let user = this.userModule.getUser(dm.recipients[0]);
 
                                 if(!user) continue;
@@ -448,23 +407,16 @@ class ShareButton {
                                 item.addEventListener("click", dmClickEvent);
 
                                 par.appendChild(item);
-
                             }
-
                         }
-
                     }
-
                 };
-
             }
 
             guildsParent.insertAdjacentHTML("beforeEnd", `<div data-server-id="${guilds[i].guild.id}" data-opened="false" class="sb-server-item sb-button"><div class="sb-server-item-icon" style="background-image: url('${guilds[i].guild.getIconURL()}');"><div class="sb-server-item-label">${guilds[i].guild.name}</div></div><div class="sb-server-item-channels"></div></div>`);
-
         }
         
         let channelClickEvent = e => {
-
             this.sendMessage(e);
 
             e.currentTarget.getElementsByClassName("sb-channel-item")[0].innerText = "Shared!";
@@ -484,11 +436,9 @@ class ShareButton {
             updateRecentChannels();
 
             this.saveData();
-
         },
 
         channelContextEvent = e => {
-
             let items = [], cid = e.currentTarget.dataset.channelId;
 
             if(this.pinnedChannels.includes(cid)) items.push(NeatoLib.ContextMenu.createItem("Unpin", () => {
@@ -505,13 +455,11 @@ class ShareButton {
             }));
 
             NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup(items)], e);
-
         };
 
         let serverItems = Array.filter(document.getElementsByClassName("sb-server-item"), e => !e.classList.contains("sb-dm-item")),
         
         serverItemClickEvent = e => {
-
             if(e.target.classList.contains("sb-channel-item")) return;
 
             let targ = NeatoLib.DOM.searchForParentElementByClassName(e.target, "sb-server-item");
@@ -522,25 +470,18 @@ class ShareButton {
                 par.innerHTML = "";
                 targ.style.backgroundColor = "";
             } else {
-
                 for(let i = 0; i < allChannels.length; i++) {
-
                     if(allChannels[i].guild_id == targ.dataset.serverId && allChannels[i].type == 0) {
-
                         if(allChannels[i].parent_id && categories.indexOf(allChannels[i].parent_id) == -1) {
-
                             par.insertAdjacentHTML("beforeEnd", `<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">${this.channelModule.getChannel(allChannels[i].parent_id).name}</div></div>`);
                             
                             categories.push(allChannels[i].parent_id);
-
                         }
 
                         if(!allChannels[i].parent_id && categories.indexOf("uncategorized") == -1) {
-
                             par.insertAdjacentHTML("beforeEnd", `<div id="sb-recent-channels" style="text-align:center;"><div class="sb-label" style="padding-left:0px;">Uncategorized</div></div>`);
 
                             categories.push("uncategorized");
-
                         }
 
                         let item = document.createElement("div");
@@ -554,27 +495,20 @@ class ShareButton {
                         item.innerHTML = `<div class="sb-channel-item">#${allChannels[i].name}</div>`;
 
                         par.appendChild(item);
-
                     }
-
                 }
-
                 updateChannels();
-
             }
-
         };
 
         for(let i = 0; i < serverItems.length; i++) serverItems[i].onclick = serverItemClickEvent;
 
         updatePinnedChannels();
         updateRecentChannels();
-
     }
 
     sendMessage(e) {
-
-        let lastServer = NeatoLib.getSelectedServer(), lastChannel = NeatoLib.getSelectedTextChannel(), lastScroll = document.getElementsByClassName("messages scroller")[0].scrollTop;
+        let lastServer = NeatoLib.getSelectedServer(), lastChannel = NeatoLib.getSelectedTextChannel(), lastScroll = document.getElementsByClassName(NeatoLib.getClass("messages"))[0].scrollTop;
 
         this.transitionModule.transitionTo(e.currentTarget.dataset.channelId, e.currentTarget.dataset.guildId);
 
@@ -582,16 +516,13 @@ class ShareButton {
 
         if(lastServer && lastChannel) this.transitionModule.transitionTo(lastChannel.id, lastServer.id);
 
-        document.getElementsByClassName("messages scroller")[0].scrollTop = lastScroll;
-
+        document.getElementsByClassName(NeatoLib.getClass("messages"))[0].scrollTop = lastScroll;
     }
 	
     stop() {
-
         document.removeEventListener("contextmenu", this.contextEvent);
 
         if(this.popoutObserver != undefined) this.popoutObserver.disconnect();
-
 	}
 	
 }

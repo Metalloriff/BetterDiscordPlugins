@@ -4,7 +4,7 @@ class BetterEmoteSizes {
 
 	getName() { return "Emote Zoom"; }
 	getDescription() { return "Increases the size of emojis, emotes, and reactions upon hovering over them and allows you to change their default sizes."; }
-	getVersion() { return "2.4.11"; }
+	getVersion() { return "2.4.12"; }
 	getAuthor() { return "Metalloriff"; }
 
 	get settingFields() {
@@ -90,7 +90,7 @@ class BetterEmoteSizes {
 	}
 
 	update() {
-		const markup = NeatoLib.getClass("markup"), messageGroup = NeatoLib.getClass("containerCozy", "container"), message = NeatoLib.getClass("messageCozy", "message");
+		const markup = NeatoLib.getClass("markup"), messageGroup = NeatoLib.getClass("containerCozy", "container"), message = NeatoLib.getClass("messageCozy", "message"), reaction = NeatoLib.getClass("reaction"), 		reactionMe = NeatoLib.getClass("reactionMe");
 
 		if (this.style) this.style.destroy();
 		this.style = NeatoLib.injectCSS(`.${messageGroup} { overflow: visible; }`);
@@ -175,15 +175,15 @@ class BetterEmoteSizes {
 
 		if (this.settings.alterReactions) {
 			this.style.append(`
-				#app-mount .reaction .emoji, .reaction.reaction-me .emoji {
+				#app-mount .${reaction} .emoji, .${reaction}.${reactionMe} .emoji {
 					height: ${this.settings.reactionSize}px;
 					width: auto;
 				}
-				#app-mount .reaction {
+				#app-mount .${reaction} {
 					transition: transform ${this.settings.transitionSpeed}s;
 				}
-				#app-mount .reaction:hover {
-					transform: scale(${this.settings.reactionHoverSize});
+				#app-mount .${reaction}:hover {
+					transform: scale(${this.settings.reactionHoverSize}) !important;
 					z-index: 1000;
 				}
 			`);

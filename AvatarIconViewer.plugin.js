@@ -1,10 +1,10 @@
 //META{"name":"AvatarIconViewer","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
 
 class AvatarIconViewer {
-	
+
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.19"; }
+	getVersion() { return "0.5.20"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -29,7 +29,7 @@ class AvatarIconViewer {
 		else lib.addEventListener("load", libLoadedEvent);
 
 	}
-	
+
 	onLibLoaded() {
 
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.3")) return;
@@ -52,11 +52,11 @@ class AvatarIconViewer {
 		NeatoLib.Events.onPluginLoaded(this);
 
 	}
-	
+
 	onContextMenu(e) {
 
 		let context = NeatoLib.ContextMenu.get(), viewLabel, copyLabel;
-		
+
 		if(!context && !e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains("clickable")) return;
 
 		this.url = "";
@@ -72,7 +72,7 @@ class AvatarIconViewer {
 
 			if(e.target.classList.contains("mention")) this.url = NeatoLib.Modules.get("queryUsers").queryUsers(e.target.innerText.substring(1, e.target.innerText.length))[0].user.getAvatarURL();
 			else if(e.target.classList.contains("image-33JSyf")) this.url = e.target.style.backgroundImage.match(/".*"/)[0].replace(/"/g, "");
-			else if(messageGroupProps && (e.target.classList.contains("user-name") || e.target.classList.contains("avatar-large") || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
+			else if(messageGroupProps && (e.target.classList.contains(NeatoLib.getClass("usernameWrapper", "username")) || e.target.classList.contains(NeatoLib.getClass(["image", "large"], "large")) || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
 			else if(genericProps) this.url = genericProps.user.getAvatarURL();
 			else if(avatarBackground) this.url = avatarBackground.match(/".*"/)[0].replace(/"/g, "");
 			else return null;
@@ -85,7 +85,7 @@ class AvatarIconViewer {
 			return this.url;
 
 		},
-		
+
 		getServerIcon = () => {
 
 			if(!e.target.classList.contains(NeatoLib.getClass("guildIcon")) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains(this.classes.iconSizeSmall) && !e.target.classList.contains(this.classes.listAvatar)) return null;
@@ -100,9 +100,9 @@ class AvatarIconViewer {
 			return this.url;
 
 		},
-		
+
 		getEmoji = () => {
-			
+
 			if(!e.target.classList.contains("emoji")) return null;
 
 			this.url = e.target.src;
@@ -112,7 +112,7 @@ class AvatarIconViewer {
 			return this.url;
 
 		},
-		
+
 		formatURL = () => {
 			if(this.url.indexOf("?size") != -1) this.url = this.url.substring(0, this.url.indexOf("?size"));
 			this.url += "?size=2048";
@@ -145,9 +145,9 @@ class AvatarIconViewer {
 			], e);
 
 		}
-		
+
 	}
-	
+
 	createImagePreview() {
 
 		if(!document.getElementById("avatar-img-preview")){
@@ -186,12 +186,12 @@ class AvatarIconViewer {
 		}
 
 	}
-	
+
 	destroyPreview() {
 		if(document.getElementById("aiv-preview-window")) document.getElementById("aiv-preview-window").remove();
 		document.removeEventListener("keyup", this.keyUpEvent);
 	}
-	
+
 	copyURL() {
 
 		NeatoLib.ContextMenu.close();
@@ -200,14 +200,14 @@ class AvatarIconViewer {
 		NeatoLib.showToast("Link copied to clipboard", "success");
 
 	}
-	
+
 	openURL() {
 		window.open(this.url);
 	}
-	
+
 	stop() {
 		document.removeEventListener("contextmenu", this.contextEvent);
 		document.removeEventListener("keyup", this.keyUpEvent);
 	}
-	
+
 }

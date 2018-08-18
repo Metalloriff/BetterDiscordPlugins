@@ -4,7 +4,7 @@ class UserBirthdays {
 	
 	getName() { return "User Birthdays"; }
 	getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday."; }
-	getVersion() { return "1.0.6"; }
+	getVersion() { return "1.0.7"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -30,17 +30,6 @@ class UserBirthdays {
 
 	}
 	
-	getSettingsPanel(){
-
-		setTimeout(() => {
-			
-			NeatoLib.Settings.pushChangeLogElements(this);
-
-		}, 0);
-
-		return NeatoLib.Settings.pluginNameLabel(this.getName());
-	}
-	
 	get theme() {
 		return document.getElementsByClassName("theme-dark").length ? "theme-dark" : "theme-light";
 	}
@@ -61,8 +50,6 @@ class UserBirthdays {
 
 		this.birthdays = NeatoLib.Data.load("UserBirthdays", "birthdays", this.birthdays);
 
-		const classes = NeatoLib.getClasses(["footer", "scrollerThemed"]);
-
 		this.popObserver = new MutationObserver(m => {
 
 			let pop = m[0].addedNodes[0];
@@ -75,7 +62,7 @@ class UserBirthdays {
 
 				if(!uid) return;
 
-				NeatoLib.DOM.insertHTMLBefore(pop.getElementsByClassName(classes.footer)[0], `
+				NeatoLib.DOM.insertHTMLBefore(pop.getElementsByClassName(NeatoLib.getClass("body", "footer"))[0], `
 					<div class="body-3iLsc4 da-body">
 						<div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Birthday</div>
 						<div class="note-3kmerW note-3HfJZ5">
@@ -96,7 +83,7 @@ class UserBirthdays {
 
 				pop = m[1].addedNodes[0];
 
-				if(pop.className.indexOf("modal") != -1 && (popout.getElementsByClassName(NeatoLib.getClass("body")).length || popout.getElementsByClassName(NeatoLib.getClass("userInfoSection")).length)) {
+				if(pop.className.indexOf("modal") != -1 && (pop.getElementsByClassName(NeatoLib.getClass("profileBadge", "body")).length || pop.getElementsByClassName(NeatoLib.getClass("userInfoSection")).length)) {
 
 					const uid = NeatoLib.ReactData.getProp(pop.getElementsByClassName("discriminator")[0], "user.id"), birthday = this.birthdays[uid];
 
@@ -104,7 +91,7 @@ class UserBirthdays {
 					
 					NeatoLib.DOM.insertHTMLAtIndex(1, `
 						<div class="userInfoSection-2acyCx"><div class="userInfoSectionHeader-CBvMDh size12-3R0845 weightBold-2yjlgw">Birthday</div><div class="note-3kmerW note-QfFU8y"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9" style="height: 24px;">${birthday ? birthday.day : ""}</textarea></div></div>
-					`, pop.getElementsByClassName(classes.scroller)[0]);
+					`, pop.getElementsByClassName(NeatoLib.getClass("scrollerWrapPolyfill", "scroller"))[0]);
 
 					const field = document.getElementById("ub-birthdayfield");
 

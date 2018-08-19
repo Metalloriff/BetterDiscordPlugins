@@ -4,7 +4,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.19"; }
+    getVersion() { return "0.8.20"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -241,7 +241,7 @@ class MentionAliases {
 		};
 
 		this.contextEvent = e => {
-			let element = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.Modules.get("containerCozy").container.split(" ").join(""));
+			let element = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
 			if(element) this.onUserContext(element);
 		};
 
@@ -330,13 +330,6 @@ class MentionAliases {
 
 				if(m[i].addedNodes.length && m[i].addedNodes[0] instanceof Element) {
 
-					const addedTextArea = m[i].addedNodes[0].getElementsByTagName("textarea")[0];
-
-					if (addedTextArea) {
-						addedTextArea.removeEventListener("keydown", this.keydownEvent);
-						addedTextArea.addEventListener("keydown", this.keydownEvent);
-					}
-
 					if(m[i].addedNodes[0].classList.contains("modal-1UGdnR")) {
 
 						let popout = m[i].addedNodes[0].getElementsByClassName("inner-1JeGVc")[0], uid;
@@ -404,6 +397,11 @@ class MentionAliases {
 		};
 
 		NeatoLib.Events.attach("switch", this.switchEvent);
+		
+		NeatoLib.Events.attach("chatbox", this.chatboxAddEvent = chatbox => {
+			chatbox.removeEventListener("keydown", this.chatboxEvent);
+			chatbox.addEventListener("keydown", this.chatboxEvent);
+		});
 		
 		this.messageEvent = () => this.updateMessages();
 
@@ -549,7 +547,7 @@ class MentionAliases {
 			`);
 
 			list.lastElementChild.getElementsByClassName("closeButton-2Rx3ov")[0].onclick = e => {
-				NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.Modules.get("containerCozy").container.split(" ").join("")).remove();
+				NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container")).remove();
 				this.updateAlias(uid, null);
 				NeatoLib.showToast("Alias removed", "success");
 			};
@@ -638,7 +636,7 @@ class MentionAliases {
 
 		if(!this.settings.displayTags) return;
 
-		let groups = document.getElementsByClassName(NeatoLib.Modules.get("containerCozy").container.split(" ").join(""));
+		let groups = document.getElementsByClassName(NeatoLib.getClass("containerCozy", "container"));
 
 		for(let i = 0; i < groups.length; i++) {
 
@@ -646,9 +644,9 @@ class MentionAliases {
 
 			if(!uid) continue;
 
-			let alias = this.aliases[uid], username = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper", "username"))[0], existingTag = groups[i].getElementsByClassName("ma-usertag")[0];
+			let alias = this.aliases[uid], username = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper", "username"))[0], existingTag = groups[i].querySelector(".ma-usertag");
 
-			if(existingTag) existingTag.remove();
+			if(existingTag) return;
 
 			let par = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper"))[0] || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
 			if(par) {
@@ -766,6 +764,7 @@ class MentionAliases {
 		document.removeEventListener("click", this.clickEvent);
 		
 		NeatoLib.Events.detach("switch", this.switchEvent);
+		NeatoLib.Events.detach("chatbox", this.chatboxAddEvent);
 		NeatoLib.Events.detach("message", this.messageEvent);
 
 	}

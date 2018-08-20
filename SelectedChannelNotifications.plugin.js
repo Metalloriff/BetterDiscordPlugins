@@ -1,171 +1,123 @@
-//META{"name":"SelectedChannelNotifications"}*//
+//META{"name":"SelectedChannelNotifications","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/SelectedChannelNotifications.plugin.js"}*//
 
 class SelectedChannelNotifications {
 	
     getName() { return "Selected Channel Notifications"; }
     getDescription() { return "Plays a sound and displays a notification (both optional) when Discord is minimized and a message is received in the selected channel."; }
-    getVersion() { return "0.1.5"; }
+    getVersion() { return "0.1.6"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
 
     start() {
+		const libLoadedEvent = () => {
+			try{ this.onLibLoaded(); }
+			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
+		};
 
-		var libraryScript = document.getElementById('zeresLibraryScript');
-		if (!libraryScript) {
-			libraryScript = document.createElement("script");
-			libraryScript.setAttribute("type", "text/javascript");
-			libraryScript.setAttribute("src", "https://rauenzi.github.io/BetterDiscordAddons/Plugins/PluginLibrary.js");
-			libraryScript.setAttribute("id", "zeresLibraryScript");
-			document.head.appendChild(libraryScript);
+		let lib = document.getElementById("NeatoBurritoLibrary");
+		if (!lib) {
+			lib = document.createElement("script");
+			lib.id = "NeatoBurritoLibrary";
+			lib.type = "text/javascript";
+			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			document.head.appendChild(lib);
 		}
-		if (typeof window.ZeresLibrary !== "undefined") this.initialize();
-        else libraryScript.addEventListener("load", () => { this.initialize(); });
-        
+
+		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
+		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
+		else lib.addEventListener("load", libLoadedEvent);
 	}
-	
-	getSettingsPanel() {
 
-		setTimeout(() => {
-
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createTextField("Message notification sound", "text", this.settings.messageSound, e => {
-                this.settings.messageSound = e.target.value;
-                this.saveSettings();
-            }), this.getName());
-
-            Metalloriff.Settings.pushElement(Metalloriff.Settings.Elements.createToggleGroup("scn-toggles", "", [
-                { title : "Play sound on message", value : "playSound", setValue : this.settings.playSound },
-                { title : "Display notification on message", value : "displayNotification", setValue : this.settings.displayNotification }
-            ], choice => {
-                this.settings[choice.value] = !this.settings[choice.value];
-                this.saveSettings();
-            }), this.getName());
-
-		}, 0);
-
-        return Metalloriff.Settings.Elements.pluginNameLabel(this.getName());
-        
+	get settingFields() {
+		return {
+			messageSound: { label: "Message notification sound", type: "string" },
+			playSound: { label: "Play sound on message", type: "bool" },
+			displayNotification: { label: "Display notification on message", type: "bool" }
+		};
 	}
-	
-	saveSettings() {
 
-        PluginUtilities.saveSettings("SelectedChannelNotifications", this.settings);
-        
-        this.onSwitch();
-
-	}
-	
-	initialize() {
-
-        PluginUtilities.checkForUpdate(this.getName(), this.getVersion(), "https://github.com/Metalloriff/BetterDiscordPlugins/raw/master/SelectedChannelNotifications.plugin.js");
-
-        this.audio = new Audio();
-
-        this.notifications = [];
-
-        this.settings = PluginUtilities.loadSettings("SelectedChannelNotifications", {
+	get defaultSettings() {
+		return {
             messageSound : "https://discordapp.com/assets/dd920c06a01e5bb8b09678581e29d56f.mp3",
             playSound : true,
             displayNotification : true
-        });
-
-        this.channelModule = DiscordModules.ChannelStore;
-        this.notificationSettingsModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getChannelMessageNotifications"]);
-        this.volumeModule = InternalUtilities.WebpackModules.findByUniqueProperties(["getOutputVolume"]);
-        
-        this.focused = true;
-
-        this.focus = () => {
-            this.focused = true;
-            for(let i = 0; i < this.notifications.length; i++) this.notifications[i].close();
         };
-        this.unfocus = () => this.focused = false;
+	}
+	
+	getSettingsPanel() {
+		return NeatoLib.Settings.createPanel(this);
+	}
+	
+	saveSettings() {
+		NeatoLib.Settings.save(this);
+		this.audio.src = this.settings.messageSound;
+		this.audio.volume = this.volumeModule.getOutputVolume() / 200;
+	}
+	
+	onLibLoaded() {
+		NeatoLib.Updates.check(this);
 
-        this.messageObserver = new MutationObserver(() => {
-            this.onMessageReceived();
-        });
+		this.channelModule = NeatoLib.Modules.get("getChannel");
+		this.notificationSettingsModule = NeatoLib.Modules.get("getChannelMessageNotifications");
+		this.volumeModule = NeatoLib.Modules.get("getOutputVolume");
 
-        window.addEventListener("focus", this.focus);
-        window.addEventListener("blur", this.unfocus);
+		NeatoLib.Settings.load(this);
 
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(lib == undefined) {
-			lib = document.createElement("script");
-			lib.setAttribute("id", "NeatoBurritoLibrary");
-			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
-			document.head.appendChild(lib);
-		}
-        if(typeof window.Metalloriff !== "undefined") this.onLibLoaded();
-        else lib.addEventListener("load", () => { this.onLibLoaded(); });
+		this.audio = new Audio();
 
-    }
+		this.audio.src = this.settings.messageSound;
+		this.audio.volume = this.volumeModule.getOutputVolume() / 200;
 
-    onLibLoaded() {
+		this.notifications = [];
 
-        this.initialized = true;
+		this.focused = true;
+		
+		window.addEventListener("focus", this.focus = () => {
+			this.focused = true;
+			for (let i = 0; i < this.notifications.length; i++) this.notifications[i].close();
+		});
 
-        this.onSwitch();
+		window.addEventListener("blur", this.unfocus = () => {
+			this.focused = false;
+		});
 
-    }
+		NeatoLib.Events.attach("message", this.msgRec = () => this.onMessageReceived());
 
-    onSwitch() {
-
-        if(!this.initialized) return;
-
-        this.currentGuild = PluginUtilities.getCurrentServer();
-        let messageScroller = document.getElementsByClassName("messages scroller")[0], selectedChannel = document.getElementsByClassName("wrapperSelectedText-3dSUjC")[0];
-
-        this.messageObserver.disconnect();
-
-        if(this.currentGuild == undefined || messageScroller == undefined || selectedChannel == undefined) return;
-
-        this.currentChannel = ReactUtilities.getOwnerInstance(selectedChannel).props.channel;
-
-        if(this.currentChannel == undefined || this.notificationSettingsModule.getChannelMessageNotifications(this.currentGuild.id, this.currentChannel.id) == 0) return;
-
-        this.audio.src = this.settings.messageSound;
-        this.audio.volume = this.volumeModule.getOutputVolume() / 100;
-
-        this.messageObserver.observe(messageScroller, { childList : true });
-
+		NeatoLib.Events.onPluginLoaded(this);
     }
 
     onMessageReceived() {
+		if (!this.focused && NeatoLib.getLocalStatus() != "dnd") {
+			const messages = document.getElementsByClassName(NeatoLib.getClass("containerCozy", "container")),
+				lastGroup = NeatoLib.ReactData.getProps(messages[messages.length - 1]).messages,
+				lastMsg = lastGroup[lastGroup.length - 1];
+			
+			if (lastMsg.author.id != NeatoLib.getLocalUser().id && !lastMsg.mentioned) {
+				if (this.settings.displayNotification) {
+					const n = new Notification(
+						(!lastMsg.nick ? lastMsg.author.username : lastMsg.nick) + " - #" + NeatoLib.getSelectedTextChannel().name, {
+							silent: true,
+							body: lastMsg.content,
+							icon: lastMsg.author.getAvatarURL()
+						}
+					);
 
-        if(!this.focused && Metalloriff.getLocalStatus() != "dnd") {
+					const i = this.notifications.push(n) - 1;
 
-            let messages = document.getElementsByClassName("message-group"),
-            latestMessageGroupMessages = ReactUtilities.getOwnerInstance(messages[messages.length - 1]).props.messages,
-            latestMessage = latestMessageGroupMessages[latestMessageGroupMessages.length - 1];
+					n.onclose = () => this.notifications.splice(i, 1);
+				}
 
-            if(latestMessage.author.id != PluginUtilities.getCurrentUser().id && latestMessage.mentioned == false) {
-
-                if(this.settings.displayNotification == true) {
-
-                    let notif = new Notification((latestMessage.nick == undefined ? latestMessage.author.username : latestMessage.nick) + " - #" + this.currentChannel.name, { silent : true, body : latestMessage.content, icon : latestMessage.author.getAvatarURL() });
-
-                    let idx = this.notifications.push(notif) - 1;
-
-                    notif.onclose = () => this.notifications.splice(idx, 1);
-
-                }
-
-                if(this.settings.playSound == true) this.audio.play();
-
-            }
-
-        }
-
+				if (this.settings.playSound) this.audio.play();
+			}
+		}
     }
 	
     stop() {
+		window.removeEventListener("focus", this.focus);
+		window.removeEventListener("blur", this.unfocus);
 
-        if(this.messageObserver != undefined) this.messageObserver.disconnect();
-
-        window.removeEventListener("focus", this.focus);
-        window.removeEventListener("blur", this.unfocus);
-
+		NeatoLib.Events.detach("message", this.msgRec);
     }
 	
 }

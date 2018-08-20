@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.12.13"; }
+	getVersion() { return "1.13.13"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -45,6 +45,11 @@ class MessageLogger {
 				Fixed random crashes. Thanks Discord!
 				Fixed edited and deleted messages not showing in DMs.
 				Slight performance improvement.
+			`,
+			"1.13.13" :
+			`
+				Edited messages and log messages now format correctly! Wow!
+				Fixed the clear button.
 			`
 		};
 	}
@@ -396,7 +401,6 @@ class MessageLogger {
 			}
 
 			#message-logger-window .${NeatoLib.getClass("containerCozy", "container")} {
-				margin-bottom: 5px;
 				padding-top: 5px;
 			}
 
@@ -439,13 +443,6 @@ class MessageLogger {
 				color: rgba(240, 71, 71, 0.5) !important;
 			}
 		`);
-
-		this.regex = {
-			mention : new RegExp("<@[0-9]+>"),
-			channel : new RegExp("<#[0-9]+>"),
-			emoji : new RegExp("<:[^\\s]+:[0-9]+>"),
-			numbersOnly : new RegExp("[0-9]+")
-		};
 
 		this.registerKeybinds();
 
@@ -757,11 +754,11 @@ class MessageLogger {
 		
 		if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
-		this.switch();
-
 		NeatoLib.Events.attach("switch", this.switchEvent = () => this.switch());
 
 		NeatoLib.Events.onPluginLoaded(this);
+
+		this.switch();
 
 	}
 
@@ -891,8 +888,11 @@ class MessageLogger {
 							markup.insertAdjacentHTML("beforeend", `<time class="${NeatoLib.getClass("edited")}">(edited)</time>`);
 							markup.lastElementChild.addEventListener("click", onClickEditedTag);
 						}
-						markup.insertAdjacentHTML("beforeend", `<div class="${NeatoLib.getClass("markup")} ml-edited">${this.formatMarkup(edit[e].message, this.selectedChannel)}</div>`);
-						NeatoLib.Tooltip.attach("Edited at " + edit[e].timestamp.split(",")[0], markup.lastElementChild, { side : "left" });
+
+						const editedMarkup = this.formatMarkup(edit[e].message);
+						editedMarkup.classList.add("ml-edited");
+						NeatoLib.Tooltip.attach("Edited at " + edit[e].timestamp.split(",")[0], editedMarkup, { side : "left" });
+						markup.appendChild(editedMarkup);
 					}
 
 				}
@@ -903,33 +903,17 @@ class MessageLogger {
 
 	}
 
-	formatMarkup(content, channel) {
+	formatMarkup(content) {
+		const markup = document.createElement("div"), react = "__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED";
 
-		let markup = content.replace(/<[^>]+>/g, "").replace(/(https?:\/\/[^\s]+)/g, `<a class="anchor-3Z-8Bb" href="$&">$&</a>`);
-
-		try {
-
-			if(channel) {
-				while(this.regex.mention.test(markup)) {
-					const uid = markup.match(this.regex.mention)[0].match(this.regex.numbersOnly)[0], user = NeatoLib.Modules.get("getUser").getUser(uid), member = channel.guild_id ? NeatoLib.Modules.get("getMember").getMember(channel.guild_id, uid) : null;
-					markup = markup.replace(this.regex.mention, `<span class="${NeatoLib.Modules.get("wrapperNoHover").wrapperNoHover}">@${user ? (member && member.nick ? member.nick : user.username) : "Unknown User"}</span>`);
-				}
-			}
-
-			while(this.regex.channel.test(markup)) {
-				const cid = markup.match(this.regex.channel)[0].match(this.regex.numbersOnly)[0], channel = NeatoLib.Modules.get("getChannel").getChannel(cid), parent = channel.parent_id ? NeatoLib.Modules.get("getChannel").getChannel(channel.parent_id) : null, guild = channel.guild_id ? NeatoLib.Modules.get("getGuild").getGuild(channel.guild_id) : null;
-				markup = markup.replace(this.regex.channel, `<span class="${NeatoLib.Modules.get("wrapperNoHover").wrapperNoHover}">#${channel.name}</span>`);
-			}
-
-			while(this.regex.emoji.test(markup)) {
-				const eid = markup.match(this.regex.emoji)[0].match(this.regex.numbersOnly)[0], url = `https://cdn.discordapp.com/emojis/${eid}.png`;
-				markup = markup.replace(this.regex.emoji, `<img class="emoji" src="${url}">`);
-			}
-
-		} catch(e) { console.error("formatMarkup", e); }
+		NeatoLib.Modules.get([react, "render"]).render(
+			NeatoLib.Modules.get([react, "createElement"]).createElement("div", { className: NeatoLib.getClass("markup") },
+				NeatoLib.Modules.get(["parserFor", "parse"]).parse(content)
+			),
+			markup
+		);
 
 		return markup;
-
 	}
 
 	openWindow(type, curCap = this.settings.renderCap) {
@@ -1099,20 +1083,16 @@ class MessageLogger {
 					const message = group.getElementsByClassName("message-text")[0], accessory = group.getElementsByClassName("accessory")[0];
 
 					if(messages[i].editHistory != undefined) for(let ii = 0; ii < messages[i].editHistory.length; ii++) {
-						const markup = document.createElement("div"), timestamp = document.createElement("div");
-						markup.className = NeatoLib.getClass("markup");
+						const markup = this.formatMarkup(messages[i].editHistory[ii].content), timestamp = document.createElement("div");
 						markup.style = "opacity:0.5";
-						markup.innerHTML = this.formatMarkup(messages[i].editHistory[ii].content, messages[i].channel);
 						timestamp.className = "markup ml-edit-timestamp";
-						timestamp.innerText = messages[i].editHistory[ii].editedAt;
+						timestamp.textContent = messages[i].editHistory[ii].editedAt;
 						markup.appendChild(timestamp);
 						message.appendChild(markup);
 					}
 
-					const markup = document.createElement("div");
-					markup.className = NeatoLib.getClass("markup");
+					const markup = this.formatMarkup(messages[i].message.content);
 					markup.dataset.messageId = messages[i].message.id;
-					markup.innerHTML = this.formatMarkup(messages[i].message.content, messages[i].channel);
 					message.appendChild(markup);
 
 					for(let ii = 0; ii < messages[i].message.attachments.length; ii++) {
@@ -1155,7 +1135,7 @@ class MessageLogger {
 
 		if(type == "ghostpings") return;
 
-		scroller.insertAdjacentHTML(this.settings.clearButtonOnTop ? "afterbegin" : "beforeend", `<div id="ml-load-more-button" class="ml-lmc">Clear</div>`);
+		scroller.insertAdjacentHTML(this.settings.clearButtonOnTop ? "afterbegin" : "beforeend", `<div id="ml-clear-log-button" class="ml-lmc">Clear</div>`);
 
 		document.getElementById("ml-clear-log-button").onclick = () => {
 			NeatoLib.UI.createPrompt("ml-clear-log-prompt", "Clear log", `Are you sure you want to clear all ${type} messages?`, prompt => {
@@ -1226,7 +1206,7 @@ class MessageLogger {
 
 		let history = "";
 
-		if(data.editHistory) for(let i = 0; i < data.editHistory.length; i++) history += `<div class="${NeatoLib.getClass("markup")}" style="opacity:0.5">${this.formatMarkup(data.editHistory[i].content, channel)}<div class="${NeatoLib.getClass("markup")} ml-edit-timestamp">${data.editHistory[i].editedAt}</div></div>`;
+		if(data.editHistory) for(let i = 0; i < data.editHistory.length; i++)  history += `<div class="${NeatoLib.getClass("markup")}" style="opacity:0.5">${this.formatMarkup(data.editHistory[i].content).innerHTML}<div class="${NeatoLib.getClass("markup")} ml-edit-timestamp">${data.editHistory[i].editedAt}</div></div>`;
 
 		let attachments = "";
 
@@ -1237,11 +1217,11 @@ class MessageLogger {
 			}
 		}
 
-		let element = document.createElement("div");
+		const element = document.createElement("div");
 
 		element.setAttribute("class", NeatoLib.getClass("containerCozy", "container"));
 
-		let markup = this.formatMarkup(data.message.content, channel);
+		const markup = this.formatMarkup(data.message.content).innerHTML;
 
 		element.innerHTML =
 		`<div class="${NeatoLib.getClass("containerCozy")} ${NeatoLib.getClass("containerCozy", "container")} ml-message-group">
@@ -1260,7 +1240,6 @@ class MessageLogger {
 					<div class="${NeatoLib.getClass("containerCozy")} ${NeatoLib.getClass("containerCozy", "container")} accessory">${attachments}</div>
 				</div>
 			</div>
-			<hr class="${NeatoLib.getClass("dividerEnabled")} ${NeatoLib.getClass("divider")}">
 		</div>`;
 
 		return element;

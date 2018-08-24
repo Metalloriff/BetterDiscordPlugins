@@ -4,14 +4,13 @@ class PreventSpotifyAutoPause {
 	
     getName() { return "PreventSpotifyAutoPause"; }
     getDescription() { return "Prevents Discord from automatically pausing Spotify after transmitting your microphone for 30 seconds."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 
     load() {}
 
     start() {
-
-        let libLoadedEvent = () => {
+        const libLoadedEvent = () => {
             try{ this.onLibLoaded(); }
             catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
         };
@@ -27,17 +26,14 @@ class PreventSpotifyAutoPause {
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
 		else lib.addEventListener("load", libLoadedEvent);
-
 	}
 
 	onLibLoaded() {
-		
 		NeatoLib.Updates.check(this);
 
-		this.unpatch = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get("pause"), "pause", () => {});
+		this.unpatch = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get(["SpotifyResourceTypes", "pause"]), "pause", () => {});
 		
 		NeatoLib.Events.onPluginLoaded(this);
-
 	}
 	
     stop() {

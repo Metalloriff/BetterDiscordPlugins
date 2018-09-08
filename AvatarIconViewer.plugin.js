@@ -4,13 +4,12 @@ class AvatarIconViewer {
 
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.20"; }
+	getVersion() { return "0.5.21"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
 
 	start() {
-
 		let libLoadedEvent = () => {
 			try{ this.onLibLoaded(); }
 			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
@@ -27,11 +26,9 @@ class AvatarIconViewer {
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
 		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
 		else lib.addEventListener("load", libLoadedEvent);
-
 	}
 
 	onLibLoaded() {
-
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.3")) return;
 
 		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js");
@@ -50,12 +47,10 @@ class AvatarIconViewer {
 		document.addEventListener("contextmenu", this.contextEvent);
 
 		NeatoLib.Events.onPluginLoaded(this);
-
 	}
 
 	onContextMenu(e) {
-
-		let context = NeatoLib.ContextMenu.get(), viewLabel, copyLabel;
+		let context = NeatoLib.ContextMenu.get(), viewLabel = "View Avatar", copyLabel = "Copy Avatar Link";
 
 		if(!context && !e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains("clickable")) return;
 
@@ -63,46 +58,31 @@ class AvatarIconViewer {
 
 		if(e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
 
-		const getAvatar = () => {
+		const
+		getAvatar = () => {
+			const user = NeatoLib.ReactData.getProp(context, "user");
 
-			let messageGroupProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.Modules.get("containerCozy").container.split(" ").join(""))),
-			genericProps = NeatoLib.ReactData.getProps(NeatoLib.DOM.searchForParentElementByClassName(e.target, "draggable-1KoBzC") || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.reactor)),
-			dmElement = NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "private"),
-			avatarBackground = dmElement && dmElement.getElementsByClassName("avatar-small").length ? dmElement.getElementsByClassName("avatar-small")[1].style.backgroundImage : null;
-
-			if(e.target.classList.contains("mention")) this.url = NeatoLib.Modules.get("queryUsers").queryUsers(e.target.innerText.substring(1, e.target.innerText.length))[0].user.getAvatarURL();
-			else if(e.target.classList.contains("image-33JSyf")) this.url = e.target.style.backgroundImage.match(/".*"/)[0].replace(/"/g, "");
-			else if(messageGroupProps && (e.target.classList.contains(NeatoLib.getClass("usernameWrapper", "username")) || e.target.classList.contains(NeatoLib.getClass(["image", "large"], "large")) || e.target.parentElement.classList.contains("system-message-content"))) this.url = messageGroupProps.messages[0].author.getAvatarURL();
-			else if(genericProps) this.url = genericProps.user.getAvatarURL();
-			else if(avatarBackground) this.url = avatarBackground.match(/".*"/)[0].replace(/"/g, "");
+			if (user) this.url = user.getAvatarURL();
 			else return null;
 
-			viewLabel = "View Avatar";
-			copyLabel = "Copy Avatar Link";
-
-			if(this.url.includes("/a_")) this.url = this.url.replace(".png", ".gif")
+			if(this.url.includes("/a_")) this.url = this.url.replace(".png", ".gif");
 
 			return this.url;
-
 		},
 
 		getServerIcon = () => {
+			const guild = NeatoLib.ReactData.getProp(context, "guild");
 
-			if(!e.target.classList.contains(NeatoLib.getClass("guildIcon")) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains(this.classes.iconSizeSmall) && !e.target.classList.contains(this.classes.listAvatar)) return null;
-
-			let iconBackground = e.target.style.backgroundImage;
-
-			if(iconBackground) this.url = iconBackground.match(/".*"/)[0].replace(/"/g, "");
+			if (guild && !NeatoLib.ReactData.getProp(context, "channel")) this.url = guild.getIconURL();
+			else return null;
 
 			viewLabel = "View Icon";
 			copyLabel = "Copy Icon Link";
 
 			return this.url;
-
 		},
 
 		getEmoji = () => {
-
 			if(!e.target.classList.contains("emoji")) return null;
 
 			this.url = e.target.src;
@@ -110,7 +90,6 @@ class AvatarIconViewer {
 			viewLabel = "View Emoji";
 
 			return this.url;
-
 		},
 
 		formatURL = () => {
@@ -149,9 +128,7 @@ class AvatarIconViewer {
 	}
 
 	createImagePreview() {
-
 		if(!document.getElementById("avatar-img-preview")){
-
 			document.addEventListener("keyup", this.keyUpEvent);
 
 			NeatoLib.ContextMenu.close();
@@ -182,9 +159,7 @@ class AvatarIconViewer {
 			document.getElementById("aiv-preview-close").addEventListener("click", () => this.destroyPreview());
 			document.getElementById("aiv-preview-copy").addEventListener("click", () => this.copyURL());
 			document.getElementById("aiv-preview-open").addEventListener("click", () => this.openURL());
-
 		}
-
 	}
 
 	destroyPreview() {
@@ -193,12 +168,10 @@ class AvatarIconViewer {
 	}
 
 	copyURL() {
-
 		NeatoLib.ContextMenu.close();
 
 		NeatoLib.Modules.get("copy").copy(this.url);
 		NeatoLib.showToast("Link copied to clipboard", "success");
-
 	}
 
 	openURL() {

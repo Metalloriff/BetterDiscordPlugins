@@ -4,7 +4,7 @@ class GuildAndFriendRemovalAlerts {
 
 	getName() { return "Guild And Friend Removal Alerts"; }
 	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.2.10"; }
+	getVersion() { return "0.2.11"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -31,11 +31,11 @@ class GuildAndFriendRemovalAlerts {
 
 	get settingFields() {
 		return {
-			guildNotifications: { title: "Display alerts for server removals", type: "bool" },
-			friendNotifications: { title: "Display alerts for friend removals", type: "bool" },
-			windowsNotifications: { title: "Display Windows/OS notifications", type: "bool" },
-			ignoredServers: { title: "Ignored server IDs", type: "string", array: true },
-			color: { title: "Notification background color", type: "color" },
+			guildNotifications: { label: "Display alerts for server removals", type: "bool" },
+			friendNotifications: { label: "Display alerts for friend removals", type: "bool" },
+			windowsNotifications: { label: "Display Windows/OS notifications", type: "bool" },
+			ignoredServers: { label: "Ignored server IDs", type: "string", array: true },
+			color: { label: "Notification background color", type: "color" },
 			preview: {
 				type: "custom",
 				html: `<div class="ra-serveritem">

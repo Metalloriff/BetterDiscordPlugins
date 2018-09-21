@@ -1497,21 +1497,17 @@ var NeatoLib = {
 		]),
 
 		find: function(filter) {
-
 			for (let i in this.req.c) {
-
 				if (this.req.c.hasOwnProperty(i)) {
-					let m = this.req.c[i].exports;
+					const m = this.req.c[i].exports;
 					if (m && m.__esModule && m.default && filter(m.default)) return m.default;
 					if (m && filter(m)) return m;
 				}
-
 			}
 
 			console.warn("No module found with this filter!", filter);
 
 			return null;
-
 		},
 
 		findAll: function(filter) {
@@ -2456,7 +2452,7 @@ var NeatoLib = {
 	},
 
 	getLocalStatus: function() {
-		return NeatoLib.Modules.Stores.Activities.getStatus(NeatoLib.getLocalUser().id);
+		return NeatoLib.Modules.get("getApplicationActivity").getStatus(NeatoLib.getLocalUser().id);
 	},
 
 	browseForFile: function(callback, options = {}) {

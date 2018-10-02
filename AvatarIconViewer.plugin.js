@@ -4,7 +4,7 @@ class AvatarIconViewer {
 
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.22"; }
+	getVersion() { return "0.5.22"; } //
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}

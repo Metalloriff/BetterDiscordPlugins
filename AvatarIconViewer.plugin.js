@@ -4,7 +4,7 @@ class AvatarIconViewer {
 
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.21"; }
+	getVersion() { return "0.5.22"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -56,7 +56,7 @@ class AvatarIconViewer {
 
 		this.url = "";
 
-		if(e.target.classList.contains(this.classes.guildIconImage.split(" ")[0])) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
+		if(!context) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
 
 		const
 		getAvatar = () => {
@@ -74,7 +74,10 @@ class AvatarIconViewer {
 			const guild = NeatoLib.ReactData.getProp(context, "guild");
 
 			if (guild && !NeatoLib.ReactData.getProp(context, "channel")) this.url = guild.getIconURL();
+			else if (e.target.className.includes("guildIconImage")) this.url = e.target.style.backgroundImage.split('"')[1];
 			else return null;
+
+			console.log(this.url);
 
 			viewLabel = "View Icon";
 			copyLabel = "Copy Icon Link";

@@ -1288,8 +1288,6 @@ var NeatoLib = {
 
 				.${id}-scroller-wrapper {
 					width: ${options.width || 800}px;
-					min-height: ${options.height || 800}px;
-					max-height: ${options.height || 800}px;
 					position: fixed;
 					top: 50%;
 					left: 50%;
@@ -1301,7 +1299,7 @@ var NeatoLib = {
 
 				.${id}-scroller {
 					width: 100%;
-					max-height: ${(options.height || 800) - 30}px;
+					max-height: calc(100vh - 300px);
 					overflow-y: scroll;
 					overflow-x: hidden;
 				}

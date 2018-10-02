@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.13"; }
+	getVersion() { return "1.14.14"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -585,7 +585,7 @@ class MessageLogger {
 				else if(this.settings.type == "blacklist" && !listed && !guildIsMutedReturn && !channelIsMutedReturn) listed = true;
 				else if(this.settings.type == "all" && !guildIsMutedReturn && !channelIsMutedReturn) listed = true;
 				else if (this.settings.alwaysLogSelected && this.selectedChannel.id == channel.id) listed = true;
-				else if (this.settings.alwaysLogDM && dispatch.message && !dispatch.message.member) listed = true;
+				else if (this.settings.alwaysLogDM && ((dispatch.message && !dispatch.message.guild_id) || (dispatch.channelId && !NeatoLib.Modules.get("getChannel").getChannel(dispatch.channelId).guild_id))) listed = true;
 				else listed = false;
 
 				if(!listed) return e.callDefault();

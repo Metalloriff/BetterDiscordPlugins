@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.14"; }
+	getVersion() { return "1.14.15"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -1147,7 +1147,7 @@ class MessageLogger {
 					<div tabindex="-1" class="ml-avatar-wrapper" role="button">
 						<div class="ml-avatar-wrapper" style="background-image:url(${this.getAvatarOf(data.message.author)});padding:0"></div>
 					</div>
-					<h2 class="${NeatoLib.getClass("headerCozyMeta")} ml-username-meta"><span class="${NeatoLib.getClass("usernameWrapper")}"><strong tabindex="0" class="${NeatoLib.getClass("usernameWrapper", "username")}" role="button" style="color:white">${data.message.member && data.message.member.nick ? data.message.member.nick : data.message.author.username}</strong></span><time class="${NeatoLib.getClass("timestampCozy")}">${details}</time></h2>
+					<h2 class="${NeatoLib.getClass("headerCozyMeta")} ml-username-meta"><span><strong tabindex="0" class="${NeatoLib.getClass("asianCompactTimeStamp", "username")}" role="button" style="color:white">${data.message.member && data.message.member.nick ? data.message.member.nick : data.message.author.username}</strong></span><time class="${NeatoLib.getClass("timestampCozy")}">${details}</time></h2>
 				</div>
 				<div class="${NeatoLib.getClass("contentCozy")} ${NeatoLib.getClass("contentCozy", "content")} message">
 					<div class="${NeatoLib.getClass("containerCozy")} ${NeatoLib.getClass("containerCozy", "container")} message-text">

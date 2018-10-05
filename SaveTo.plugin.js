@@ -4,7 +4,7 @@ class SaveTo {
 
 	getName() { return "Save To"; }
 	getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-	getVersion() { return "0.5.7"; }
+	getVersion() { return "0.6.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -36,6 +36,10 @@ class SaveTo {
 			"0.5.5" :
 			`
 				Fixed "Save File Here" and "Save and Open File" not working.
+			`,
+			"0.6.7" :
+			`
+				Added a "Save File Here As" option to folder context menus.
 			`
 		};
 	}
@@ -366,20 +370,38 @@ class SaveTo {
 
 		let optionsSubMenu = i => {
 			let r = [];
+
 			r.push(NeatoLib.ContextMenu.createItem("Remove Folder", e => {
 				this.data.folders.splice(i, 1);
 				this.saveData();
 				e.target.remove();
 			}));
+
 			r.push(NeatoLib.ContextMenu.createItem("Open Folder", () => {
 				window.open("file:///" + this.data.folders[i].path);
 			}));
+
 			r.push(NeatoLib.ContextMenu.createItem("Save File Here", () => {
 				NeatoLib.downloadFile(url, this.data.folders[i].path, fileName);
 			}));
+
+			r.push(NeatoLib.ContextMenu.createItem("Save File Here As", () => {
+				NeatoLib.ContextMenu.close();
+
+				console.log(fileName);
+
+				NeatoLib.UI.createTextPrompt("save-file-as", "Save File As...", (filename, prompt) => {
+					if (!filename) NeatoLib.showToast("File not saved! No filename specified!", "error");
+					else NeatoLib.downloadFile(url, this.data.folders[i].path, filename + "." + fileName.split(".")[fileName.split(".").length - 1]);
+
+					prompt.close();
+				}, fileName.split(".")[0]);
+			}));
+
 			r.push(NeatoLib.ContextMenu.createItem("Save and Open File", () => {
 				NeatoLib.downloadFile(url, this.data.folders[i].path, fileName, p => window.open("file:///" + p));
 			}));
+
 			return r;
 		};
 

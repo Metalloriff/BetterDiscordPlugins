@@ -4,7 +4,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.20"; }
+    getVersion() { return "0.8.21"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -356,7 +356,7 @@ class MentionAliases {
 
 						if(m[i].addedNodes[0].classList.contains(this.classes.member)) this.updateMember(m[i].addedNodes[0]);
 
-						if(m[i].addedNodes[0].classList.contains("private")) this.updateMemberDM(m[i].addedNodes[0]);
+						if(m[i].addedNodes[0].classList.contains(NeatoLib.getClass("activityIconForeground", "channel"))) this.updateMemberDM(m[i].addedNodes[0]);
 
 						if(m[i].addedNodes[0].classList.contains("draggable-1KoBzC")) this.updateVoiceChat(m[i].addedNodes[0]);
 
@@ -423,7 +423,7 @@ class MentionAliases {
 		let members = document.getElementsByClassName(this.classes.member);
 		for(let i = 0; i < members.length; i++) this.updateMember(members[i]);
 
-		let dms = document.getElementsByClassName("private");
+		let dms = document.getElementsByClassName(NeatoLib.getClass("activityIconForeground", "channel"));
 		for(let i = 0; i < dms.length; i++) this.updateMemberDM(dms[i]);
 
 		let vc = document.getElementsByClassName("draggable-1KoBzC");
@@ -644,11 +644,11 @@ class MentionAliases {
 
 			if(!uid) continue;
 
-			let alias = this.aliases[uid], username = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper", "username"))[0], existingTag = groups[i].querySelector(".ma-usertag");
+			let alias = this.aliases[uid], username = groups[i].getElementsByClassName(NeatoLib.getClass("asianCompactTimeStamp", "username"))[0], existingTag = groups[i].querySelector(".ma-usertag");
 
 			if(existingTag) return;
 
-			let par = groups[i].getElementsByClassName(NeatoLib.getClass("usernameWrapper"))[0] || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
+			let par = (username ? username.parentElement : null) || groups[i].getElementsByClassName("anchor-3Z-8Bb")[0];
 			if(par) {
 				if(alias) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag">${alias}</span>`);
 				if(this.settings.displayOwnerTags && this.selectedGuild && this.selectedGuild.ownerId == uid && !groups[i].getElementsByClassName("ma-ownertag").length) par.insertAdjacentHTML("beforeend", `<span style="background-color: ${username ? username.style.color : ""}; color: ${username && NeatoLib.Colors.getBrightness(username.style.color) > 0.65 ? "black" : "white"}" class="${[NeatoLib.getClass("botTagRegular"), NeatoLib.getClass("botTag"), NeatoLib.getClass("bot")].join(" ")} ma-usertag ma-ownertag">Server Owner</span>`);

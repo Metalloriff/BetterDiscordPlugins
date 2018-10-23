@@ -1740,7 +1740,7 @@ var NeatoLib = {
 
 		save: function(name, key, data) {
 			try {
-				bdPluginStorage.set(name, key, data);
+				BdApi.setData(name, key, data);
 			} catch (err) {
 				console.warn(name, "failed to save data.", err);
 			}
@@ -1748,7 +1748,7 @@ var NeatoLib = {
 
 		load: function(name, key, fallback) {
 			try {
-				return $.extend(true, fallback ? fallback : {}, bdPluginStorage.get(name, key));
+				return $.extend(true, fallback ? fallback : {}, BdApi.getData(name, key));
 			} catch (err) {
 				console.warn(name, "failed to load data.", err);
 			}

@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.20",
+	version: "0.9.21",
 
 	parseVersion: function(version) {
 
@@ -23,34 +23,23 @@ var NeatoLib = {
 	},
 
 	hasRequiredLibVersion: function(plugin, requiredVersion) {
-
 		if (NeatoLib.parseVersion(NeatoLib.version).compareTo(NeatoLib.parseVersion(requiredVersion)) == "older") {
-
 			if (plugin.ready) plugin.ready = false;
 
-			let updateLibrary = () => {
+			const updateLibrary = () => {
+				const vm = require("vm");
 
-				let req = require("request"),
-					vm = require("vm");
-
-				setTimeout(() => {
-
-					req("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", (err, res, data) => {
-
-						let lib = new vm.Script(data, {
-							filename: "NeatoBurritoLibrary.js",
-							displayErrors: true
-						});
-
-						new Promise(exec => exec(lib.runInThisContext())).then(() => {
-							NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
-							setTimeout(() => plugin.start(), 1000);
-						});
-
+				fetch("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", { cache: "no-cache" }).then(r => r.text()).then(data => {
+					let lib = new vm.Script(data, {
+						filename: "NeatoBurritoLibrary.js",
+						displayErrors: true
 					});
 
-				}, 500);
-
+					new Promise(exec => exec(lib.runInThisContext())).then(() => {
+						NeatoLib.showToast(`[${plugin.getName()}]: Library updated!`, "success");
+						setTimeout(() => plugin.start(), 1000);
+					});
+				});
 			};
 
 			NeatoLib.showToast(`[${plugin.getName()}]: Library update required! Click this notification to update it.`, "error", {
@@ -60,11 +49,19 @@ var NeatoLib = {
 			});
 
 			return false;
-
 		}
 
 		return true;
+	},
 
+	forceLibUpdate: function() {
+		const vm = require("vm");
+
+		fetch("https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js", { cache: "no-cache" }).then(r => r.text()).then(data => {
+			const lib = new vm.Script(data, { filename: "NeatoBurritoLibrary.js", displayErrors: true });
+
+			new Promise(e => e(lib.runInThisContext())).then(() => NeatoLib.showToast("Lib updated!", "success"));
+		});
 	},
 
 	Changelog: {

@@ -4,7 +4,7 @@ class MentionAliases {
 	
     getName() { return "Mention Aliases"; }
     getDescription() { return "Allows you to set an alias for users that you can @mention them with. You also have the choice to display their alias next to their name. A use example is setting your friends' aliases as their first names. Only replaces the alias with the mention if the user is in the server you mention them in. You can also do @owner to mention the owner of a guild."; }
-    getVersion() { return "0.8.21"; }
+    getVersion() { return "0.8.22"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -121,8 +121,6 @@ class MentionAliases {
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.4.16")) return;
 
 		NeatoLib.Updates.check(this);
-
-		this.classes = Metalloriff.getClasses(["contextMenu", "members", "member", "userPopout", "userInfoSection", "body", "mask", "channelTextArea", "nameTag", "inner", "headerNormal", "footer", "modal"], false);
 
 		this.userModule = NeatoLib.Modules.get("getUser");
 		this.memberModule = NeatoLib.Modules.get("getMember");
@@ -241,7 +239,7 @@ class MentionAliases {
 		};
 
 		this.contextEvent = e => {
-			let element = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member) || NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
+			let element = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("member")) || NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
 			if(element) this.onUserContext(element);
 		};
 
@@ -301,7 +299,7 @@ class MentionAliases {
 
 				if(this.settings.displayOnPopout) {
 
-					let popout = m[0].addedNodes[0].getElementsByClassName(this.classes.userPopout)[0], uid;
+					let popout = m[0].addedNodes[0].getElementsByClassName(NeatoLib.getClass("userPopout"))[0], uid;
 
 					if(popout && popout.getElementsByClassName("discriminator").length) uid = NeatoLib.ReactData.getProp(popout, "user.id");
 
@@ -354,7 +352,7 @@ class MentionAliases {
 
 					if(this.settings.displayTags) {
 
-						if(m[i].addedNodes[0].classList.contains(this.classes.member)) this.updateMember(m[i].addedNodes[0]);
+						if(m[i].addedNodes[0].classList.contains(NeatoLib.getClass("member"))) this.updateMember(m[i].addedNodes[0]);
 
 						if(m[i].addedNodes[0].classList.contains(NeatoLib.getClass("activityIconForeground", "channel"))) this.updateMemberDM(m[i].addedNodes[0]);
 
@@ -385,7 +383,7 @@ class MentionAliases {
 
 			if(this.settings.displayButton) {
 				if(!document.getElementById("ma-aliases-button") && NeatoLib.Chatbox.get()) {
-					document.getElementsByClassName(this.classes.channelTextArea)[0].insertAdjacentHTML("beforeend", `<div id="ma-aliases-button" class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`);
+					document.getElementsByClassName(NeatoLib.getClass("channelTextArea"))[0].insertAdjacentHTML("beforeend", `<div id="ma-aliases-button" class="ma-aliases-button"><img src="https://dl.dropbox.com/s/gko2n32hxti6248/mention_aliases_button.png"></div>`);
 					document.getElementById("ma-aliases-button").onclick = () => this.toggleAliasList();
 				}
 				this.onWindowResize();
@@ -420,7 +418,7 @@ class MentionAliases {
 
 		if(!this.settings.displayTags) return;
 
-		let members = document.getElementsByClassName(this.classes.member);
+		let members = document.getElementsByClassName(NeatoLib.getClass("member"));
 		for(let i = 0; i < members.length; i++) this.updateMember(members[i]);
 
 		let dms = document.getElementsByClassName(NeatoLib.getClass("activityIconForeground", "channel"));
@@ -449,7 +447,7 @@ class MentionAliases {
 		if(this.selectedGuild) return this.usersInServer = Array.from(this.memberModule.getMembers(this.selectedGuild.id), u => u.userId);
 		else this.usersInServer = [];
 
-		let dmAvatars = Array.from(document.getElementsByClassName("avatar-large")).concat(Array.from(document.getElementsByClassName(this.classes.mask)));
+		let dmAvatars = Array.from(document.getElementsByClassName("avatar-large")).concat(Array.from(document.getElementsByClassName(NeatoLib.getClass("mask"))));
 
 		for(let i = 0; i < dmAvatars.length; i++) {
 			let uid = NeatoLib.ReactData.getProp(dmAvatars[i], "user.id");
@@ -589,7 +587,7 @@ class MentionAliases {
 
 		if(!uid) return;
 
-		let alias = this.aliases[uid], nameTag = added.getElementsByClassName(this.classes.nameTag)[0], color = nameTag.style.color, existingTag = added.getElementsByClassName("ma-usertag")[0];
+		let alias = this.aliases[uid], nameTag = added.getElementsByClassName(NeatoLib.getClass("nameTag"))[0], color = nameTag.style.color, existingTag = added.getElementsByClassName("ma-usertag")[0];
 
 		if(existingTag) existingTag.remove();
 

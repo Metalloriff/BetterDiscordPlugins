@@ -4,7 +4,7 @@ class SaveTo {
 
 	getName() { return "Save To"; }
 	getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-	getVersion() { return "0.6.7"; }
+	getVersion() { return "0.6.8"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -287,12 +287,10 @@ class SaveTo {
 			dropdownOnTop: true
 		});
 
-		this.classes = NeatoLib.getClasses(["contextMenu", "member"]);
-
 		this.selectedFolder = -1;
 
 		document.addEventListener("contextmenu", this.contextMenuEvent = e => {
-			if (document.getElementsByClassName(this.classes.contextMenu).length == 0) setTimeout(() => this.onContextMenu(e), 0);
+			if (document.getElementsByClassName(NeatoLib.getClass("contextMenu")).length == 0) setTimeout(() => this.onContextMenu(e), 0);
 			else this.onContextMenu(e);
 		});
 
@@ -302,7 +300,7 @@ class SaveTo {
 	}
 
 	onContextMenu(e) {
-		let member = NeatoLib.DOM.searchForParentElementByClassName(e.target, this.classes.member),
+		let member = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("member")),
 			dm = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row"),
 			messageGroup = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
 

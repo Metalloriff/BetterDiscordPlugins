@@ -4,7 +4,7 @@ class AvatarIconViewer {
 
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.22"; } //
+	getVersion() { return "0.5.23"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -60,7 +60,7 @@ class AvatarIconViewer {
 
 		const
 		getAvatar = () => {
-			const user = NeatoLib.ReactData.getProp(context, "user");
+			const user = NeatoLib.ReactData.get(context).return.return.return.return.memoizedProps.user;
 
 			if (user) this.url = user.getAvatarURL();
 			else return null;

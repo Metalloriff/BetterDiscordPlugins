@@ -4,7 +4,7 @@ class CustomizableAvatarDPI {
 	
 	getName() { return "Customizable Avatar DPI"; }
 	getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-	getVersion() { return "1.0.4"; }
+	getVersion() { return "1.0.5"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}

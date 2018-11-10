@@ -30,6 +30,10 @@ class CustomizableAvatarDPI {
 
 	}
 
+	saveSettings() {
+		NeatoLib.Settings.save(this);
+	}
+
 	getSettingsPanel() {
 
 		setTimeout(() => {

@@ -23,7 +23,7 @@ class TransitioningBackgrounds {
     getName() { return "Transitioning Backgrounds"; }
     getDescription() { return "Allows you to set a list of backgrounds that will be transitioned between with several transition types, in order, or at random."; }
     getVersion() { return "0.1.3"; }
-    getAuthor() { return "Metalloriff"; }
+    getAuthor() { return "Metalloriff, Fixed by Subaru#1337"; }
 
     load() {}
 

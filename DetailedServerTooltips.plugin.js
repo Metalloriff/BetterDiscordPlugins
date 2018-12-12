@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.4"; }
+	getVersion() { return "0.3.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -20,6 +20,9 @@ class DetailedServerTooltips {
 				Fixed update notes.
 				Fixed incompatibility with Zerebos' DoNotTrack plugin. (If you still have issues with tooltips sticking with it, please let me know. I barely tested it.)
 				Added a minimal mode setting.
+			`,
+			"0.3.5": `
+				Fixed tooltip getting stuck with ServerFolders
 			`
 		};
 	}
@@ -189,6 +192,18 @@ class DetailedServerTooltips {
 					tooltip.style.top = (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight)) + "px";
 					tooltip.insertAdjacentHTML("afterbegin", `<style>.dst-tooltip:after{top:calc(25px + ${parseFloat(tooltip.style.top) - (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight))}px) !important}</style>`);
 				}
+				var tooltipObserver = new MutationObserver((mutations) => {
+					mutations.forEach((mutation) => {
+						var nodes = Array.from(mutation.removedNodes);
+						var ownMatch = nodes.indexOf(tooltip) > -1;
+						var directMatch = nodes.indexOf(e.target) > -1;
+						var parentMatch = nodes.some(parent => parent.contains(e.target));
+						if (ownMatch || directMatch || parentMatch) {
+							tooltipObserver.disconnect();
+							tooltip.remove();
+						}
+					});
+				});
 			}, this.settings.displayDelay);
 		};
 

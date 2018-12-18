@@ -414,7 +414,7 @@ class TransitioningBackgrounds {
                     background: rgba(0, 0, 0, ${this.settings.backgroundDarkness}) !important;
                 }
 
-                .layer-3QrUeG, .guildsWrapper-5TJh6A, .applicationStore-1pNvnv, .theme-dark .header-39GIC8, .gameUpdates-2GPqBU, .gameLibrary-TTDw4Y, .table-1tDS6w , .layers-3iHuyZ, .guilds-wrapper, .channels-Ie2l6A, .theme-dark .chat-3bRxxu, .title-3qD0b-, .theme-dark .content-yTz4x3, .theme-dark .messagesWrapper-3lZDfY, .theme-dark .chat-3bRxxu form, .sidebar-region, .content-region, .scroller-2FKFPG, .container-PNkimc, .container-PNkimc, #friends, .headerBar-UHpsPw, .friends-table, .theme-dark .activityFeed-28jde9, .typing-2GQL18 {
+                .layer-3QrUeG, .members-1998pB, .guildsWrapper-5TJh6A, .applicationStore-1pNvnv, .theme-dark .header-39GIC8, .gameUpdates-2GPqBU, .gameLibrary-TTDw4Y, .table-1tDS6w , .layers-3iHuyZ, .guilds-wrapper, .channels-Ie2l6A, .theme-dark .chat-3bRxxu, .title-3qD0b-, .theme-dark .content-yTz4x3, .theme-dark .messagesWrapper-3lZDfY, .theme-dark .chat-3bRxxu form, .sidebar-region, .content-region, .scroller-2FKFPG, .container-PNkimc, .container-PNkimc, #friends, .headerBar-UHpsPw, .friends-table, .theme-dark .activityFeed-28jde9, .typing-2GQL18 {
                     background: transparent !important;
                     background-color: transparent !important;
                 }

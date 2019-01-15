@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.21",
+	version: "0.9.22",
 
 	parseVersion: function(version) {
 
@@ -117,7 +117,7 @@ var NeatoLib = {
 
 			if (document.getElementById(spacelessName + "-changelog")) document.getElementById(spacelessName + "-changelog").remove();
 
-			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
 
 				<div id="${spacelessName}-changelog">
 
@@ -1154,7 +1154,7 @@ var NeatoLib = {
 
 		createPrompt: function(id, title, description, yesCallback, noCallback = "close", options = {}) {
 
-			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
 
 			<div id="neato-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
@@ -1202,7 +1202,7 @@ var NeatoLib = {
 
 		createTextPrompt: function(id, title, callback, value = "", options = {}) {
 
-			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
 
 			<div id="neato-text-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
@@ -1259,7 +1259,7 @@ var NeatoLib = {
 
 		createBasicScrollList: function(id, title, options = {}) {
 
-			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
 
 			<div id="${id}">
 
@@ -1599,7 +1599,7 @@ var NeatoLib = {
 
 				let classes = NeatoLib.Modules.get("noticeInfo");
 
-				document.getElementsByClassName("app")[0].insertAdjacentHTML("afterbegin", `<div class="${classes.notice} ${classes.noticeInfo}" id="pluginNotice"><div class="${classes.dismiss}" id="pluginNoticeDismiss"></div><span class="notice-message">The following plugins have updates:</span>&nbsp;&nbsp;<strong id="outdatedPlugins"></strong></div>`);
+				document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("afterbegin", `<div class="${classes.notice} ${classes.noticeInfo}" id="pluginNotice"><div class="${classes.dismiss}" id="pluginNoticeDismiss"></div><span class="notice-message">The following plugins have updates:</span>&nbsp;&nbsp;<strong id="outdatedPlugins"></strong></div>`);
 
 				document.getElementById("pluginNoticeDismiss").addEventListener("click", () => document.getElementById("pluginNotice").outerHTML = "");
 
@@ -1673,12 +1673,12 @@ var NeatoLib = {
 						});
 
 						let tooltip = document.createElement("div");
-						tooltip.className = "tooltip tooltip-bottom tooltip-black";
+						tooltip.className = NeatoLib.getClass("tooltips", "tooltip") + " " + NeatoLib.getClass("tooltips", "bottom") + " " + NeatoLib.getClass("tooltips", "black");
 
 						tooltip.style.maxWidth = "400px";
 
 						button.addEventListener("mouseenter", () => {
-							document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
+							document.getElementsByClassName(NeatoLib.getClass("tooltips"))[0].appendChild(tooltip);
 							tooltip.innerText = window.PluginUpdates.downloaded.join(", ");
 							tooltip.style.left = button.getBoundingClientRect().left + (button.offsetWidth / 2) - (tooltip.offsetWidth / 2) + "px";
 							tooltip.style.top = button.getBoundingClientRect().top + button.offsetHeight + "px";
@@ -2022,12 +2022,12 @@ var NeatoLib = {
 				event: {
 					mouseenter: () => {
 						let tooltip = document.createElement("div");
-						tooltip.classList.add("tooltip", "tooltip-" + side, "tooltip-black");
+						tooltip.classList.add(NeatoLib.getClass("tooltips", "tooltip"), NeatoLib.getClass("tooltips", side), NeatoLib.getClass("tooltips", "black"));
 						tooltip.innerText = content;
 						tooltip.style.pointerEvents = "none";
 						tooltip.style.zIndex = 15000;
 						if (color) tooltip.style.backgroundColor = color;
-						document.getElementsByClassName("tooltips")[0].appendChild(tooltip);
+						document.getElementsByClassName(NeatoLib.getClass("tooltips"))[0].appendChild(tooltip);
 						element.tooltip.tooltip = tooltip;
 						let elementRect = element.getBoundingClientRect();
 						switch (side) {
@@ -2546,7 +2546,7 @@ var NeatoLib = {
 			toastWrapper.style.width = width + "px";
 			toastWrapper.style.bottom = bottom + "px";
 
-			document.getElementsByClassName("app")[0].appendChild(toastWrapper);
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].appendChild(toastWrapper);
 
 		}
 

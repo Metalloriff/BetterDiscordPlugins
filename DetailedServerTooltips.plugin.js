@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.4"; }
+	getVersion() { return "0.3.5"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {

@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.15"; }
+	getVersion() { return "1.14.16"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {

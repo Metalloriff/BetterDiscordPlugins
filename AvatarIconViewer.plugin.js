@@ -77,8 +77,6 @@ class AvatarIconViewer {
 			else if (e.target.className.includes("guildIconImage")) this.url = e.target.style.backgroundImage.split('"')[1];
 			else return null;
 
-			console.log(this.url);
-
 			viewLabel = "View Icon";
 			copyLabel = "Copy Icon Link";
 
@@ -138,7 +136,7 @@ class AvatarIconViewer {
 
 			let scale = window.innerHeight - 160;
 
-			document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend",
+			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend",
 			`<div id="aiv-preview-window" style="z-index: 5000">
 				<div id="aiv-preview-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px); top: 0; left: 0; bottom: 0; right: 0; position: fixed;"></div>
 				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">

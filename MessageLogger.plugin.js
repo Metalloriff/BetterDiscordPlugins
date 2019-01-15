@@ -863,7 +863,7 @@ class MessageLogger {
 	}
 
 	openWindow(type, curCap = this.settings.renderCap) {
-		const app = document.getElementsByClassName("app")[0];
+		const app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
 
 		if(document.getElementById("message-logger-window") == undefined) app.insertAdjacentHTML("beforeend", `
 		<div id="message-logger-window">

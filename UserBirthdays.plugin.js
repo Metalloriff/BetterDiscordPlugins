@@ -62,7 +62,7 @@ class UserBirthdays {
 
 				if(!uid) return;
 
-				NeatoLib.DOM.insertHTMLBefore(pop.getElementsByClassName(NeatoLib.getClass("body", "footer"))[0], `
+				document.getElementsByClassName("body-3iLsc4")[0].insertAdjacentHTML("beforeend", `
 					<div class="body-3iLsc4 da-body">
 						<div class="bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845 weightBold-2yjlgw">Birthday</div>
 						<div class="note-3kmerW note-3HfJZ5">
@@ -182,7 +182,7 @@ class UserBirthdays {
 
 			if(now.getMonth() == birthday.getMonth() && now.getDate() == birthday.getDate() && (isNaN(this.birthdays[uid].hadIn) || now.getFullYear() != this.birthdays[uid].hadIn)) {
 			
-				document.getElementsByClassName("app")[0].insertAdjacentHTML("beforeend", `
+				document.getElementsByClassName("app-2rEoOp")[0].insertAdjacentHTML("beforeend", `
 					<div id="ub-alertwindow">
 						<div class="backdrop-1wrmKB da-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="this.parentElement.remove();"></div>
 						<div class="modal-1UGdnR da-modal" style="opacity: 1;">

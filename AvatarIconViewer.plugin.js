@@ -4,7 +4,7 @@ class AvatarIconViewer {
 
 	getName() { return "User Avatar And Server Icon Viewer"; }
 	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.24"; }
+	getVersion() { return "0.5.25"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -98,7 +98,7 @@ class AvatarIconViewer {
 			this.url += "?size=2048";
 		};
 
-		if(context && (getServerIcon() || getAvatar() || getEmoji())) {
+		if(context && NeatoLib.ReactData.get(context) && (getServerIcon() || getAvatar() || getEmoji())) {
 
 			formatURL();
 
@@ -117,10 +117,10 @@ class AvatarIconViewer {
 
 			formatURL();
 
-			NeatoLib.ContextMenu.create([
+			const menu = NeatoLib.ContextMenu.create([
 				NeatoLib.ContextMenu.createGroup([
-					NeatoLib.ContextMenu.createItem("View Avatar", () => this.createImagePreview()),
-					NeatoLib.ContextMenu.createItem("Copy Avatar Link", () => this.copyURL())
+					NeatoLib.ContextMenu.createItem("View Avatar", () => this.createImagePreview(menu)),
+					NeatoLib.ContextMenu.createItem("Copy Avatar Link", () => this.copyURL(menu))
 				])
 			], e);
 
@@ -128,10 +128,11 @@ class AvatarIconViewer {
 
 	}
 
-	createImagePreview() {
+	createImagePreview(cm) {
 		if(!document.getElementById("avatar-img-preview")){
 			document.addEventListener("keyup", this.keyUpEvent);
 
+			if (cm) cm.remove();
 			NeatoLib.ContextMenu.close();
 
 			let scale = window.innerHeight - 160;
@@ -168,7 +169,8 @@ class AvatarIconViewer {
 		document.removeEventListener("keyup", this.keyUpEvent);
 	}
 
-	copyURL() {
+	copyURL(cm) {
+		if (cm) cm.remove();
 		NeatoLib.ContextMenu.close();
 
 		NeatoLib.Modules.get("copy").copy(this.url);

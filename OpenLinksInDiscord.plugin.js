@@ -4,7 +4,7 @@ class OpenLinksInDiscord {
 	
     getName() { return "OpenLinksInDiscord"; }
     getDescription() { return "Opens links in a new window in Discord, instead of in your web browser. Hold shift to open links normally."; }
-    getVersion() { return "1.1.3"; }
+    getVersion() { return "1.1.4"; }
 	getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -69,7 +69,7 @@ class OpenLinksInDiscord {
 		});
 
 		this.event = e => {
-            if(e.target.localName == "a" && e.target.href && e.target.href.startsWith("http") && !e.target.parentElement.className.includes("channel")) {
+            if(e.target.localName == "a" && e.target.href && e.target.href.startsWith("http") && !e.target.parentElement.className.includes("channel") && !e.target.href.includes("/channels/")) {
 				if((!this.settings.ctrlKey || e.ctrlKey) && (!this.settings.shiftKey || e.shiftKey) && (!this.settings.altKey || e.altKey)) {
 					if(this.settings.reverse) {
 						this.onClickLink(e);

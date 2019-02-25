@@ -4,11 +4,14 @@ class PinPluginsAndThemes {
 	
     getName() { return "PinPluginsAndThemes"; }
     getDescription() { return "Allows you to pin plugins and themes via the context menu."; }
-    getVersion() { return "0.0.1"; }
+    getVersion() { return "1.0.1"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
-			
+            "1.0.1": `
+                Fixed plugins and themes not pinning after switching settings tabs.
+                Fixed incompatibility with DevilBro's RepoControls plugin. Changing sorting mode of RepoControls will temporarily break the plugin, but simply switching tabs will fix it.
+            `
 		};
 	}
 
@@ -95,7 +98,7 @@ class PinPluginsAndThemes {
 		
 		NeatoLib.Updates.check(this);
 		
-        //if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+        if(this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 
         this.applyStyles();
 
@@ -153,7 +156,8 @@ class PinPluginsAndThemes {
 
                 let added = mutations[mi].addedNodes[0];
 
-                if(added && added instanceof Element && (added.classList.contains("content-column") || added.classList.contains("content-region"))) this.updatePinned();
+                if(added && added instanceof Element && (added.classList.contains(NeatoLib.getClass("scrollerWrap"))))
+                    this.updatePinned();
 
             }
 

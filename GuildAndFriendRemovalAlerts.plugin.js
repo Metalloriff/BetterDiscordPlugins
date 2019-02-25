@@ -4,7 +4,7 @@ class GuildAndFriendRemovalAlerts {
 
 	getName() { return "Guild And Friend Removal Alerts"; }
 	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.2.11"; }
+	getVersion() { return "0.2.12"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -182,7 +182,7 @@ class GuildAndFriendRemovalAlerts {
 	checkGuilds() {
 		if (!this.settings.guildNotifications) return;
 
-		const guilds = this.getGuilds(), guildIds = Array.from(guilds, guild => guild.id), app = document.getElementsByClassName("app")[0];
+		const guilds = this.getGuilds(), guildIds = Array.from(guilds, guild => guild.id), app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
 		if (!guilds.length) return setTimeout(() => this.checkGuilds(), 5000);
 
 		if (typeof this.settings.ignoredServers == "string") this.settings.ignoredServers = this.settings.ignoredServers.split(" ");

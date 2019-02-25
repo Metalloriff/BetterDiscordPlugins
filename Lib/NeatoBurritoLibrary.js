@@ -214,7 +214,7 @@ var NeatoLib = {
 
 			`);
 
-			document.getElementsByClassName("metalloriff-changelog-backdrop")[0].addEventListener("click", () => {
+			document.getElementById(spacelessName + "-changelog").getElementsByClassName("metalloriff-changelog-backdrop")[0].addEventListener("click", () => {
 				if (newUpdateData != undefined) NeatoLib.Data.save("MetalloriffUpdateData", spacelessName, newUpdateData);
 				document.getElementById(spacelessName + "-changelog").remove();
 			});
@@ -357,7 +357,7 @@ var NeatoLib = {
 				return element;
 			};
 
-			const createToggleSwitch = (title, description, tooltip, value, callback) => {
+			const createToggleSwitch = (title, description, tooltip, value, callback) => { //<input id="1" class="checkboxEnabled-CtinEn checkbox-2tyjJg da-checkboxEnabled da-checkbox" type="checkbox" tabindex="-1">
 				const element = document.createElement("div");
 				element.className = "neato-setting";
 				if (title) element.appendChild(createLabel(title, description, tooltip));
@@ -368,10 +368,9 @@ var NeatoLib = {
 
 				const tcheckbox = document.createElement("input");
 				tcheckbox.type = "checkbox";
-				tcheckbox.className = [NeatoLib.getClass("checkboxEnabled"), NeatoLib.getClass("checkbox")].join(" ");
+				tcheckbox.className = [NeatoLib.getClass("checkboxEnabled"), NeatoLib.getClass("checkboxEnabled", "checkbox")].join(" ");
 
 				tswitch.appendChild(tcheckbox);
-
 				tswitch.addEventListener("click", e => {
 					value = !value;
 

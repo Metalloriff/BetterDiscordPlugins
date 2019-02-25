@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.16"; }
+	getVersion() { return "1.14.17"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -830,6 +830,8 @@ class MessageLogger {
 					while(markup.getElementsByClassName(NeatoLib.getClass("markup")).length) markup.getElementsByClassName(NeatoLib.getClass("markup"))[0].remove();
 
 					markup.classList.add("ml-edited");
+					
+					const headerWidth = markup.firstChild.getBoundingClientRect ? markup.firstChild.getBoundingClientRect().width : 0;
 
 					const edit = this.editedChatMessages[this.selectedChannel.id][mid];
 
@@ -843,6 +845,9 @@ class MessageLogger {
 						editedMarkup.classList.add("ml-edited");
 						NeatoLib.Tooltip.attach("Edited at " + edit[e].timestamp.split(",")[0], editedMarkup, { side : "left" });
 						markup.appendChild(editedMarkup);
+
+						if (headerWidth != 0 && markup.firstChild.className.includes("Compact"))
+							editedMarkup.style.marginLeft = (headerWidth + 5) + "px";
 					}
 				}
 			}
@@ -858,6 +863,12 @@ class MessageLogger {
 			),
 			markup
 		);
+
+		const hidden = markup.getElementsByClassName(NeatoLib.getClass("spoilerText", "hidden"));
+
+		for (let i = 0; i < hidden.length; i++) {
+			hidden[i].classList.remove(NeatoLib.getClass("spoilerText", "hidden"));
+		}
 
 		return markup;
 	}

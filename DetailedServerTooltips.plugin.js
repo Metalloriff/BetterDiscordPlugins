@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.6"; }
+	getVersion() { return "0.3.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -214,7 +214,7 @@ class DetailedServerTooltips {
 		this.switchEvent = () => this.applyToGuilds();
 
 		this.guildObserver = new MutationObserver(this.switchEvent);
-		this.guildObserver.observe(document.getElementsByClassName(NeatoLib.getClass("guilds"))[0], {
+		this.guildObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], {
 			childList: true,
 			subtree: true
 		});
@@ -227,7 +227,7 @@ class DetailedServerTooltips {
 	}
 
 	applyToGuilds(detach) {
-		const guilds = document.getElementsByClassName(NeatoLib.getClass("guildIcon"));
+		const guilds = document.getElementsByClassName(NeatoLib.getClass("lurkingGuild", "guildIcon"));
 
 		for (let i = 0; i < guilds.length; i++) {
 			let reactEvents = NeatoLib.ReactData.getEvents(guilds[i]);

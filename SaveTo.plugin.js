@@ -4,7 +4,7 @@ class SaveTo {
 
 	getName() { return "Save To"; }
 	getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-	getVersion() { return "0.6.8"; }
+	getVersion() { return "0.7.8"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -40,6 +40,12 @@ class SaveTo {
 			"0.6.7" :
 			`
 				Added a "Save File Here As" option to folder context menus.
+			`,
+			"0.7.8" :
+			`
+				You can now save emojis from the emoji picker.
+				Fixed saving avatars.
+				Fixed saving server icons.
 			`
 		};
 	}
@@ -47,6 +53,7 @@ class SaveTo {
 	saveSettings() {
 		NeatoLib.Settings.save(this);
 	}
+	
 	saveData() {
 		NeatoLib.Data.save("SaveTo", "data", this.data);
 	}
@@ -302,47 +309,32 @@ class SaveTo {
 	onContextMenu(e) {
 		let member = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("member")),
 			dm = NeatoLib.DOM.searchForParentElementByClassName(e.target, "private") || NeatoLib.DOM.searchForParentElementByClassName(e.target, "friends-row"),
-			messageGroup = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container"));
+			messageGroup = NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container")),
+			user = NeatoLib.ReactData.get(NeatoLib.ContextMenu.get()) ? NeatoLib.ReactData.get(NeatoLib.ContextMenu.get()).return.return.return.return.memoizedProps.user : null,
+			guild = NeatoLib.ReactData.getProp(NeatoLib.ContextMenu.get(), "guild");
 
-		if (e.target.localName != "a" && e.target.localName != "img" && e.target.localName != "video" && !member && !dm && !messageGroup && !e.target.className.includes("guildIcon")) return;
+		if (e.target.localName != "a" && e.target.localName != "img" && e.target.localName != "video" && !member && !dm && !messageGroup && !e.target.className.includes("emojiItem") && !user && !guild) return;
 
 		let saveLabel = "Save To",
 			url = e.target.poster || e.target.style.backgroundImage.substring(e.target.style.backgroundImage.indexOf(`"`) + 1, e.target.style.backgroundImage.lastIndexOf(`"`)) || e.target.href || e.target.src,
 			menu = [];
 
-		if (e.target.className.includes("guildIcon")) saveLabel = "Save Icon To";
-
-		if (!url || e.target.className.includes("large")) {
-			if (messageGroup) {
-				let user = NeatoLib.ReactData.getProp(messageGroup, "messages.0.author");
-
-				url = user.getAvatarURL();
-				if (user.avatar.startsWith("a_")) url = url.replace(".png", ".gif");
-
-				saveLabel = "Save Avatar To";
-			}
-
-			if (member) {
-				let user = NeatoLib.ReactData.getProps(member).user;
-
-				url = user.getAvatarURL();
-				if (user.avatar.startsWith("a_")) url = url.replace(".png", ".gif");
-
-				saveLabel = "Save Avatar To";
-			}
-
-			if (dm) {
-				let unparsedUrl = dm.getElementsByClassName("avatar-small")[0].style.backgroundImage;
-
-				url = unparsedUrl.substring(unparsedUrl.indexOf(`"`) + 1, unparsedUrl.lastIndexOf(`"`));
-
-				if (url.includes("a_")) url = url.replace(".png", ".gif");
-
-				saveLabel = "Save Avatar To";
-			}
+		if (user) {
+			url = user.getAvatarURL();
+			if (url.includes("/a_")) url = url.replace(".png", ".gif");
+		
+			saveLabel = "Save Avatar To";
 		}
 
-		if (!url || e.target.classList.contains("emote") || url.includes("youtube.com/")) return;
+		if (guild) {
+			url = guild.getIconURL();
+
+			saveLabel = "Save Icon To";
+		}
+
+		if (e.target.className.includes("guildIcon")) saveLabel = "Save Icon To";
+
+		if ((!url && !e.target.className.includes("emojiItem")) || e.target.classList.contains("emote") || url.includes("youtube.com/")) return;
 
 		url = url.split("?")[0];
 
@@ -354,8 +346,13 @@ class SaveTo {
 			fileExtension = url.substring(url.lastIndexOf("."), url.length);
 
 		if (e.target.classList.contains("emoji")) {
-			saveLabel = "Save Emote To";
+			saveLabel = "Save Emoji To";
 			fileName = NeatoLib.ReactData.getProps(e.target).emojiName.replace(/[^A-Za-z]/g, "") + fileExtension;
+		}
+
+		if (e.target.className.includes("emojiItem")) {
+			saveLabel = "Save Emoji To";
+			fileName = (url = e.target.style.backgroundImage.split('"')[1]).split("?")[0].split("/")[4];
 		}
 
 		let date = new Date();
@@ -439,6 +436,7 @@ class SaveTo {
 		]));
 
 		if (NeatoLib.ContextMenu.get()) NeatoLib.ContextMenu.get().insertAdjacentElement(this.settings.dropdownOnTop ? "afterbegin" : "beforeend", NeatoLib.ContextMenu.createGroup([NeatoLib.ContextMenu.createSubMenu(saveLabel, menu)]));
+		else NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([NeatoLib.ContextMenu.createSubMenu(saveLabel, menu)])], e);
 	}
 
 	browseForFolder(selected) {

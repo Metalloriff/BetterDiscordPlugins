@@ -4,7 +4,7 @@ class UnreadCountBadges {
 	
     getName() { return "UnreadCountBadges"; }
     getDescription() { return "Adds an unread count badge on unread servers and channels."; }
-    getVersion() { return "0.2.6"; }
+    getVersion() { return "0.2.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -234,7 +234,7 @@ class UnreadCountBadges {
         if(this.styles) this.styles.destroy();
 
         this.styles = NeatoLib.injectCSS(`
-            .${NeatoLib.getClass("guilds")} .${NeatoLib.getClass("badge")}.unread-count-badge {
+            .${NeatoLib.getClass("unreadMentionsBar", "scroller")} .${NeatoLib.getClass("lurkingGuild", "badge")}.unread-count-badge {
                 bottom: 35px;
                 background-color: ${this.settings.badgeColor};
             }
@@ -291,7 +291,7 @@ class UnreadCountBadges {
             if(this.unreads[id].total > 0) {
 
                 if(this.badges[id] != undefined) this.badges[id].innerText = this.unreads[id].total;
-                else this.badges[id] = NeatoLib.DOM.searchForParentElementByClassName(document.querySelector("[style*='" + id + "']"), NeatoLib.getClass("guild")).appendChild(this.createBadge(this.unreads[id].total));
+                else this.badges[id] = NeatoLib.DOM.searchForParentElementByClassName(document.querySelector("[style*='" + id + "']"), NeatoLib.getClass("lurkingGuild", "container")).appendChild(this.createBadge(this.unreads[id].total));
 
             } else if(this.badges[id]) {
 
@@ -316,7 +316,7 @@ class UnreadCountBadges {
 
         const badge = document.createElement("div");
 
-        badge.className = "wrapper-232cHJ " + NeatoLib.getClass("badge") + " unread-count-badge";
+        badge.className = "wrapper-232cHJ " + NeatoLib.getClass("lurkingGuild", "badge") + " unread-count-badge";
         badge.innerText = unreadCount;
 
         return badge;

@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.17"; }
+	getVersion() { return "1.14.18"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -471,7 +471,7 @@ class MessageLogger {
 		this.filter = "";
 
 		document.addEventListener("contextmenu", this.contextEvent = e => {
-			if(e.target.classList.contains(NeatoLib.getClass("guildIcon"))) return this.onGuildContext(e);
+			if(e.target.classList.contains(NeatoLib.getClass("lurkingGuild", "guildIcon"))) return this.onGuildContext(e);
 
 			if(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("messageCozy", "message"))) return this.onMessageContext();
 

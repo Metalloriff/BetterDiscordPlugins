@@ -4,7 +4,7 @@ class ViewGuildRelationships {
 
 	getName() { return "View Guild Relationships"; }
 	getDescription() { return "Adds a 'View Relationships' button to the guild dropdown and context menu that opens a list of all friends, requested friends, and blocked users in the server."; }
-	getVersion() { return "1.2.7"; }
+	getVersion() { return "1.2.8"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -136,7 +136,7 @@ class ViewGuildRelationships {
 	onContextMenu(e) {
 		const contextMenu = NeatoLib.ContextMenu.get();
 
-		if (contextMenu && e.target.classList.contains(NeatoLib.getClass("guildIcon"))) {
+		if (contextMenu && e.target.classList.contains(NeatoLib.getClass("lurkingGuild", "guildIcon"))) {
 			const gid = e.target.parentElement.href.match(/\d+/);
 			if (gid) contextMenu.firstChild.appendChild(NeatoLib.ContextMenu.createItem("View Relationships", () => this.getRelationships(gid[0])));
 		}

@@ -4,7 +4,7 @@ class BetterEmoteSizes {
 
 	getName() { return "Emote Zoom"; }
 	getDescription() { return "Increases the size of emojis, emotes, and reactions upon hovering over them and allows you to change their default sizes."; }
-	getVersion() { return "2.4.12"; }
+	getVersion() { return "2.4.13"; }
 	getAuthor() { return "Metalloriff"; }
 
 	get settingFields() {
@@ -90,7 +90,7 @@ class BetterEmoteSizes {
 	}
 
 	update() {
-		const markup = NeatoLib.getClass("markup"), messageGroup = NeatoLib.getClass("containerCozy", "container"), message = NeatoLib.getClass("messageCozy", "message"), reaction = NeatoLib.getClass("reaction"), 		reactionMe = NeatoLib.getClass("reactionMe");
+		const markup = NeatoLib.getClass("markup"), messageGroup = NeatoLib.getClass("containerCozyBounded", "container"), message = NeatoLib.getClass("messageCozy", "message"), reaction = NeatoLib.getClass("reaction"), 		reactionMe = NeatoLib.getClass("reactionMe");
 
 		if (this.style) this.style.destroy();
 		this.style = NeatoLib.injectCSS(`.${messageGroup} { overflow: visible; }`);

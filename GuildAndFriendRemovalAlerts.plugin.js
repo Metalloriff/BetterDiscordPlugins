@@ -4,7 +4,7 @@ class GuildAndFriendRemovalAlerts {
 
 	getName() { return "Guild And Friend Removal Alerts"; }
 	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.2.13"; }
+	getVersion() { return "0.2.14"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -97,7 +97,7 @@ class GuildAndFriendRemovalAlerts {
 		this.userModule = NeatoLib.Modules.get("getUser");
 
 		this.guildsObserver = new MutationObserver(() => this.checkGuilds());
-		this.guildsObserver.observe(document.getElementsByClassName(NeatoLib.getClass("guilds"))[0], { childList: true });
+		this.guildsObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], { childList: true });
 
 		this.checkLoopFunc = setInterval(() => {
 			this.checkGuilds();

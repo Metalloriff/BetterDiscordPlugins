@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.22",
+	version: "0.9.23",
 
 	parseVersion: function(version) {
 
@@ -1995,7 +1995,7 @@ var NeatoLib = {
 		},
 
 		get: function() {
-			return Array.filter(document.getElementsByClassName(this.classes.contextMenu), x => x.style.display != "none")[0];
+			return Array.from(document.getElementsByClassName(this.classes.contextMenu)).filter(x => x.style.display != "none")[0];
 		},
 
 		close: function() {

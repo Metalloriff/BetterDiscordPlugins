@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.19"; }
+	getVersion() { return "1.14.20"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -471,7 +471,8 @@ class MessageLogger {
 		this.filter = "";
 
 		document.addEventListener("contextmenu", this.contextEvent = e => {
-			if(e.target.classList.contains(NeatoLib.getClass("lurkingGuild", "guildIcon"))) return this.onGuildContext(e);
+			// the class needs to get changed back to the getClass function, but since that is not working currently I changed it to the actual class to not produce any error here
+			if(e.target.classList.contains("wrapper-1BJsBx") || e.target.classList.contains("acronym-2mOFsV")) return this.onGuildContext(e);
 
 			if(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("messageCozy", "message"))) return this.onMessageContext();
 
@@ -1091,7 +1092,7 @@ class MessageLogger {
 		if(type == "sent") messages = this.messageRecord.slice(0);
 		if(type == "edited") messages = this.editedMessageRecord.slice(0);
 		if(type == "deleted") messages = this.deletedMessageRecord.slice(0);
-		if(type == "ghostpings") messages = Array.filter(this.deletedMessageRecord, x => Array.from(x.message.mentions, y => y.id).includes(this.localUser.id));
+		if(type == "ghostpings") messages = this.deletedMessageRecord.filter(x => Array.from(x.message.mentions, y => y.id).includes(this.localUser.id));
 		if(type == "purged") messages = this.purgedMessageRecord.slice(0);
 		
 		const filters = this.filter.split(",");
@@ -1102,19 +1103,19 @@ class MessageLogger {
 
 			const filterType = split[0].trim().toLowerCase(), filter = split[1].trim().toLowerCase();
 
-			if(filterType == "server" || filterType == "guild") messages = Array.filter(messages, x => {
+			if(filterType == "server" || filterType == "guild") messages = messages.filter(x => {
 				const guild = this.getServer(x.message.guild_id);
 				return x.message.guild_id == filter || (guild != undefined && guild.name.toLowerCase().includes(filter));
 			});
 
-			if(filterType == "channel") messages = Array.filter(messages, x => {
+			if(filterType == "channel") messages = messages.filter(x => {
 				const channel = this.getChannel(x.message.channel_id);
 				return x.message.channel_id == filter || (channel != undefined && channel.name.toLowerCase().includes(filter.replace("#", "")));
 			});
 
-			if(filterType == "message" || filterType == "content") messages = Array.filter(messages, x => x.message.id == filter || x.message.content.toLowerCase().includes(filter));
+			if(filterType == "message" || filterType == "content") messages = messages.filter(x => x.message.id == filter || x.message.content.toLowerCase().includes(filter));
 
-			if(filterType == "user") messages = Array.filter(messages, x => x.message.author.id == filter || x.message.author.username.toLowerCase().includes(filter) || (x.message.member != undefined && x.message.member.nick != null && x.message.member.nick.toLowerCase().includes(filter)));
+			if(filterType == "user") messages = messages.filter(x => x.message.author.id == filter || x.message.author.username.toLowerCase().includes(filter) || (x.message.member != undefined && x.message.member.nick != null && x.message.member.nick.toLowerCase().includes(filter)));
 		}
 
 		return messages;
@@ -1207,7 +1208,7 @@ class MessageLogger {
 	}
 
 	onGuildContext(e) {
-		const id = e.target.parentElement.href.match(/\d+/)[0], buttons = [];
+		const id = (e.target.parentElement.href || e.target.href).match(/\d+/)[0], buttons = [];
 
 		buttons.push(NeatoLib.ContextMenu.createItem("Open Log Here", () => {
 			this.filter = "server: " + id;

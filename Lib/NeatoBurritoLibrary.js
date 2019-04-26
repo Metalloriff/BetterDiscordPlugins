@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.23",
+	version: "0.9.24",
 
 	parseVersion: function(version) {
 
@@ -1585,8 +1585,15 @@ var NeatoLib = {
 				if (!latestVersion) return;
 				latestVersion = latestVersion.toString().replace(/['"]/g, "").trim();
 
-				if (window.PluginUpdates.plugins[url] && window.PluginUpdates.plugins[url].version != latestVersion) NeatoLib.Updates.displayNotice(pluginName, url);
-				else NeatoLib.Updates.hideNotice(pluginName);
+				if(!window.PluginUpdates.plugins[url]) return NeatoLib.Updates.hideNotice(pluginName);
+
+				let versionOld = window.PluginUpdates.plugins[url].version.split(".");
+				let versionNew = latestVersion.split(".");
+
+				if(versionNew[0] > versionOld[0] || (versionNew[0] == versionOld[0] && versionNew[1] > versionOld[1]) || (versionNew[0] == versionOld[0] && versionNew[1] == versionOld[1] && versionNew[2] > versionOld[2]))
+					NeatoLib.Updates.displayNotice(pluginName, url);
+				else
+					NeatoLib.Updates.hideNotice(pluginName);
 
 			});
 
@@ -1626,8 +1633,8 @@ var NeatoLib = {
 			let notice = document.getElementById(pluginName + "-notice");
 
 			if (notice) {
-				if (notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
-				else if (notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
+				if (notice.nextSibling && notice.nextSibling.classList.contains("separator")) notice.nextSibling.remove();
+				else if (notice.previousSibling && notice.previousSibling.classList.contains("separator")) notice.previousSibling.remove();
 				notice.remove();
 			} else if (!document.querySelector("#outdatedPluings > span") && document.querySelector("#pluginNotice > .btn-reload") && document.querySelector("#pluginNotice .notice-message")) document.querySelector("#pluginNotice .notice-message").innerText = "To finish updating you need to reload.";
 
@@ -2021,32 +2028,33 @@ var NeatoLib = {
 				event: {
 					mouseenter: () => {
 						let tooltip = document.createElement("div");
-						tooltip.classList.add(NeatoLib.getClass("tooltips", "tooltip"), NeatoLib.getClass("tooltips", side), NeatoLib.getClass("tooltips", "black"));
-						tooltip.innerText = content;
+						tooltip.classList.add(NeatoLib.getClass("tooltip"), NeatoLib.getClass("tooltip", "tooltip" + side.substr(0,1).toUpperCase() + side.substr(1)), NeatoLib.getClass("tooltip", "tooltipBlack"));
+                        tooltip.innerText = content;
 						tooltip.style.pointerEvents = "none";
 						tooltip.style.zIndex = 15000;
 						if (color) tooltip.style.backgroundColor = color;
-						document.getElementsByClassName(NeatoLib.getClass("tooltips"))[0].appendChild(tooltip);
+						document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0].appendChild(tooltip);
+                        tooltip.insertAdjacentHTML("afterbegin", `<div class="${NeatoLib.getClass("tooltip", "tooltipPointer")}"></div>`);
 						element.tooltip.tooltip = tooltip;
 						let elementRect = element.getBoundingClientRect();
 						switch (side) {
 							case "top":
-								tooltip.style.top = (elementRect.top - tooltip.offsetHeight) + "px";
+								tooltip.style.top = (elementRect.top - tooltip.offsetHeight - 8) + "px";
 								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
 							break;
 
 							case "bottom":
-								tooltip.style.top = (elementRect.top + element.offsetHeight) + "px";
+								tooltip.style.top = (elementRect.top + element.offsetHeight - 8) + "px";
 								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
 							break;
 
 							case "right":
-								tooltip.style.left = (elementRect.left + element.offsetWidth) + "px";
+								tooltip.style.left = (elementRect.left + element.offsetWidth - 8) + "px";
 								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
 							break;
 
 							case "left":
-								tooltip.style.left = (elementRect.left - tooltip.offsetWidth) + "px";
+								tooltip.style.left = (elementRect.left - tooltip.offsetWidth - 8) + "px";
 								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
 							break;
 						}

@@ -131,7 +131,7 @@ class AutoCorrect {
 			buildGroup();
 
 			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Learned words (separate with spaces)", this.settings.learnedWords.join(" "), e => {
-				this.settings.learnedWords = Array.filter(e.target.value.trim().toLowerCase().split(" "), x => x != "");
+				this.settings.learnedWords = e.target.value.trim().toLowerCase().split(" ").filter(x => x != "");
 				this.saveSettings();
 			}), this.getName());
 
@@ -232,7 +232,7 @@ class AutoCorrect {
 
 			if(this.settings.ignoreEmptyStart && chatbox.value[0] == " ") return;
 
-			let sending = e.which == 13 && !e.shiftKey, ignoredPrefixesSplit = Array.filter(this.settings.ignoredPrefixes.split(" "), prefix => prefix);
+			let sending = e.which == 13 && !e.shiftKey, ignoredPrefixesSplit = this.settings.ignoredPrefixes.split(" ").filter(prefix => prefix);
 
 			for(let i = 0; i < ignoredPrefixesSplit.length; i++) if(chatbox.value.startsWith(ignoredPrefixesSplit[i])) return;
 
@@ -251,7 +251,7 @@ class AutoCorrect {
 
 					let updateVars = () => {
 						words = lines[ln].split(" ");
-						wordsWithoutSpaces = Array.filter(words, word => word != "");
+						wordsWithoutSpaces = words.filter(word => word != "");
 						lastWordIDX = words.lastIndexOf(wordsWithoutSpaces[wordsWithoutSpaces.length - 1]);
 						beforeLastWord = wordsWithoutSpaces[wordsWithoutSpaces.length - 2];
 						lastWord = words[lastWordIDX];

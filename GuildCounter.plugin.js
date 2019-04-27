@@ -4,7 +4,7 @@ class GuildCounter {
 	
     getName() { return "Guild Counter"; }
     getDescription() { return "Displays a guild counter below the online friend counter."; }
-    getVersion() { return "1.0.3"; }
+    getVersion() { return "1.0.4"; }
     getAuthor() { return "Metalloriff"; }
 
     load() {}
@@ -39,7 +39,7 @@ class GuildCounter {
 			let existing = document.getElementById("gc-counter"), count = Object.keys(NeatoLib.Modules.get("getGuilds").getGuilds()).length;
 	
 			if(existing) existing.innerText = count + " guilds";
-			else this.guildsScroller.insertBefore(NeatoLib.DOM.createElement({ id : "gc-counter", className : NeatoLib.getClass("friendsOnline"), innerText : count + " guilds" }), this.guildsScroller.getElementsByClassName(NeatoLib.getClass("guildSeparator"))[0]);
+			else this.guildsScroller.getElementsByClassName(NeatoLib.getClass("guildSeparator"))[0].parentElement.insertAdjacentElement("beforebegin", NeatoLib.DOM.createElement({ id : "gc-counter", className : NeatoLib.getClass("friendsOnline") + " " + NeatoLib.getClass(["badgeIcon", "guildSeparator", "guildsError"], "listItem"), innerText : count + " guilds" }));
 
 		});
 

@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.9"; }
+	getVersion() { return "0.3.10"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -161,8 +161,11 @@ class DetailedServerTooltips {
 		this.userModule = NeatoLib.Modules.get("getUser");
 		this.memberModule = NeatoLib.Modules.get("getMembers");
 		this.channelModule = NeatoLib.Modules.get("getChannel");
+		this.memberCountModule = NeatoLib.Modules.get("getMemberCount");
 
 		this.localUser = NeatoLib.getLocalUser();
+
+		this.owners = {};
 
 		this.applyCSS();
 
@@ -225,8 +228,7 @@ class DetailedServerTooltips {
 	}
 
 	applyToGuilds(detach) {
-		// needs to get changed back to the NeatoLib.getClass(...) but idk which selector i need to use
-		const guilds = document.getElementsByClassName("wrapper-1BJsBx");
+		const guilds = document.getElementsByClassName(NeatoLib.getClass("acronym", "wrapper"));
 
 		for (let i = 0; i < guilds.length; i++) {
 			let reactEvents = NeatoLib.ReactData.getEvents(guilds[i]);
@@ -279,7 +281,7 @@ class DetailedServerTooltips {
 				<div id="dst-tooltip-owner-label" class="dst-tooltip-label">Owner: ${owner ? this.escapeHtml(owner.tag) : "unknown"}</div>
 				<div class="dst-tooltip-label">Created at: ${creationDate.toLocaleDateString()}, ${creationDate.toLocaleTimeString()} (${Math.round(Math.abs(creationDate.getTime() - new Date().getTime()) / 86400000)} days ago)</div>
 				${creationDate.toString() == guild.joinedAt.toString() ? "" : `<div class="dst-tooltip-label">Joined at: ${guild.joinedAt.toLocaleDateString()}, ${guild.joinedAt.toLocaleTimeString()} (${Math.round(Math.abs(guild.joinedAt.getTime() - new Date().getTime()) / 86400000)} days ago)</div>`}
-				<div id="dst-tooltip-member-count-label" class="dst-tooltip-label">${NeatoLib.Modules.get("getMemberCount").getMemberCount(guildId)} members</div>
+				<div id="dst-tooltip-member-count-label" class="dst-tooltip-label">${this.memberCountModule.getMemberCount(guildId)} members</div>
 				<div class="dst-tooltip-label">${Object.values(this.channelModule.getChannels()).filter(c => c.guild_id == guildId).length} channels</div>
 				<div class="dst-tooltip-label">${Object.keys(guild.roles).length} roles</div>
 				<div class="dst-tooltip-label">Region: ${guild.region}</div>`;
@@ -288,12 +290,26 @@ class DetailedServerTooltips {
 
 		if (guild.features.size > 0) tooltip.insertAdjacentHTML("beforeend", `<div style="font-weight: bolder;" class="dst-tooltip-label"><div class="profileBadgePartner-SjK6L2 profileBadge-2BqF-Z" style="display: inline-block;"></div>PARTNERED SERVER</div>`);
 
-		if(!owner) NeatoLib.Modules.get("requestMembers").requestMembers(guildId, "", 0); // should only load the owner here, but idk how to do that. Reason: discord loads all members of that guild. bc it will never unload them again they take much space. especially when you accidentally hover over the icon of some big guilds your ram wont like that.
+		if(owner){
+			this.owners[guildId] = owner.tag;
+		}else{
+			NeatoLib.Modules.get("getAPIBaseURL").get(NeatoLib.Modules.get(["Permissions", "ActivityTypes", "StatusTypes"]).Endpoints.USER(guild.ownerId)).then(result => {
+				if(!result) return;
+				let res = JSON.parse(result.text);
+				this.owners[guildId] = res.username + "#" + res.discriminator;
+			});
+		}
+
+		let updateMemberCount = false;
+		if(this.memberCountModule.getMemberCount(guildId) < 500){
+			NeatoLib.Modules.get("requestMembers").requestMembers(guildId, "", 0);
+			updateMemberCount = true;
+		}
 
 		const self = setInterval(() => {
 			if (!Array.from(document.getElementsByClassName(NeatoLib.getClass("tooltip"))).includes(tooltip)) return clearInterval(self);
-			owner = this.userModule.getUser(guild.ownerId);
-			document.getElementById("dst-tooltip-owner-label").innerText = "Owner: " + (owner ? this.escapeHtml(owner.tag) : "unknown");
+			document.getElementById("dst-tooltip-owner-label").innerHTML = "Owner: " + (this.escapeHtml(this.owners[guildId] || "unknown"));
+			if(updateMemberCount) document.getElementById("dst-tooltip-member-count-label").innerText = this.memberModule.getMembers(guildId).length + " members";
 		}, 500);
 
 		tooltip.updateLoop = self;

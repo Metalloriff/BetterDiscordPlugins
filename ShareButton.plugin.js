@@ -4,7 +4,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.2.6"; }
+    getVersion() { return "0.2.7"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -15,6 +15,10 @@ class ShareButton {
                 You can now share messages via the context menu.
                 Shared messages are now quoted with the user's name.
                 You can now share to direct messages.
+            `,
+            "0.2.7" :
+            `
+                Fixed the plugin, but the recent channels is still broken. I will try to fix it soon.
             `
 		};
 	}
@@ -103,7 +107,7 @@ class ShareButton {
 
     }
     
-    saveData() { PluginUtilities.saveData("ShareButton", "data", { recentChannels : this.recentChannels, pinnedChannels : this.pinnedChannels }); }
+    saveData() { NeatoLib.Data.save("ShareButton", "data", { recentChannels : this.recentChannels, pinnedChannels : this.pinnedChannels }); }
 
     onContextMenu(e) {
         if(e.target.localName != "img" && e.target.localName != "video" && !e.target.className.includes("markup")) return;
@@ -115,7 +119,8 @@ class ShareButton {
             let url = e.target.src;
 
             if(!url) url = e.target.href;
-            else if(url.indexOf("?") != -1) url = url.substring(0, url.lastIndexOf("?"));
+
+            url = url.split("?")[0];
 
             let msg = NeatoLib.ReactData.getProps(e.target).message;
 
@@ -252,7 +257,7 @@ class ShareButton {
                 url = e.target.href;
                 filename = url;
             } else {
-                if(url.indexOf("?") != -1) url = url.substring(url.substring(0, url.lastIndexOf("?")));
+                url = url.split("?")[0];
                 filename = url.substring(url.lastIndexOf("/") + 1, url.length);
             }
         }
@@ -281,7 +286,8 @@ class ShareButton {
             }
 
             for(let i = 0; i < this.recentChannels.length; i++) {
-                let channel = this.channelModule.getChannel(this.recentChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
+                let channel = this.channelModule.getChannel(this.recentChannels[i]), guild;
+                if (channel) guild = this.guildModule.getGuild(channel.guild_id);
 
                 if(!channel || !guild) continue;
 
@@ -309,7 +315,8 @@ class ShareButton {
             }
 
             for(let i = 0; i < this.pinnedChannels.length; i++) {
-                let channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild = this.guildModule.getGuild(channel.guild_id);
+                let channel = this.channelModule.getChannel(this.pinnedChannels[i]), guild;
+                if (channel) guild = this.guildModule.getGuild(channel.guild_id);
 
                 if(!channel || !guild) continue;
 
@@ -457,7 +464,7 @@ class ShareButton {
             NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup(items)], e);
         };
 
-        let serverItems = Array.filter(document.getElementsByClassName("sb-server-item"), e => !e.classList.contains("sb-dm-item")),
+        let serverItems = Array.from(document.getElementsByClassName("sb-server-item")).filter(e => !e.classList.contains("sb-dm-item")),
         
         serverItemClickEvent = e => {
             if(e.target.classList.contains("sb-channel-item")) return;

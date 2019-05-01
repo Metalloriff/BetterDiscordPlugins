@@ -2032,30 +2032,33 @@ var NeatoLib = {
                         tooltip.innerText = content;
 						tooltip.style.pointerEvents = "none";
 						tooltip.style.zIndex = 15000;
-						if (color) tooltip.style.backgroundColor = color;
-						document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0].appendChild(tooltip);
+                        if (color) tooltip.style.backgroundColor = color;
+                        let tooltipContainer = document.createElement("div");
+                        tooltipContainer.classList.add(NeatoLib.getClass("layerContainer", "layer"));
+                        document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0].appendChild(tooltipContainer);
+                        tooltipContainer.appendChild(tooltip);
                         tooltip.insertAdjacentHTML("afterbegin", `<div class="${NeatoLib.getClass("tooltip", "tooltipPointer")}"></div>`);
-						element.tooltip.tooltip = tooltip;
+						element.tooltip.tooltip = tooltipContainer;
 						let elementRect = element.getBoundingClientRect();
 						switch (side) {
 							case "top":
-								tooltip.style.top = (elementRect.top - tooltip.offsetHeight - 8) + "px";
-								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
+								tooltipContainer.style.top = (elementRect.top - tooltipContainer.offsetHeight) + "px";
+								tooltipContainer.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltipContainer.offsetWidth / 2)) + "px";
 							break;
 
 							case "bottom":
-								tooltip.style.top = (elementRect.top + element.offsetHeight - 8) + "px";
-								tooltip.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltip.offsetWidth / 2)) + "px";
+								tooltipContainer.style.top = (elementRect.top + element.offsetHeight) + "px";
+								tooltipContainer.style.left = ((elementRect.left + (element.offsetWidth / 2)) - (tooltipContainer.offsetWidth / 2)) + "px";
 							break;
 
 							case "right":
-								tooltip.style.left = (elementRect.left + element.offsetWidth - 8) + "px";
-								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
+								tooltipContainer.style.left = (elementRect.left + element.offsetWidth) + "px";
+								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltipContainer.offsetHeight / 2)) + "px";
 							break;
 
 							case "left":
-								tooltip.style.left = (elementRect.left - tooltip.offsetWidth - 8) + "px";
-								tooltip.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2)) + "px";
+								tooltipContainer.style.left = (elementRect.left - tooltipContainer.offsetWidth) + "px";
+								tooltipContainer.style.top = ((elementRect.top + (element.offsetHeight / 2)) - (tooltipContainer.offsetHeight / 2)) + "px";
 							break;
 						}
 						if (typeof onShow == "function") onShow(element.tooltip);

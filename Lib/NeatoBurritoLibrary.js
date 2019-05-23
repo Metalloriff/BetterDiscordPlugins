@@ -651,7 +651,7 @@ var NeatoLib = {
 
 		Elements: {
 
-			pluginNameLabel: function(name) {
+			pluginNameLabel: function(name, authorName = "Metalloriff") {
 				return `
 					<style>
 						#bd-settingspane-container *::-webkit-scrollbar {
@@ -679,7 +679,7 @@ var NeatoLib = {
 							display: none;
 						}
 					</style>
-					<h style="color: white;font-size: 30px;font-weight: bold;">${name.replace(/([A-Z])/g, ' $1').trim()} by Metalloriff</h>`;
+					<h style="color: white;font-size: 30px;font-weight: bold;">${name.replace(/([A-Z])/g, ' $1').trim()} by ${authorName}</h>`;
 			},
 
 			createRadioGroup: function(id, label, choices, selectedChoice, callback, description = "") {
@@ -2831,7 +2831,7 @@ window.neatoStyles = NeatoLib.injectCSS(`
 		overflow: hidden;
 	}
 
-	/* Below is CSS from Zere's PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js */
+	/* Below is CSS from Zerebos' PluginLibrary. https://rauenzi.github.io/BetterDiscordAddons/docs/PluginLibrary.js */
 
 	#pluginNotice {-webkit-app-region: drag;border-radius:0;} #outdatedPlugins {font-weight:700;} #outdatedPlugins>span {-webkit-app-region: no-drag;color:#fff;cursor:pointer;} #outdatedPlugins>span:hover {text-decoration:underline;}
 

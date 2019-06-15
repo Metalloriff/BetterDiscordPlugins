@@ -1,5 +1,0 @@
-![Example #1](e0.png)
-![Example #2](e1.png)
-![Example #3](e2.png)
-![Example #4](e3.png)
-![Example #5](e4.png)

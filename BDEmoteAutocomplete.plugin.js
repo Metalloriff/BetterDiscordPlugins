@@ -26,7 +26,7 @@ class BDEmoteAutocomplete {
 			lib = document.createElement("script");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.setAttribute("src", "https://cdn.jsdelivr.net/gh/Metalloriff/BetterDiscordPlugins@master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();

@@ -44,7 +44,7 @@ class UnreadCountBadges {
 			lib = document.createElement("script");
 			lib.id = "NeatoBurritoLibrary";
 			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
+			lib.src = "https://cdn.jsdelivr.net/gh/Metalloriff/BetterDiscordPlugins@master/Lib/NeatoBurritoLibrary.js";
 			document.head.appendChild(lib);
 		}
 		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);

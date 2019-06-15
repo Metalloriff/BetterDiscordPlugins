@@ -1708,7 +1708,7 @@ var NeatoLib = {
 
 		check: function(plugin, path) {
 
-			let url = path ? path : "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/" + plugin.getName().split(" ").join("") + ".plugin.js";
+			let url = path ? path : "https://cdn.jsdelivr.net/gh/Metalloriff/BetterDiscordPlugins@master/" + plugin.getName().split(" ").join("") + ".plugin.js";
 
 			if (typeof window.PluginUpdates == "undefined") window.PluginUpdates = {
 				plugins: {}

@@ -26,7 +26,7 @@ class NateUtilities {
 			lib = document.createElement("script");
 			lib.setAttribute("id", "NeatoBurritoLibrary");
 			lib.setAttribute("type", "text/javascript");
-			lib.setAttribute("src", "https://rawgit.com/NeatoLib/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js");
+			lib.setAttribute("src", "https://cdn.jsdelivr.net/gh/NeatoLib/BetterDiscordPlugins@master/Lib/NeatoBurritoLibrary.js");
 			document.head.appendChild(lib);
 		}
         if(typeof window.NeatoLib !== "undefined") libLoadedEvent();

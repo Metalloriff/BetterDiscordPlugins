@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.10"; }
+	getVersion() { return "0.3.11"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -288,7 +288,7 @@ class DetailedServerTooltips {
 
 		if(!guild.getIconURL()) tooltip.find(".dst-tooltip-icon").outerHTML = "";
 
-		if (guild.features.size > 0) tooltip.insertAdjacentHTML("beforeend", `<div style="font-weight: bolder;" class="dst-tooltip-label"><div class="profileBadgePartner-SjK6L2 profileBadge-2BqF-Z" style="display: inline-block;"></div>PARTNERED SERVER</div>`);
+		if (guild.features.has("PARTNERED")) tooltip.insertAdjacentHTML("beforeend", `<div style="font-weight: bolder;" class="dst-tooltip-label"><div class="profileBadgePartner-SjK6L2 profileBadge-2BqF-Z" style="display: inline-block;"></div>PARTNERED SERVER</div>`);
 
 		if(owner){
 			this.owners[guildId] = owner.tag;

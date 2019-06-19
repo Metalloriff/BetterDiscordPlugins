@@ -4,7 +4,7 @@ class MessageLogger {
 	
 	getName() { return "MessageLogger"; }
 	getDescription() { return "Records all sent messages, message edits and message deletions in the specified servers, all unmuted servers or all servers, and in direct messages."; }
-	getVersion() { return "1.14.20"; }
+	getVersion() { return "1.14.21"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -56,6 +56,10 @@ class MessageLogger {
 				Fixed DM context menu.
 				Added a "always log selected channel" setting.
 				Added a "always log dms" setting.
+			`,
+			"1.14.21":
+			`
+				Changed the update link to the unofficial repo. No changes to the plugin.
 			`
 		};
 	}
@@ -190,7 +194,7 @@ class MessageLogger {
 	onLibLoaded() {
 		if(!NeatoLib.hasRequiredLibVersion(this, "0.5.19")) return;
 
-		NeatoLib.Updates.check(this);
+		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/UnofficialBetterDiscordPlugins/master/MessageLogger.plugin.js");
 
 		this.settings = NeatoLib.Settings.load(this, {
 			displayUpdateNotes : true,
@@ -471,7 +475,8 @@ class MessageLogger {
 		this.filter = "";
 
 		document.addEventListener("contextmenu", this.contextEvent = e => {
-			if(e.target.classList.contains(NeatoLib.getClass("acronym", "wrapper")) || e.target.classList.contains(NeatoLib.getClass("acronym"))) return this.onGuildContext(e);
+			// the class needs to get changed back to the getClass function, but since that is not working currently I changed it to the actual class to not produce any error here
+			if(e.target.classList.contains("wrapper-1BJsBx") || e.target.classList.contains("acronym-2mOFsV")) return this.onGuildContext(e);
 
 			if(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("messageCozy", "message"))) return this.onMessageContext();
 

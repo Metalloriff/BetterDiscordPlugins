@@ -2797,6 +2797,18 @@ NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
 NeatoLib.getSelectedServer = NeatoLib.getSelectedGuild;
 NeatoLib.getSelectedServerId = NeatoLib.getSelectedGuildId;
 
+if (window.neatoContextEvent) document.removeEventListener("contextmenu", window.neatoContextEvent);
+
+document.addEventListener("contextmenu", window.neatoContextEvent = e => {
+	let cm = NeatoLib.ContextMenu.get();
+
+	if (!cm) return;
+
+	let rect = cm.getBoundingClientRect();
+
+	cm.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
+});
+
 if (window.neatoStyles) window.neatoStyles.destroy();
 window.neatoStyles = NeatoLib.injectCSS(`
 

@@ -4,7 +4,7 @@ class SuppressUserMentions {
 
 	getName() { return "SuppressUserMentions"; }
 	getDescription() { return "Allows you to suppress mentions from specified users without blocking them."; }
-	getVersion() { return "0.0.1"; }
+	getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -75,11 +75,10 @@ class SuppressUserMentions {
 	onContextMenu(e) {
 		if (!e.target.className.includes("username") && !e.target.className.includes("large")) return;
 
-		const uid = NeatoLib.ReactData.getProp(NeatoLib.DOM.searchForParentElementByClassName(e.target, NeatoLib.getClass("containerCozy", "container")), "messages.0.author.id");
-		if (!uid) return;
-
 		const contextMenu = NeatoLib.ContextMenu.get();
 		if (!contextMenu) return;
+
+		const uid = NeatoLib.ReactData.get(contextMenu).return.return.return.return.memoizedProps.user.id;
 
 		contextMenu.insertAdjacentElement("afterBegin", NeatoLib.ContextMenu.createGroup([
 			!this.settings.suppressedUsers.includes(uid) ? NeatoLib.ContextMenu.createItem("Suppress User Mentions", () => {

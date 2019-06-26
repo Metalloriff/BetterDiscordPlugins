@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.11"; }
+	getVersion() { return "0.3.12"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -188,7 +188,7 @@ class DetailedServerTooltips {
 				if (!tooltip) return;
 				let tt = document.getElementsByClassName(NeatoLib.getClass("tooltip"))[0];
 				tt.appendChild(tooltip);
-				tt.find("." + NeatoLib.getClass("tooltip", "tooltipPointer").trim().replace(" ", ".")).css("border-top-color", this.settings.tooltipColor);
+				tt.getElementsByClassName(NeatoLib.getClass("tooltip", "tooltipPointer"))[0].style.borderTopColor = this.settings.tooltipColor;
 				let bottomPos = parseFloat(tooltip.style.top) + tooltip.offsetHeight;
 				if (bottomPos > window.innerHeight) {
 					tooltip.style.top = (parseFloat(tooltip.style.top) - (bottomPos - window.innerHeight)) + "px";
@@ -238,20 +238,7 @@ class DetailedServerTooltips {
 			guilds[i].removeEventListener("mouseenter", this.mouseEnterGuild);
 			guilds[i].removeEventListener("mouseleave", this.mouseLeaveGuild);
 
-			if (reactEvents) {
-				if (reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter = reactEvents.onMouseEnter_unpatched;
-				if (reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave = reactEvents.onMouseLeave_unpatched;
-			}
-
 			if (detach) continue;
-
-			if (reactEvents) {
-				if (!reactEvents.onMouseEnter_unpatched) reactEvents.onMouseEnter_unpatched = reactEvents.onMouseEnter;
-				if (!reactEvents.onMouseLeave_unpatched) reactEvents.onMouseLeave_unpatched = reactEvents.onMouseLeave;
-
-				reactEvents.onMouseEnter = () => {};
-				reactEvents.onMouseLeave = () => {};
-			}
 
 			guilds[i].parentElement.addEventListener("dragstart", this.dragGuild);
 			guilds[i].parentElement.addEventListener("dragend", this.dragGuild);

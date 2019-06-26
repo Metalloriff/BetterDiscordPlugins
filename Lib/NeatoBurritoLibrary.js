@@ -2806,7 +2806,7 @@ document.addEventListener("contextmenu", window.neatoContextEvent = e => {
 
 	let rect = cm.getBoundingClientRect();
 
-	cm.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
+	if (rect.height + rect.y > window.innerHeight) cm.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
 });
 
 if (window.neatoStyles) window.neatoStyles.destroy();

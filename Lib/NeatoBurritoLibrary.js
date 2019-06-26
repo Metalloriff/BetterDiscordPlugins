@@ -1157,10 +1157,10 @@ var NeatoLib = {
 
 			<div id="neato-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
-				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
-					<div class="inner-1JeGVc">
-						<div class="modal-3HD5ck sizeSmall-Sf4iOi">
-							<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignCenter-1dQNNs noWrap-3jynv6 header-1R_AjF" style="flex: 0 0 auto;">
+				<div class="modal-36zFtW" style="opacity: 1; transform: scale(1) translateZ(0px);">
+					<div class="inner-2VEzy9">
+						<div class="modal-3v8ziU sizeSmall-2-_smo">
+							<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignCenter-1dQNNs noWrap-3jynv6 header-2nhbou" style="flex: 0 0 auto;">
 								<h4 class="h4-AQvcAz title-3sZWYQ size16-14cGz5 height20-mO2eIN weightSemiBold-NJexzi defaultColor-1_ajX0 defaultMarginh4-2vWMG5 marginReset-236NPn">${title}</h4>
 							</div>
 							<div class="scrollerWrap-2lJEkd content-2BXhLs scrollerThemed-2oenus themeGhostHairline-DBD-2d">
@@ -1170,7 +1170,7 @@ var NeatoLib = {
 									</div>
 								</div>
 							</div>
-							<div class="flex-1xMQg5 flex-1O1GKY horizontalReverse-2eTKWD horizontalReverse-3tRjY7 flex-1O1GKY directionRowReverse-m8IjIq justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 footer-2yfCgX" style="flex: 0 0 auto;"><button type="submit" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN prompt-yes"><div class="contents-18-Yxp">${options.yesText || "Yes"}</div></button><button type="button" class="button-38aScr lookLink-9FtZy- colorPrimary-3b3xI6 sizeMedium-1AC_Sl grow-q77ONN prompt-no"><div class="contents-18-Yxp">${options.noText || "No"}</div></button></div>
+							<div class="flex-1xMQg5 flex-1O1GKY horizontalReverse-2eTKWD horizontalReverse-3tRjY7 flex-1O1GKY directionRowReverse-m8IjIq justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 footer-30ewN8" style="flex: 0 0 auto;"><button type="submit" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN prompt-yes"><div class="contents-18-Yxp">${options.yesText || "Yes"}</div></button><button type="button" class="button-38aScr lookLink-9FtZy- colorPrimary-3b3xI6 sizeMedium-1AC_Sl grow-q77ONN prompt-no"><div class="contents-18-Yxp">${options.noText || "No"}</div></button></div>
 						</div>
 					</div>
 				</div>
@@ -2002,7 +2002,7 @@ var NeatoLib = {
 		},
 
 		get: function() {
-			return Array.from(document.getElementsByClassName(this.classes.contextMenu)).filter(x => x.style.display != "none")[0];
+			return Array.from(document.getElementsByClassName(this.classes.contextMenu.split(" ")[0])).filter(x => x.style.display != "none")[0];
 		},
 
 		close: function() {

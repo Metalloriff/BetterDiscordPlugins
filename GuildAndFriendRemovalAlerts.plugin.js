@@ -4,7 +4,7 @@ class GuildAndFriendRemovalAlerts {
 
 	getName() { return "Guild And Friend Removal Alerts"; }
 	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.2.14"; }
+	getVersion() { return "0.3.14"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -75,7 +75,8 @@ class GuildAndFriendRemovalAlerts {
 	save() {
 		NeatoLib.Data.save(this.getName(), "data", {
 			guilds: (this.settings.guildNotifications ? this.allGuilds : []),
-			friends: (this.settings.friendNotifications ? this.allFriends : [])
+			friends: (this.settings.friendNotifications ? this.allFriends : []),
+			history: this.history
 		});
 	}
 
@@ -86,11 +87,14 @@ class GuildAndFriendRemovalAlerts {
 
 		const data = NeatoLib.Data.load(this.getName(), "data", {
 			guilds: [],
-			friends: []
+			friends: [],
+			history: []
 		});
 
 		this.allGuilds = data.guilds;
 		this.allFriends = data.friends;
+
+		this.history = data.history;
 
 		this.guildsModule = NeatoLib.Modules.get("getGuilds");
 		this.friendsModule = NeatoLib.Modules.get("getFriendIDs");
@@ -98,6 +102,15 @@ class GuildAndFriendRemovalAlerts {
 
 		this.guildsObserver = new MutationObserver(() => this.checkGuilds());
 		this.guildsObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], { childList: true });
+
+		document.getElementsByTagName("foreignObject")[0].addEventListener("contextmenu", this.homeContextEvent = e => {
+			let contextMenu = NeatoLib.ContextMenu.get() || NeatoLib.ContextMenu.create([], e);
+
+			contextMenu.appendChild(NeatoLib.ContextMenu.createItem("View GFR History", () => {
+				this.showHistory();
+				NeatoLib.ContextMenu.close();
+			}));
+		});
 
 		this.checkLoopFunc = setInterval(() => {
 			this.checkGuilds();
@@ -112,9 +125,22 @@ class GuildAndFriendRemovalAlerts {
 
 		this.styles = NeatoLib.injectCSS(`
 
+			#ra-modal {
+				opacity: 1;
+				overflow-y: auto;
+				justify-content: flex-start;
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				z-index: 1001;
+				background: rgba(0, 0, 0, 0.85);
+			}
+
 			.ra-serveritem {
 				margin: 20px;
-				min-height: 134px;
+				height: 110px;
 				display: flex;
 				flex-direction: column;
 				contain: layout;
@@ -156,7 +182,7 @@ class GuildAndFriendRemovalAlerts {
 				color: white;
 				width: 15px;
 				height: 15px;
-				margin-bottom: 17.5%;
+				margin-bottom: 4.5%;
 			}
 
 		`);
@@ -179,6 +205,27 @@ class GuildAndFriendRemovalAlerts {
 		return arr;
 	}
 
+	showHistory() {
+		if (this.history.length == 0) {
+			NeatoLib.showToast("No removals recorded!", "error");
+			return;
+		}
+
+		if (!document.getElementById("ra-alertwindow")) document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
+		<div id="ra-alertwindow">
+			<div id="ra-modal" onclick="this.parentElement.remove();"></div>
+		</div>`);
+
+		const modal = document.getElementById("ra-modal");
+
+		for (let i = 0; i < this.history.length; i++) {
+			if (typeof this.history[i] != "string")
+				continue;
+			modal.insertAdjacentHTML("afterbegin", this.history[i]);
+			modal.firstElementChild.getElementsByClassName("ra-x-button")[0].remove();
+		}
+	}
+
 	checkGuilds() {
 		if (!this.settings.guildNotifications) return;
 
@@ -197,8 +244,7 @@ class GuildAndFriendRemovalAlerts {
 			if (!guildIds.includes(guild.id)) {
 				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
 				<div id="ra-alertwindow">
-					<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="this.parentElement.remove();"></div>
-					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
+					<div id="ra-modal" onclick="this.parentElement.remove();"></div>
 				</div>`);
 
 				const modal = document.getElementById("ra-modal");
@@ -210,16 +256,22 @@ class GuildAndFriendRemovalAlerts {
 						<div style="flex: 1;">
 							<span class="ra-label">${guild.name}</span>
 							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
+							<div class="ra-label ra-description" style="width:auto;position:absolute;right:30px;">at ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
 							<div class="ra-label ra-description">${guild.owner ? "Owner: " + guild.owner : "Owner unknown"}</div>
 						</div>
-						<span class="ra-x-button" style="margin-bottom: 9%;">X</span>
+						<span class="ra-x-button">X</span>
 					</header>
 				</div>`);
 
 				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
 					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.remove();
+					else e.currentTarget.parentElement.parentElement.remove();
 				};
+
+				this.history.push(modal.lastElementChild.outerHTML);
+
+				if (this.history.length >= 100)
+					this.history.splice(0, 1);
 
 				if (this.settings.windowsNotifications) new Notification(guild.name, {
 					silent: true,
@@ -267,8 +319,7 @@ class GuildAndFriendRemovalAlerts {
 			if (!friendIds.includes(friend.id)) {
 				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
 				<div id="ra-alertwindow">
-					<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);" onclick="$(this).parent().remove();"></div>
-					<div id="ra-modal" class="modal-1UGdnR" style="opacity: 1; overflow-y: auto; justify-content: flex-start;"></div>
+					<div id="ra-modal" onclick="$(this).parent().remove();"></div>
 				</div>`);
 
 				const modal = document.getElementById("ra-modal");
@@ -280,6 +331,7 @@ class GuildAndFriendRemovalAlerts {
 						<div style="flex: 1;">
 							<span class="ra-label">${friend.tag}</span>
 							<div class="ra-label ra-description">Friend was removed.</div>
+							<div class="ra-label ra-description" style="width:auto;position:absolute;right:30px;">at ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
 						</div>
 						<span class="ra-x-button">X</span>
 					</header>
@@ -287,8 +339,13 @@ class GuildAndFriendRemovalAlerts {
 
 				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
 					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.remove();
+					else e.currentTarget.parentElement.parentElement.remove();
 				};
+
+				this.history.push(modal.lastElementChild.outerHTML);
+
+				if (this.history.length >= 100)
+					this.history.splice(0, 1);
 
 				if (this.settings.windowsNotifications) new Notification(friend.tag, {
 					silent: true,
@@ -311,6 +368,8 @@ class GuildAndFriendRemovalAlerts {
 		if (this.guildsObserver) this.guildsObserver.disconnect();
 
 		clearInterval(this.checkLoopFunc);
+
+		document.getElementsByTagName("foreignObject")[0].removeEventListener("contextmenu", this.homeContextEvent);
 
 		this.styles.destroy();
 	}

@@ -4,7 +4,7 @@ class UserBirthdays {
 	
 	getName() { return "User Birthdays"; }
 	getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday."; }
-	getVersion() { return "1.0.9"; }
+	getVersion() { return "1.0.10"; }
 	getAuthor() { return "Metalloriff"; }
 
 	load() {}
@@ -58,13 +58,13 @@ class UserBirthdays {
 
 			if(pop.className.indexOf("popout") != -1) {
 
-				const uid = NeatoLib.ReactData.getProp(pop.getElementsByClassName("discriminator")[0], "user.id"), birthday = this.birthdays[uid];
+				const uid = NeatoLib.ReactData.getProp(pop, "children.props.userId"), birthday = this.birthdays[uid];
 
 				if(!uid) return;
 
-				document.getElementsByClassName(NeatoLib.getClass(["note", "protip", "mobileIndicator"], "body"))[0].insertAdjacentHTML("beforeend", `
-					<div class="${NeatoLib.Modules.get(["note", "protip", "mobileIndicator"]).bodyTitle}">Birthday</div>
-					<div class="${NeatoLib.Modules.get(["note", "protip", "mobileIndicator"]).note} note-3kmerW">
+				document.getElementsByClassName(NeatoLib.getClass(["note", "protip"], "body"))[0].insertAdjacentHTML("beforeend", `
+					<div class="${NeatoLib.Modules.get(["note", "protip"]).bodyTitle}">Birthday</div>
+					<div class="${NeatoLib.Modules.get(["note", "protip"]).note} note-3kmerW">
 						<textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="${NeatoLib.Modules.get("scrollbarGhostHairline").scrollbarGhostHairline}" style="height: 36px;">${birthday ? birthday.day : ""}</textarea>
 					</div>
 				`);
@@ -85,12 +85,14 @@ class UserBirthdays {
 
 				if(pop.className.indexOf("modal") != -1 && (pop.getElementsByClassName(NeatoLib.getClass("profileBadge", "body")).length || pop.getElementsByClassName(NeatoLib.getClass("userInfoSection")).length)) {
 
-					const uid = NeatoLib.ReactData.getProp(pop.getElementsByClassName("discriminator")[0], "user.id"), birthday = this.birthdays[uid];
+					pop = pop.children[2];
+
+					const uid = NeatoLib.ReactData.getProp(pop, "children.props.user.id"), birthday = this.birthdays[uid];
 
 					if(!uid) return;
 					
 					NeatoLib.DOM.insertHTMLAtIndex(1, `
-						<div class="${NeatoLib.Modules.get(["note", "nameTag", "root", "empty"]).userInfoSection}"><div class="${NeatoLib.Modules.get(["note", "nameTag", "root", "empty"]).userInfoSectionHeader}">Birthday</div><div class="${NeatoLib.Modules.get(["note", "protip", "mobileIndicator"]).note} note-3kmerW"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="${NeatoLib.Modules.get("scrollbarGhostHairline").scrollbarGhostHairline}" style="height: 24px;">${birthday ? birthday.day : ""}</textarea></div></div>
+						<div class="${NeatoLib.Modules.get(["note", "nameTag", "root", "empty"]).userInfoSection}"><div class="${NeatoLib.Modules.get(["note", "nameTag", "root", "empty"]).userInfoSectionHeader}">Birthday</div><div class="${NeatoLib.Modules.get(["note", "protip"]).note} note-3kmerW"><textarea id="ub-birthdayfield" placeholder="No birthday specified, click to add one. Example: 4/20 or April 20" maxlength="50" class="${NeatoLib.Modules.get("scrollbarGhostHairline").scrollbarGhostHairline}" style="height: 24px;">${birthday ? birthday.day : ""}</textarea></div></div>
 					`, pop.getElementsByClassName(NeatoLib.getClass("scrollerWrapPolyfill", "scroller"))[0]);
 
 					const field = document.getElementById("ub-birthdayfield");

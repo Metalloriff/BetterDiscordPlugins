@@ -4,13 +4,16 @@ class PinPluginsAndThemes {
 	
     getName() { return "PinPluginsAndThemes"; }
     getDescription() { return "Allows you to pin plugins and themes via the context menu."; }
-    getVersion() { return "1.0.1"; }
+    getVersion() { return "1.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
             "1.0.1": `
                 Fixed plugins and themes not pinning after switching settings tabs.
                 Fixed incompatibility with DevilBro's RepoControls plugin. Changing sorting mode of RepoControls will temporarily break the plugin, but simply switching tabs will fix it.
+            `,
+            "1.0.2": `
+                Fixed plugin
             `
 		};
 	}
@@ -138,6 +141,8 @@ class PinPluginsAndThemes {
                         list.insertBefore(document.querySelector(`[data-name="${name}"]`), list.childNodes[idx]);
                         this.settings.pinned.splice(this.settings.pinned.indexOf(name), 1);
                         NeatoLib.showToast(name + " unpinned");
+                        let pinnedItems = document.getElementById("ptap-pinned-items");
+                        if(pinnedItems.childElementCount == 0) pinnedItems.outerHTML = "";
                     } else {
                         this.settings.pinned.push(name);
                         this.updatePinned();
@@ -164,7 +169,7 @@ class PinPluginsAndThemes {
         });
 
         this.settingsPanelEvent = () => {
-            this.settingsObserver.observe(document.getElementsByClassName(NeatoLib.Events.classes.layer)[1], { childList : true, subtree : true });
+            this.settingsObserver.observe(document.getElementsByClassName("layers-3iHuyZ")[0], { childList : true, subtree : true });
         };
 
         NeatoLib.Events.attach("settings", this.settingsPanelEvent);

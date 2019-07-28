@@ -4,8 +4,16 @@ class CustomizableAvatarDPI {
 	
 	getName() { return "Customizable Avatar DPI"; }
 	getDescription() { return "Allows you to change the DPI of user avatars, to reduce bluriness with themes that increase the size of them."; }
-	getVersion() { return "1.0.5"; }
+	getVersion() { return "1.0.6"; }
 	getAuthor() { return "Metalloriff"; }
+	getChanges() {
+		return {
+			"1.0.6":
+			`
+				Just temporary fix until Metalloriff hopefully rewrites this plugin aroung christmas time
+			`
+		}
+	}
 
 	load() {}
 
@@ -38,21 +46,16 @@ class CustomizableAvatarDPI {
 
 		setTimeout(() => {
 
-			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Small avatar size", this.settings.smallAvatarSize, e => {
-				this.settings.smallAvatarSize = e.target.value;
-				this.saveSettings();
-			}), this.getName(), { tooltip : "Member list, DM list, etc" });
-
-			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Large avatar size", this.settings.largeAvatarSize, e => {
-				this.settings.largeAvatarSize = e.target.value;
-				this.saveSettings();
-			}), this.getName(), { tooltip : "Chat avatars" });
-
 			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Popout avatar size", this.settings.popoutAvatarSize, e => {
 				this.settings.popoutAvatarSize = e.target.value;
 				this.saveSettings();
 			}), this.getName(), { tooltip : "User popouts" });
-			
+
+			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Other avatar size", this.settings.otherAvatarSize, e => {
+				this.settings.otherAvatarSize = e.target.value;
+				this.saveSettings();
+			}), this.getName(), { tooltip : "Everything else" });
+
 			NeatoLib.Settings.pushChangelogElements(this);
 
 		}, 0);
@@ -67,8 +70,7 @@ class CustomizableAvatarDPI {
 
 		this.settings = NeatoLib.Settings.load(this, {
 			popoutAvatarSize : 1024,
-			largeAvatarSize : 128,
-			smallAvatarSize : 128,
+			otherAvatarSize : 256,
 			displayUpdateNotes : true
 		});
 		
@@ -83,18 +85,17 @@ class CustomizableAvatarDPI {
 					let added = m[i].addedNodes[a];
 
 					if(!(added instanceof Element)) continue;
+					
+					let imgs = added.getElementsByClassName(NeatoLib.getClass(["avatar", "mask", "pointer", "status"], "avatar"));
+					for(let img of imgs)
+						if(img) img.src = img.src.split("?size=")[0] + "?size=" + this.settings.otherAvatarSize;
 
-					let large = added.classList.contains("avatar-large") ? [added] : added.getElementsByClassName("avatar-large");
-
-					for(let i = 0; i < large.length; i++) if(large[i].style && large[i].style.backgroundImage) large[i].style.backgroundImage = large[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.largeAvatarSize;
-
-					let popout = added.classList.contains("popout-2fzvxG") ? [added] : added.getElementsByClassName("popout-2fzvxG");
-
-					for(let i = 0; i < popout.length; i++) if(popout[i].style && popout[i].style.backgroundImage) popout[i].style.backgroundImage = popout[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.popoutAvatarSize;
-
-					let small = added.classList.contains("avatar-small") || added.classList.contains("small-5Os1Bb") || added.classList.contains("avatarContainer-72bSfM") ? [added] : Array.from(added.getElementsByClassName("avatar-small")).concat(Array.from(added.getElementsByClassName("small-5Os1Bb"))).concat(Array.from(added.getElementsByClassName("avatarContainer-72bSfM")));
-
-					for(let i = 0; i < small.length; i++) if(small[i].style && small[i].style.backgroundImage) small[i].style.backgroundImage = small[i].style.backgroundImage.split("?size=")[0] + "?size=" + this.settings.smallAvatarSize;
+					let popouts = added.classList.contains(NeatoLib.getClass(["body", "footer", "popout", "title"], "popout")) ? [added] : added.getElementsByClassName(NeatoLib.getClass(["body", "footer", "popout", "title"], "popout"));
+					for(let popout of popouts){
+						let imgs = popout.getElementsByClassName(NeatoLib.getClass(["avatar", "mask", "pointer", "status"], "avatar"));
+						for(let img of imgs)
+							if(img) img.src = img.src.split("?size=")[0] + "?size=" + this.settings.popoutAvatarSize;
+					}
 
 				}
 
@@ -105,6 +106,8 @@ class CustomizableAvatarDPI {
 		this.appObserver.observe(document.getElementById("app-mount"), { childList : true, subtree : true });
 
 		NeatoLib.Events.onPluginLoaded(this);
+		
+		NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
 		
 	}
 	

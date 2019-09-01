@@ -165,9 +165,9 @@ class ReactionImages {
 						images[images.length - 1].addEventListener("click", e => {
 							const channel = NeatoLib.getSelectedTextChannel();
 
-							if (e.shiftKey) NeatoLib.Modules.get("upload").upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
+							if (e.shiftKey) NeatoLib.Modules.find(m => m.upload && typeof m.upload === 'function').upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName));
 							else {
-								NeatoLib.Modules.get("upload").upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content: chatbox.value.substring(0, idx), tts: false });
+								NeatoLib.Modules.find(m => m.upload && typeof m.upload === 'function').upload(channel.id, new File([this.fs.readFileSync(file.path)], file.fileName), { content: chatbox.value.substring(0, idx), tts: false });
 								NeatoLib.Chatbox.setText("");
 								autocomplete.remove();
 							}

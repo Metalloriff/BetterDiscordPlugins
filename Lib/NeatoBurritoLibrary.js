@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.24",
+	version: "0.9.25",
 
 	parseVersion: function(version) {
 
@@ -1205,22 +1205,22 @@ var NeatoLib = {
 
 			<div id="neato-text-prompt-${id}" style="z-index:10000;">
 				<div class="backdrop-1wrmKB" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px);"></div>
-				<div class="modal-3c3bKg" style="opacity: 1; transform: scale(1) translateZ(0px);">
-					<div class="inner-1ilYF7" data-focus-lock-disabled="false">
-						<div class="modal-yWgWj- sizeSmall-1jtLQy">
-							<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignCenter-1dQNNs noWrap-3jynv6 header-2tA9Os" style="flex: 0 0 auto;">
+				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
+					<div class="inner-1JeGVc">
+						<div class="modal-3HD5ck sizeSmall-Sf4iOi">
+							<div class="flex-1xMQg5 flex-1O1GKY horizontal-1ae9ci horizontal-2EEEnY flex-1O1GKY directionRow-3v3tfG justifyStart-2NDFzi alignCenter-1dQNNs noWrap-3jynv6 header-1R_AjF" style="flex: 0 0 auto;">
 								<h4 class="h4-AQvcAz title-3sZWYQ size16-14cGz5 height20-mO2eIN weightSemiBold-NJexzi defaultColor-1_ajX0 defaultMarginh4-2vWMG5 marginReset-236NPn">${title}</h4>
 							</div>
-							<div class="scrollerWrap-2lJEkd firefoxFixScrollFlex-cnI2ix content-1EtbQh scrollerThemed-2oenus themeGhostHairline-DBD-2d">
-								<div class="scroller-2FKFPG firefoxFixScrollFlex-cnI2ix systemPad-3UxEGl inner-ZyuQk0">
-									<div class="spacing-ApfUws marginBottom20-32qID7">
+							<div class="content-2BXhLs">
+								<div class="inner-3wn6Q5" style="flex:1;-webkit-box-flex:1;padding-right:20px;">
+									<div class="input-2JOcvO marginBottom8-AtZOdT">
 										<h5 class="h5-18_1nd title-3sZWYQ size12-3R0845 height16-2Lv3qA weightSemiBold-NJexzi defaultMarginh5-2mL-bP marginBottom8-AtZOdT">${options.description || ""}</h5>
 										<div class="inputWrapper-31_8H8 vertical-V37hAW flex-1O1GKY directionColumn-35P_nr"><input placeholder="${options.placeholder || ""}" value="${value.split("\"").join("&quot;")}" class="inputDefault-_djjkz input-cIJ7To size16-14cGz5" type="text"></div>
 									</div>
 									<div class="reset-2ikQ30 marginBottom20-32qID7 small-29zrCQ size12-3R0845 height16-2Lv3qA primary-jw0I4K weightSemiBold-NJexzi prompt-second-option">${options.secondOptionText || ""}</div>
 								</div>
 							</div>
-							<div class="flex-1xMQg5 flex-1O1GKY horizontalReverse-2eTKWD horizontalReverse-3tRjY7 flex-1O1GKY directionRowReverse-m8IjIq justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 footer-3rDWdC" style="flex: 0 0 auto;"><button class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN prompt-confirm"><div class="contents-18-Yxp">${options.confirmText || "Save"}</div></button><button type="button" class="button-38aScr lookLink-9FtZy- colorPrimary-3b3xI6 sizeMedium-1AC_Sl grow-q77ONN prompt-cancel"><div class="contents-18-Yxp">Cancel</div></button></div>
+							<div class="flex-1xMQg5 flex-1O1GKY horizontalReverse-2eTKWD horizontalReverse-3tRjY7 flex-1O1GKY directionRowReverse-m8IjIq justifyStart-2NDFzi alignStretch-DpGPf3 noWrap-3jynv6 footer-2yfCgX" style="flex: 0 0 auto;"><button class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeMedium-1AC_Sl grow-q77ONN prompt-confirm"><div class="contents-18-Yxp">${options.confirmText || "Save"}</div></button><button type="button" class="button-38aScr lookLink-9FtZy- colorPrimary-3b3xI6 sizeMedium-1AC_Sl grow-q77ONN prompt-cancel"><div class="contents-18-Yxp">Cancel</div></button></div>
 						</div>
 					</div>
 				</div>
@@ -2541,7 +2541,7 @@ var NeatoLib = {
 
 		if (!document.getElementsByClassName("toasts").length) {
 
-			const container = document.getElementsByClassName(NeatoLib.Modules.get("channels").channels)[0].nextSibling,
+			const container = document.getElementsByClassName(NeatoLib.Modules.get("guilds").guilds)[0].nextSibling,
 				memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 				form = container ? container.getElementsByTagName("form")[0] : undefined,
 				left = container ? container.getBoundingClientRect().left : 310,
@@ -2765,7 +2765,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if ((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if ((added.classList.contains(NeatoLib.getClass("message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
 
 		if (window.neatoObserver.addedTextarea != (window.neatoObserver.addedTextarea = added.getElementsByClassName(NeatoLib.getClass("textAreaEdit", "textArea"))[0]) && window.neatoObserver.addedTextarea) call("chatbox", window.neatoObserver.addedTextarea);
 

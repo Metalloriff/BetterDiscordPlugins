@@ -4,7 +4,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.2.7"; }
+    getVersion() { return "0.2.8"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -84,7 +84,7 @@ class ShareButton {
                 let dropdown = e[0].addedNodes[0].firstChild, message = NeatoLib.ReactData.getProps(dropdown).message;
                 dropdown.insertAdjacentHTML("afterBegin", `<div id="sb-share-popout" class="btn-item">Share</div>`);
                 document.getElementById("sb-share-popout").addEventListener("click", () => {
-                    this.openShareMenu(undefined, NeatoLib.Modules.get("messageCozy").message.split(" ").join(""), `"${message.content}" - ${message.author.username}`);
+                    this.openShareMenu(undefined, NeatoLib.Modules.get("message").message.split(" ").join(""), `"${message.content}" - ${message.author.username}`);
                     dropdown.style.display = "none";
                 });
             }

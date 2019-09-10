@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.25",
+	version: "0.9.26",
 
 	parseVersion: function(version) {
 
@@ -1920,7 +1920,7 @@ var NeatoLib = {
 
 			let element = document.createElement("div");
 
-			element.classList.add(this.classes.item.split(" ")[0]);
+			element.classList.add(this.classes.item.split(" ")[0], this.classes.itemBase.split(" ")[0], this.classes.clickable.split(" ")[0]);
 
 			element.innerHTML = "<span>" + label + "</span>";
 

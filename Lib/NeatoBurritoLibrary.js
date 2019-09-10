@@ -2541,8 +2541,8 @@ var NeatoLib = {
 
 		if (!document.getElementsByClassName("toasts").length) {
 
-			const container = document.getElementsByClassName(NeatoLib.Modules.get("channels").channels)[0].nextSibling,
-				memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
+			const container = document.getElementsByClassName(NeatoLib.Modules.get("chat").chat)[0],
+				memberlist = document.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 				form = container ? container.getElementsByTagName("form")[0] : undefined,
 				left = container ? container.getBoundingClientRect().left : 310,
 				right = memberlist ? memberlist.getBoundingClientRect().left : 0,
@@ -2765,7 +2765,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if ((added.classList.contains(NeatoLib.getClass("messageCozy", "message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if ((added.classList.contains(NeatoLib.getClass("messageCompact")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCompact", "container"))) call("message");
 
 		if (window.neatoObserver.addedTextarea != (window.neatoObserver.addedTextarea = added.getElementsByClassName(NeatoLib.getClass("textAreaEdit", "textArea"))[0]) && window.neatoObserver.addedTextarea) call("chatbox", window.neatoObserver.addedTextarea);
 

@@ -1,4 +1,4 @@
-//META{"name":"VoiceChatNotifications","website":"https://metalloriff.github.io/toms-discord-stuff/","github":"https://github.com/Metalloriff/BetterDiscordPlugins","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js"}*//
+//META{"name":"VoiceChatNotifications"}*//
 
 class VoiceChatNotifications {
 	
@@ -38,16 +38,10 @@ class VoiceChatNotifications {
                 Changes are now logged while in DnD, without notifications, if suppressed.
                 Added a server mute and deafen setting.
             `,
-	    "2.2.3" :
+            "1.2.3" :
             `
                 Updated the plugin from Zere's lib to only depend on my lib.
                 The plugin name was changed. This will require you to re-enable the plugin.
-            `,
-            "2.2.4" :
-            `
-                Changed previous changelog version from 1.2.3 -> 2.2.3 to match real version number.
-                Updated meta tags to show links to my website and the GitHub source code.
-                Fixed small typos and such.
             `
 		};
 	}
@@ -80,12 +74,12 @@ class VoiceChatNotifications {
 
             NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createToggleGroup("vcn-toggles", "Settings", [
                 { title : "Display notifications on user connect/disconnect", value : "logConnections", setValue : this.settings.logConnections },
-                { title : "Display notifications on user mute/unmute", value : "logMutes", setValue : this.settings.logMutes },
+                { title : "Display notificaitons on user mute/unmute", value : "logMutes", setValue : this.settings.logMutes },
                 { title : "Display notifications on user deafen/undeafen", value : "logDeafens", setValue : this.settings.logDeafens },
                 { title : "Display notifications on user move", value : "logMoves", setValue : this.settings.logMoves },
                 { title : "Display notifications on user server mute/deafen", value : "logServerMuteDeaf", setValue : this.settings.logServerMuteDeaf },
                 { title : "Display notifications while Discord is focused", value : "displayWhileFocused", setValue : this.settings.displayWhileFocused },
-                { title : "Suppress notifications while in Do Not Disturb", value : "suppressInDnd", setValue : this.settings.suppressInDnd }
+                { title : "Suppress notifications while in do not disturb", value : "suppressInDnd", setValue : this.settings.suppressInDnd }
             ], choice => {
                 this.settings[choice.value] = !this.settings[choice.value];
                 this.saveSettings();
@@ -251,11 +245,11 @@ class VoiceChatNotifications {
                     <div class="message-group hide-overflow">
                         <div class="avatar-large stop-animation" style="background-image: url(${this.log[i].avatar});"></div>
                         <div class="comment">
-                            <div class="message">
+                            <div class=NeatoLib.Modules.get("message").message.split(" ").join("")>
                                 <div class="body">
                                     <h2 class="old-h2"><span class="username-wrapper"><strong class="user-name" style="color: white">${this.log[i].username}</strong></span><span class="highlight-separator"> - </span><span class="timestamp">${this.log[i].timestamp}</span></h2>
                                     <div class="message-text">
-                                        <div class="markup">${this.log[i].text}.</div>
+                                        <div class=NeatoLib.Modules.get("markup").markup.split(" ").join("")>${this.log[i].text}.</div>
                                     </div>
                                 </div>
                             </div>

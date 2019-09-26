@@ -1876,6 +1876,7 @@ var NeatoLib = {
 			menu.style.zIndex = 10000;
 			menu.style.top = event.clientY + "px";
 			menu.style.left = event.clientX + "px";
+			menu.style.position = 'absolute';
 
 			let close = () => {
 				menu.remove();
@@ -1939,84 +1940,33 @@ var NeatoLib = {
 		createSubMenu: function(label, items, options = {}) {
 
 			let element = document.createElement("div");
-			element.classList.add(this.classes.itemSubMenu.split(" ")[0], this.classes.itemBase.split(" ")[0], this.classes.clickable.split(" ")[0]);
 
-			let le = document.createElement("div");
-			le.classList.add(this.classes.label.split(" ")[0]);
-			le.innerText = label;
+			element.classList.add(...this.classes.itemSubMenu.split(" "));
 
-			element.appendChild(le);
-			
-			element.insertAdjacentHTML("beforeend", `
-				<svg class="caret-UIZBlm da-caret" width="24" height="24" viewBox="0 0 24 24">
-					<path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M16.59 8.59004L12 13.17L7.41 8.59004L6 10L12 16L18 10L16.59 8.59004Z"></path>
-				</svg>
-			`);
+			element.innerText = label;
 
 			if (options.color) element.style.color = options.color;
+
 			if (options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
+
 			if (options.callback) element.addEventListener("click", e => {
 				if (e.target == element) options.callback(e);
 			});
 
-			let sm, hoveringOver;
-
 			element.addEventListener("mouseenter", () => {
-				let layer = document.createElement("div");
-				layer.classList.add(NeatoLib.getClass("layer"), "neato-cl");
-
-				layer.style.left = (element.parentElement.getBoundingClientRect().left + element.getBoundingClientRect().width) + "px";
-				layer.style.top = element.getBoundingClientRect().top + "px";
-
-				let subMenu = document.createElement("div");
-				subMenu.classList.add(this.classes.subMenuContext.split(" ")[0]);
-
+				if (element.getElementsByTagName("div")[0]) return element.getElementsByTagName("div")[0].style.display = "inline-block";
 				let menu = document.createElement("div");
-
-				menu.classList.add(this.classes.contextMenu.split(" ")[0]);
-
+				menu.style.left = (element.parentElement.getBoundingClientRect().right - element.parentElement.getBoundingClientRect().left + 16) + "px";
+                		menu.style.top = (element.getBoundingClientRect().top - element.getBoundingClientRect().bottom) + "px";
+                		menu.style.position = 'absolute';
+				menu.classList.add(this.classes.contextMenu.split(" ")[0], document.getElementsByClassName("theme-dark")[0] != undefined ? "theme-dark" : "theme-light");
 				for (let i = 0; i < items.length; i++) menu.appendChild(items[i]);
-
-				subMenu.appendChild(menu);
-
-				layer.appendChild(subMenu);
-
-				document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0].appendChild(layer);
-
-				sm = layer;
-
-				subMenu.addEventListener("mouseleave", () => {
-					if (hoveringOver == subMenu) hoveringOver = null;
-				});
-
-				subMenu.addEventListener("mouseenter", () => {
-					hoveringOver = subMenu;
-				});
+				element.appendChild(menu);
 			});
 
 			element.addEventListener("mouseleave", () => {
-				setTimeout(() => {
-					if (sm && !hoveringOver) sm.remove();
-				}, 0);
+				if (element.getElementsByTagName("div")[0]) element.getElementsByTagName("div")[0].style.display = "none";
 			});
-
-			let m = new MutationObserver(e => {
-				let remove = false;
-
-				for (let i = 0; i < e.length; i++)
-				{
-					if (e[i].removedNodes && e[i].removedNodes[0]) {
-						if (!e[i].removedNodes[0].className.includes("neato-cl")) {
-							$(".neato-cl").remove();
-							remove = true;
-						}
-					}
-				}
-
-				if (remove) m.disconnect();
-			});
-
-			m.observe(document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0], { childList: true });
 
 			return element;
 
@@ -2026,7 +1976,7 @@ var NeatoLib = {
 
 			let element = document.createElement("div");
 
-			element.classList.add(this.classes.item.split(" ")[0], this.classes.itemBase.split(" ")[0], this.classes.itemToggle.split(" ")[0]);
+			element.classList.add(this.classes.item.split(" ")[0], this.classes.itemToggle.split(" ")[0]);
 
 			element.innerHTML = `
 				<div class="${this.classes.label}">${label}</div>

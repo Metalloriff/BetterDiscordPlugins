@@ -65,7 +65,7 @@ class SendBDEmotes {
 		NeatoLib.Updates.check(this);
 
 		this.hasPermission = NeatoLib.Modules.get(["can"]).can;
-		this.uploadFile = NeatoLib.Modules.get(["upload"]).upload;
+		this.uploadFile = NeatoLib.Modules.findAllByPropertyName('upload')[1];
 		this.messageModule = NeatoLib.Modules.get(["sendMessage"]);
 
 		this.settings = NeatoLib.Settings.load(this);

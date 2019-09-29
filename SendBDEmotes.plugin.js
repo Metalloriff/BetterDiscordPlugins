@@ -4,7 +4,7 @@ class SendBDEmotes {
 
   getName() { return "Send BD Emotes"; }
   getDescription() { return "Allows you to enclose Better Discord emotes in square brackets to send them as a higher resolution link that all users can see. Example: [forsenE]. You can also do [EmoteChannelName.EmoteName]. Example: [FrankerFaceZ.SeemsGood]. [EmoteName:size]. Example: [forsenE:1]. And [EmoteName_a] for animated emotes."; }
-  getVersion() { return "1.6.11"; }
+  getVersion() { return "1.6.12"; }
   getAuthor() { return "Metalloriff"; }
 
 	load() {}

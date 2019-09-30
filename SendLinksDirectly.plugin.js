@@ -74,7 +74,7 @@ class SendLinksDirectly {
 					const filename = links[i][0].substring(links[i][0].lastIndexOf("/") + 1, links[i][0].length).split("?")[0];
 
 					NeatoLib.requestFile(links[i][0], links[i].length > 1 ? links[i][1] : filename, file => {
-						NeatoLib.Modules.get("upload").upload(selectedChannel.id, file, {
+						NeatoLib.Modules.find(m => m.upload && typeof m.upload === 'function').upload(selectedChannel.id, file, {
 							content: i == 0 ? message : "",
 							tts: false
 						});
@@ -84,7 +84,7 @@ class SendLinksDirectly {
 				for (let i = 0; i < files.length; i++) {
 					const filename = files[i][0].substring(files[i][0].lastIndexOf("/") + 1, files[i][0].length);
 
-					NeatoLib.Modules.get("upload").upload(selectedChannel.id, new File([fs.readFileSync(files[i][0])], files[i].length > 1 ? files[i][1] : filename), {
+					NeatoLib.Modules.find(m => m.upload && typeof m.upload === 'function').upload(selectedChannel.id, new File([fs.readFileSync(files[i][0])], files[i].length > 1 ? files[i][1] : filename), {
 						content: i == 0 ? message : "",
 						tts: false
 					});

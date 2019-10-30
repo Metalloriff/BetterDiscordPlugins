@@ -2593,7 +2593,7 @@ var NeatoLib = {
 
 		if (!document.getElementsByClassName("toasts").length) {
 
-			const container = document.getElementsByClassName(NeatoLib.Modules.get("guilds").guilds)[0].nextSibling,
+			const container = document.getElementsByClassName(NeatoLib.Modules.get(['sidebar', 'guilds']).guilds)[0].nextSibling,
 				memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 				form = container ? container.getElementsByTagName("form")[0] : undefined,
 				left = container ? container.getBoundingClientRect().left : 310,

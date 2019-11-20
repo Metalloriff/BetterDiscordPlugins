@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.26",
+	version: "0.9.27",
 
 	parseVersion: function(version) {
 
@@ -1955,9 +1955,10 @@ var NeatoLib = {
 
 			if (options.color) element.style.color = options.color;
 			if (options.hint) element.innerHTML += `<div class="${this.classes.hint}">${options.hint}</div>`;
-			if (options.callback) element.addEventListener("click", e => {
-				if (e.target == element) options.callback(e);
-			});
+			if (options.callback) 
+				element.addEventListener("click", e => {
+					if (e.target.parentElement == element) options.callback(e);
+				});
 
 			let sm, hoveringOver;
 
@@ -1965,8 +1966,8 @@ var NeatoLib = {
 				let layer = document.createElement("div");
 				layer.classList.add(NeatoLib.getClass("layer"), "neato-cl");
 
-				layer.style.left = (element.parentElement.getBoundingClientRect().left + element.getBoundingClientRect().width) + "px";
-				layer.style.top = element.getBoundingClientRect().top + "px";
+				layer.style.left = (element.getBoundingClientRect().width) + "px";
+				layer.style.top = (element.getBoundingClientRect().y - NeatoLib.DOM.searchForParentElementByClassName(element, NeatoLib.getClass("itemSubMenu")).getBoundingClientRect().y) + "px";
 
 				let subMenu = document.createElement("div");
 				subMenu.classList.add(this.classes.subMenuContext.split(" ")[0]);
@@ -1985,38 +1986,22 @@ var NeatoLib = {
 
 				sm = layer;
 
-				subMenu.addEventListener("mouseleave", () => {
-					if (hoveringOver == subMenu) hoveringOver = null;
-				});
-
-				subMenu.addEventListener("mouseenter", () => {
+				subMenu.addEventListener("mouseenter", e => {
 					hoveringOver = subMenu;
 				});
+
+				subMenu.addEventListener("mouseleave", () => {
+					setTimeout(() => {
+						if (hoveringOver == subMenu) hoveringOver = null;
+					}, 0);
+				});
+
+				element.appendChild(layer);
 			});
 
 			element.addEventListener("mouseleave", () => {
-				setTimeout(() => {
-					if (sm && !hoveringOver) sm.remove();
-				}, 0);
+				if (sm && !hoveringOver) sm.remove();
 			});
-
-			let m = new MutationObserver(e => {
-				let remove = false;
-
-				for (let i = 0; i < e.length; i++)
-				{
-					if (e[i].removedNodes && e[i].removedNodes[0]) {
-						if (!e[i].removedNodes[0].className.includes("neato-cl")) {
-							$(".neato-cl").remove();
-							remove = true;
-						}
-					}
-				}
-
-				if (remove) m.disconnect();
-			});
-
-			m.observe(document.getElementsByClassName(NeatoLib.getClass("layerContainer"))[0], { childList: true });
 
 			return element;
 

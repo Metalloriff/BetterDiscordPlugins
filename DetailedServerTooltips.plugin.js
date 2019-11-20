@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.12"; }
+	getVersion() { return "0.3.13"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -115,7 +115,7 @@ class DetailedServerTooltips {
 
 		this.style = NeatoLib.injectCSS(`
 			.dst-tooltip {
-					width: 100%;
+					width: 225px;
 					max-width: 225px;
 					text-align: center;
 					background-color: ${this.settings.tooltipColor} !important;
@@ -257,8 +257,8 @@ class DetailedServerTooltips {
 		tooltip.className = NeatoLib.getClass("tooltip") + " " + NeatoLib.getClass("tooltip", "tooltipRight") + " dst-tooltip";
 		if (this.settings.minimalMode) tooltip.classList.add("dst-min");
 
-		tooltip.style.left = (element.getBoundingClientRect().left + element.offsetWidth + 8) + "px";
-		tooltip.style.top = ((element.getBoundingClientRect().top + (element.offsetHeight / 2)) - (tooltip.offsetHeight / 2) - 25) + "px";
+		tooltip.style.top = "0";
+		tooltip.style.left = "0";
 		tooltip.style.position = "fixed";
 
 		let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);

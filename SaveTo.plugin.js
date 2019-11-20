@@ -4,7 +4,7 @@ class SaveTo {
 
 	getName() { return "Save To"; }
 	getDescription() { return "Allows you to save images, videos, files, server icons and user avatars to your defined folders, or browse to a folder, via the context menu."; }
-	getVersion() { return "0.7.8"; }
+	getVersion() { return "0.7.9"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -369,7 +369,7 @@ class SaveTo {
 			r.push(NeatoLib.ContextMenu.createItem("Remove Folder", e => {
 				this.data.folders.splice(i, 1);
 				this.saveData();
-				e.target.remove();
+				NeatoLib.ContextMenu.close();
 			}));
 
 			r.push(NeatoLib.ContextMenu.createItem("Open Folder", () => {
@@ -425,7 +425,7 @@ class SaveTo {
 		menu.push(NeatoLib.ContextMenu.createGroup(g));
 
 		menu.push(NeatoLib.ContextMenu.createGroup([
-			NeatoLib.ContextMenu.createItem("Add Folder", () => this.browseForFolder),
+			NeatoLib.ContextMenu.createItem("Add Folder", () => this.browseForFolder()),
 			NeatoLib.ContextMenu.createItem("Browse", () => NeatoLib.browseForFile(folder => NeatoLib.downloadFile(url, folder.path, fileName), {
 				directory: true
 			})),

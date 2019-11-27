@@ -1,6 +1,6 @@
 var NeatoLib = {
 
-	version: "0.9.27",
+	version: "0.9.28",
 
 	parseVersion: function(version) {
 
@@ -2843,7 +2843,7 @@ document.addEventListener("contextmenu", window.neatoContextEvent = e => {
 
 	let rect = cm.getBoundingClientRect();
 
-	if (rect.height + rect.y > window.innerHeight) cm.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
+	if (rect.height + rect.y > window.innerHeight) cm.parentElement.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
 });
 
 if (window.neatoStyles) window.neatoStyles.destroy();

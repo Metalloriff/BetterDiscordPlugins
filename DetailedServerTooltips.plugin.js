@@ -263,8 +263,20 @@ class DetailedServerTooltips {
 
 		let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);
 
+		let imgURL = guild.getIconURL().split(".webp?size=128")[0] + ".gif";
+		var request;
+		if (window.XMLHttpRequest) request = new XMLHttpRequest();
+		else request = new ActiveXObject("Microsoft.XMLHTTP");
+		request.open('GET',imgURL,false);
+		try {
+			request.send();
+		}
+		catch(e) {
+			imgURL = guild.getIconURL();
+		}
+		
 		tooltip.innerHTML = `${this.escapeHtml(guild.name)}
-				<div class="dst-tooltip-icon" style="background-image: url(${guild.getIconURL()}?size=2048);"></div>
+				<div class="dst-tooltip-icon" style="background-image: url(${imgURL}?size=2048);"></div>
 				<div id="dst-tooltip-owner-label" class="dst-tooltip-label">Owner: ${owner ? this.escapeHtml(owner.tag) : "unknown"}</div>
 				<div class="dst-tooltip-label">Created at: ${creationDate.toLocaleDateString()}, ${creationDate.toLocaleTimeString()} (${Math.round(Math.abs(creationDate.getTime() - new Date().getTime()) / 86400000)} days ago)</div>
 				${creationDate.toString() == guild.joinedAt.toString() ? "" : `<div class="dst-tooltip-label">Joined at: ${guild.joinedAt.toLocaleDateString()}, ${guild.joinedAt.toLocaleTimeString()} (${Math.round(Math.abs(guild.joinedAt.getTime() - new Date().getTime()) / 86400000)} days ago)</div>`}

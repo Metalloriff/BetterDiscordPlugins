@@ -263,15 +263,20 @@ class DetailedServerTooltips {
 
 		let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);
 
-		let imgURL = guild.getIconURL().split(".webp?size=128")[0] + ".gif";
-		var request;
-		if (window.XMLHttpRequest) request = new XMLHttpRequest();
-		else request = new ActiveXObject("Microsoft.XMLHTTP");
-		request.open('GET',imgURL,false);
-		try {
-			request.send();
-		}
-		catch(e) {
+		var imgURL;
+		if (guild.getIconURL()) {
+			imgURL = guild.getIconURL().split(".webp?size=128")[0] + ".gif";
+			var request;
+			if (window.XMLHttpRequest) request = new XMLHttpRequest();
+			else request = new ActiveXObject("Microsoft.XMLHTTP");
+			request.open('GET',imgURL,false);
+			try {
+				request.send();
+			}
+			catch(e) {
+				imgURL = guild.getIconURL();
+			}
+		} else {
 			imgURL = guild.getIconURL();
 		}
 		

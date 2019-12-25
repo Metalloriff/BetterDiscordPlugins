@@ -1,188 +1,168 @@
-//META{"name":"AvatarIconViewer","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
-
-class AvatarIconViewer {
-
-	getName() { return "User Avatar And Server Icon Viewer"; }
-	getDescription() { return "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally."; }
-	getVersion() { return "0.5.27"; }
-	getAuthor() { return "Metalloriff"; }
-
-	load() {}
-
-	start() {
-		let libLoadedEvent = () => {
-			try{ this.onLibLoaded(); }
-			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-		};
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(!lib) {
-			lib = document.createElement("script");
-			lib.id = "NeatoBurritoLibrary";
-			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
-			document.head.appendChild(lib);
-		}
-		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
+//META{"name":"AvatarIconViewer","displayName":"User Avatar And Server Icon Viewer","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js"}*//
+/*@cc_on
+@if (@_jscript)
+	
+	// Offer to self-install for clueless users that try to run this directly.
+	var shell = WScript.CreateObject("WScript.Shell");
+	var fs = new ActiveXObject("Scripting.FileSystemObject");
+	var pathPlugins = shell.ExpandEnvironmentStrings("%APPDATA%\BetterDiscord\plugins");
+	var pathSelf = WScript.ScriptFullName;
+	// Put the user at ease by addressing them in the first person
+	shell.Popup("It looks like you've mistakenly tried to run me directly. \n(Don't do that!)", 0, "I'm a plugin for BetterDiscord", 0x30);
+	if (fs.GetParentFolderName(pathSelf) === fs.GetAbsolutePathName(pathPlugins)) {
+		shell.Popup("I'm in the correct folder already.", 0, "I'm already installed", 0x40);
+	} else if (!fs.FolderExists(pathPlugins)) {
+		shell.Popup("I can't find the BetterDiscord plugins folder.\nAre you sure it's even installed?", 0, "Can't install myself", 0x10);
+	} else if (shell.Popup("Should I copy myself to BetterDiscord's plugins folder for you?", 0, "Do you need some help?", 0x34) === 6) {
+		fs.CopyFile(pathSelf, fs.BuildPath(pathPlugins, fs.GetFileName(pathSelf)), true);
+		// Show the user where to put plugins in the future
+		shell.Exec("explorer " + pathPlugins);
+		shell.Popup("I'm installed!", 0, "Successfully installed", 0x40);
 	}
+	WScript.Quit();
+@else@*/
 
-	onLibLoaded() {
-		if(!NeatoLib.hasRequiredLibVersion(this, "0.0.3")) return;
+var AvatarIconViewer = (() => {
+	const config = {
+		info: {
+			name: "AvatarIconViewer",
+			authors: [{
+				name: "Metalloriff",
+				discord_id: "264163473179672576",
+				github_username: "Metalloriff",
+				twitter_username: "Metalloriff"
+			}],
+			version: "1.5.27",
+			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
+			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
+			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
+		},
+		changelog: [{
+			title: "Rewrite",
+			type: "fixed",
+			items: ["Rewritten using ZLib now instead of NeatoLib."]
+		}],
+		main: "index.js",
+		defaultConfig: []
+	};
 
-		NeatoLib.Updates.check(this, "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js");
+	return !global.ZeresPluginLibrary || !global.XenoLib ? class {
+		getName() { return config.info.name; }
+		getAuthor() { return config.info.authors.map(x => x.name).join(", "); }
+		getDescription() { return config.info.description; }
+		getVersion() { return config.info.version; }
 
-		this.classes = NeatoLib.getClasses(["maskProfile", "guildIconImage", "member", "reactor", "iconSizeSmall", "listAvatar"], false);
+		load() {
+			const XenoLibMissing = !global.XenoLib;
+			const zlibMissing = !global.ZeresPluginLibrary;
+			const bothLibsMissing = XenoLibMissing && zlibMissing;
+			const header = `Missing ${(bothLibsMissing && 'Libraries') || 'Library'}`;
+			const content = `The ${(bothLibsMissing && 'Libraries') || 'Library'} ${(zlibMissing && 'ZeresPluginLibrary') || ''} ${(XenoLibMissing && (zlibMissing ? 'and XenoLib' : 'XenoLib')) || ''} required for ${this.name} ${(bothLibsMissing && 'are') || 'is'} missing.`;
+			const ModalStack = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey');
+			const TextElement = BdApi.findModuleByProps('Sizes', 'Weights');
+			const ConfirmationModal = BdApi.findModule(m => m.defaultProps && m.key && m.key() === 'confirm-modal');
+			const onFail = () => BdApi.getCore().alert(header, `${content}<br/>Due to a slight mishap however, you'll have to download the libraries yourself. After opening the links, do CTRL + S to download the library.<br/>${(zlibMissing && '<br/><a href="https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js"target="_blank">Click here to download ZeresPluginLibrary</a>') || ''}${(zlibMissing && '<br/><a href="http://localhost:7474/XenoLib.js"target="_blank">Click here to download XenoLib</a>') || ''}`);
+			if (!ModalStack || !ConfirmationModal || !TextElement) return onFail();
+			ModalStack.push(props => {
+			  return BdApi.React.createElement(
+				ConfirmationModal,
+				Object.assign(
+				  {
+					header,
+					children: [TextElement({ color: TextElement.Colors.PRIMARY, children: [`${content} Please click Download Now to install ${(bothLibsMissing && 'them') || 'it'}.`] })],
+					red: false,
+					confirmText: 'Download Now',
+					cancelText: 'Cancel',
+					onConfirm: () => {
+					  const request = require('request');
+					  const fs = require('fs');
+					  const path = require('path');
+					  const waitForLibLoad = callback => {
+						if (!global.BDEvents) return callback();
+						const onLoaded = e => {
+						  if (e !== 'ZeresPluginLibrary') return;
+						  BDEvents.off('plugin-loaded', onLoaded);
+						  callback();
+						};
+						BDEvents.on('plugin-loaded', onLoaded);
+					  };
+					  const onDone = () => {
+						if (!global.pluginModule || (!global.BDEvents && !global.XenoLib)) return;
+						if (!global.BDEvents || global.XenoLib) pluginModule.reloadPlugin(this.name);
+						else {
+						  const listener = () => {
+							pluginModule.reloadPlugin(this.name);
+							BDEvents.off('xenolib-loaded', listener);
+						  };
+						  BDEvents.on('xenolib-loaded', listener);
+						}
+					  };
+					  const downloadXenoLib = () => {
+						if (global.XenoLib) return onDone();
+						request('https://raw.githubusercontent.com/1Lighty/BetterDiscordPlugins/master/Plugins/1XenoLib.plugin.js', (error, response, body) => {
+						  if (error) return onFail();
+						  onDone();
+						  fs.writeFile(path.join(window.ContentManager.pluginsFolder, '1XenoLib.plugin.js'), body, () => {});
+						});
+					  };
+					  if (!global.ZeresPluginLibrary) {
+						request('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', (error, response, body) => {
+						  if (error) return onFail();
+						  waitForLibLoad(downloadXenoLib);
+						  fs.writeFile(path.join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, () => {});
+						});
+					  } else downloadXenoLib();
+					}
+				  },
+				  props
+				)
+			  );
+			});
+		}
+  
+		
+		start() {}
+		stop() {}
+	} : (([Plugin, Api]) => {
+		const plugin = (Plugin, Api) => {
+			const {PluginUtilities, DiscordModules, DiscordSelectors, ReactTools, DOMTools, Utilities, WebpackModules} = Api;
 
-		this.contextEvent = e => this.onContextMenu(e);
+			return class AvatarIconViewer extends Plugin {
+				onStart() {
+					XenoLib.patchContext(this.handleContextMenu);
+				}
+	
+				onStop() {
+					XenoLib.unpatchContext(this.handleContextMenu);
+				}
 
-		this.keyUpEvent = e => {
-			if(e.keyCode == 27) {
-				this.destroyPreview();
-				document.removeEventListener("keyup", this.keyUpEvent);
+				handleContextMenu(_this, returnValue) {
+					if (_this.props.user) {
+						const url = _this.props.user.avatarURL.replace("?size=128", "?size=2048");
+						
+						returnValue.props.children.push(XenoLib.createContextMenuGroup([
+							XenoLib.createContextMenuItem("View Avatar", () => {
+								DiscordModules.ModalStack.push(e => DiscordModules.React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
+									...e,
+									src: url,
+									placeholder: url,
+									original: url,
+									width: 2048,
+									height: 2048,
+									onClickUntrusted: e => e.openHref()
+								}));
+							}),
+							XenoLib.createContextMenuItem("Copy Avatar Link", () => {
+								ZeresPluginLibrary.WebpackModules.getByProps(["copy"]).copy(url);
+								ZeresPluginLibrary.DiscordModules.ContextMenuActions.closeContextMenu();
+							})
+						]));
+					}
+				}
 			}
 		};
 
-		document.addEventListener("contextmenu", this.contextEvent);
-
-		NeatoLib.Events.onPluginLoaded(this);
-	}
-
-	onContextMenu(e) {
-		let context = NeatoLib.ContextMenu.get(), viewLabel = "View Avatar", copyLabel = "Copy Avatar Link";
-
-		if(!context && !e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) && !e.target.classList.contains(this.classes.guildIconImage.split(" ")[0]) && !e.target.classList.contains("clickable")) return;
-
-		this.url = "";
-
-		if(!context) context = NeatoLib.ContextMenu.create([NeatoLib.ContextMenu.createGroup([])], e);
-
-		const
-		getAvatar = () => {
-			const user = NeatoLib.ReactData.get(context).return.return.return.return.memoizedProps.user;
-
-			if (user) this.url = user.getAvatarURL();
-			else return null;
-
-			if(this.url.includes("/a_")) this.url = this.url.replace(".png", ".gif");
-
-			return this.url;
-		},
-
-		getServerIcon = () => {
-			const guild = NeatoLib.ReactData.getProp(context, "guild");
-
-			if (guild && !NeatoLib.ReactData.getProp(context, "channel")) this.url = guild.getIconURL();
-			else if (e.target.className.includes("guildIconImage")) this.url = e.target.style.backgroundImage.split('"')[1];
-			else return null;
-
-			viewLabel = "View Icon";
-			copyLabel = "Copy Icon Link";
-
-			return this.url;
-		},
-
-		getEmoji = () => {
-			if(!e.target.classList.contains("emoji")) return null;
-
-			this.url = e.target.src;
-
-			viewLabel = "View Emoji";
-
-			return this.url;
-		},
-
-		formatURL = () => {
-			this.url = this.url.split("?size")[0] + "?size=2048";
-		};
-
-		if(context && NeatoLib.ReactData.get(context) && (getServerIcon() || getAvatar() || getEmoji())) {
-
-			formatURL();
-
-			let par = context.getElementsByClassName(NeatoLib.ContextMenu.classes.itemGroup)[1] || context.getElementsByClassName(NeatoLib.ContextMenu.classes.itemGroup)[0];
-
-			if(viewLabel) par.appendChild(NeatoLib.ContextMenu.createItem(viewLabel, () => this.createImagePreview()));
-			if(copyLabel) par.appendChild(NeatoLib.ContextMenu.createItem(copyLabel, () => this.copyURL()));
-
-		} else if(e.target.classList.contains(this.classes.maskProfile.split(" ")[0]) || e.target.classList.contains("clickable")){
-
-			let targ = e.target.classList.contains("clickable") ? NeatoLib.DOM.searchForParentElementByClassName(e.target, "avatar-large") : e.target;
-
-			if(!targ.style.backgroundImage) targ = targ.parentElement.getElementsByClassName(this.classes.maskProfile.split(" ")[0])[0];
-			if(targ.style.backgroundImage) this.url = targ.style.backgroundImage.match(/".*"/)[0].replace(/"/g, "");
-			else return;
-
-			formatURL();
-
-			const menu = NeatoLib.ContextMenu.create([
-				NeatoLib.ContextMenu.createGroup([
-					NeatoLib.ContextMenu.createItem("View Avatar", () => this.createImagePreview(menu)),
-					NeatoLib.ContextMenu.createItem("Copy Avatar Link", () => this.copyURL(menu))
-				])
-			], e);
-
-		}
-
-	}
-
-	createImagePreview(cm) {
-		if(!document.getElementById("avatar-img-preview")){
-			document.addEventListener("keyup", this.keyUpEvent);
-
-			if (cm) cm.remove();
-			NeatoLib.ContextMenu.close();
-
-			let scale = window.innerHeight - 160;
-
-			document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend",
-			`<div id="aiv-preview-window" style="z-index: 5000">
-				<div id="aiv-preview-backdrop" style="opacity: 0.85; background-color: rgb(0, 0, 0); transform: translateZ(0px); top: 0; left: 0; bottom: 0; right: 0; position: fixed;"></div>
-				<div class="modal-1UGdnR" style="opacity: 1; transform: scale(1) translateZ(0px);">
-					<div class="inner-1JeGVc">
-						<div>
-							<div class="imageWrapper-2p5ogY" style="width: ${scale}px; height: ${scale}px;"><img src="${this.url}" style="width: 100%; height: 100%;"></div>
-							<div style="text-align: center; padding-top: 5px;"><button id="aiv-preview-copy" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;"><div class="contents-4L4hQM">Copy URL</div></button>
-								<button id="aiv-preview-close" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;">
-									<div class="contents-4L4hQM">Close</div>
-								</button>
-								<button id="aiv-preview-open" class="button-38aScr lookFilled-1Gx00P colorBrand-3pXr91 sizeSmall-2cSMqn grow-q77ONN" type="button" style="display: inline-block; height: 30px !important; min-height: 30px !important; margin-right: 5px; margin-left: 5px;">
-									<div class="contents-4L4hQM">Open Externally</div>
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>`);
-
-			document.getElementById("aiv-preview-backdrop").addEventListener("click", () => this.destroyPreview());
-			document.getElementById("aiv-preview-close").addEventListener("click", () => this.destroyPreview());
-			document.getElementById("aiv-preview-copy").addEventListener("click", () => this.copyURL());
-			document.getElementById("aiv-preview-open").addEventListener("click", () => this.openURL());
-		}
-	}
-
-	destroyPreview() {
-		if(document.getElementById("aiv-preview-window")) document.getElementById("aiv-preview-window").remove();
-		document.removeEventListener("keyup", this.keyUpEvent);
-	}
-
-	copyURL(cm) {
-		if (cm) cm.remove();
-		NeatoLib.ContextMenu.close();
-
-		NeatoLib.Modules.get("copy").copy(this.url);
-		NeatoLib.showToast("Link copied to clipboard", "success");
-	}
-
-	openURL() {
-		window.open(this.url);
-	}
-
-	stop() {
-		document.removeEventListener("contextmenu", this.contextEvent);
-		document.removeEventListener("keyup", this.keyUpEvent);
-	}
-
-}
+		return plugin(Plugin, Api);
+	})(global.ZeresPluginLibrary.buildPlugin(config));
+})();
+/*@end@*/

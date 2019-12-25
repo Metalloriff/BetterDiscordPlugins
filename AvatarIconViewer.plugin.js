@@ -32,15 +32,15 @@ var AvatarIconViewer = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.5.27",
+			version: "1.5.29",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
 		},
 		changelog: [{
-			title: "Rewrite",
-			type: "fixed",
-			items: ["Rewritten using ZLib now instead of NeatoLib."]
+			title: "Fuck",
+			type: "improved",
+			items: ["I forgot the server icons in the rewrite."]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -157,6 +157,28 @@ var AvatarIconViewer = (() => {
 								ZeresPluginLibrary.DiscordModules.ContextMenuActions.closeContextMenu();
 							})
 						]));
+					}
+
+					if (_this.props.guild) {
+						const url = _this.props.guild.getIconURL().replace("?size=128", "?size=2048");
+
+						returnValue.props.children.push(XenoLib.createContextMenuGroup([
+							XenoLib.createContextMenuItem("View Icon", () => {
+								DiscordModules.ModalStack.push(e => DiscordModules.React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
+									...e,
+									src: url,
+									placeholder: url,
+									original: url,
+									width: 2048,
+									height: 2048,
+									onClickUntrusted: e => e.openHref()
+								}));
+							}),
+							XenoLib.createContextMenuItem("Copy Icon Link", () => {
+								ZeresPluginLibrary.WebpackModules.getByProps(["copy"]).copy(url);
+								ZeresPluginLibrary.DiscordModules.ContextMenuActions.closeContextMenu();
+							})
+						]))
 					}
 				}
 			}

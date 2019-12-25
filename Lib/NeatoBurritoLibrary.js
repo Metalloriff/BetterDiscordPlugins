@@ -2553,7 +2553,7 @@ var NeatoLib = {
 			case "darwin":
 				return path.resolve(proc.env.HOME, "Library/Preferences/", "BetterDiscord/plugins/");
 			default:
-				path.resolve(proc.env.HOME, ".config/", "BetterDiscord/plugins/");
+				return path.resolve(proc.env.HOME, ".config/", "BetterDiscord/plugins/");
 		}
 
 	},

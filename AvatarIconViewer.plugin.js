@@ -32,15 +32,15 @@ var AvatarIconViewer = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.5.29",
+			version: "1.5.30",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
 		},
 		changelog: [{
-			title: "Fuck",
+			title: "Shit",
 			type: "improved",
-			items: ["I forgot the server icons in the rewrite."]
+			items: ["I also forgot animated avatars."]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -138,7 +138,11 @@ var AvatarIconViewer = (() => {
 
 				handleContextMenu(_this, returnValue) {
 					if (_this.props.user) {
-						const url = _this.props.user.avatarURL.replace("?size=128", "?size=2048");
+						let url = _this.props.user.avatarURL.replace("?size=128", "?size=2048");
+						
+						if (_this.props.user.avatar.startsWith("a_")) {
+							url = url.replace(".png", ".gif");
+						}
 						
 						returnValue.props.children.push(XenoLib.createContextMenuGroup([
 							XenoLib.createContextMenuItem("View Avatar", () => {
@@ -160,7 +164,11 @@ var AvatarIconViewer = (() => {
 					}
 
 					if (_this.props.guild) {
-						const url = _this.props.guild.getIconURL().replace("?size=128", "?size=2048");
+						let url = _this.props.guild.getIconURL().replace("?size=128", "?size=2048");
+						
+						if (_this.props.guild.getIconURL().includes("/a_")) {
+							url = url.replace(".webp", ".gif");
+						}
 
 						returnValue.props.children.push(XenoLib.createContextMenuGroup([
 							XenoLib.createContextMenuItem("View Icon", () => {

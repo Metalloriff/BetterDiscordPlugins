@@ -32,7 +32,7 @@ var AvatarIconViewer = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.5.32",
+			version: "1.5.33",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
@@ -40,7 +40,7 @@ var AvatarIconViewer = (() => {
 		changelog: [{
 			title: "REEE",
 			type: "fixed",
-			items: ["Fixed an image size issue."]
+			items: ["Fixed an image size issue.", "Fixed errors being thrown when right clicking on a server with no icon."]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -64,68 +64,69 @@ var AvatarIconViewer = (() => {
 			const onFail = () => BdApi.getCore().alert(header, `${content}<br/>Due to a slight mishap however, you'll have to download the libraries yourself. After opening the links, do CTRL + S to download the library.<br/>${(zlibMissing && '<br/><a href="https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js"target="_blank">Click here to download ZeresPluginLibrary</a>') || ''}${(zlibMissing && '<br/><a href="http://localhost:7474/XenoLib.js"target="_blank">Click here to download XenoLib</a>') || ''}`);
 			if (!ModalStack || !ConfirmationModal || !TextElement) return onFail();
 			ModalStack.push(props => {
-			  return BdApi.React.createElement(
+				return BdApi.React.createElement(
 				ConfirmationModal,
 				Object.assign(
-				  {
+					{
 					header,
 					children: [TextElement({ color: TextElement.Colors.PRIMARY, children: [`${content} Please click Download Now to install ${(bothLibsMissing && 'them') || 'it'}.`] })],
 					red: false,
 					confirmText: 'Download Now',
 					cancelText: 'Cancel',
 					onConfirm: () => {
-					  const request = require('request');
-					  const fs = require('fs');
-					  const path = require('path');
-					  const waitForLibLoad = callback => {
+						const request = require('request');
+						const fs = require('fs');
+						const path = require('path');
+						const waitForLibLoad = callback => {
 						if (!global.BDEvents) return callback();
 						const onLoaded = e => {
-						  if (e !== 'ZeresPluginLibrary') return;
-						  BDEvents.off('plugin-loaded', onLoaded);
-						  callback();
+							if (e !== 'ZeresPluginLibrary') return;
+							BDEvents.off('plugin-loaded', onLoaded);
+							callback();
 						};
 						BDEvents.on('plugin-loaded', onLoaded);
-					  };
-					  const onDone = () => {
+						};
+						const onDone = () => {
 						if (!global.pluginModule || (!global.BDEvents && !global.XenoLib)) return;
 						if (!global.BDEvents || global.XenoLib) pluginModule.reloadPlugin(this.name);
 						else {
-						  const listener = () => {
+							const listener = () => {
 							pluginModule.reloadPlugin(this.name);
 							BDEvents.off('xenolib-loaded', listener);
-						  };
-						  BDEvents.on('xenolib-loaded', listener);
+							};
+							BDEvents.on('xenolib-loaded', listener);
 						}
-					  };
-					  const downloadXenoLib = () => {
+						};
+						const downloadXenoLib = () => {
 						if (global.XenoLib) return onDone();
 						request('https://raw.githubusercontent.com/1Lighty/BetterDiscordPlugins/master/Plugins/1XenoLib.plugin.js', (error, response, body) => {
-						  if (error) return onFail();
-						  onDone();
-						  fs.writeFile(path.join(window.ContentManager.pluginsFolder, '1XenoLib.plugin.js'), body, () => {});
+							if (error) return onFail();
+							onDone();
+							fs.writeFile(path.join(window.ContentManager.pluginsFolder, '1XenoLib.plugin.js'), body, () => {});
 						});
-					  };
-					  if (!global.ZeresPluginLibrary) {
+						};
+						if (!global.ZeresPluginLibrary) {
 						request('https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js', (error, response, body) => {
-						  if (error) return onFail();
-						  waitForLibLoad(downloadXenoLib);
-						  fs.writeFile(path.join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, () => {});
+							if (error) return onFail();
+							waitForLibLoad(downloadXenoLib);
+							fs.writeFile(path.join(window.ContentManager.pluginsFolder, '0PluginLibrary.plugin.js'), body, () => {});
 						});
-					  } else downloadXenoLib();
+						} else downloadXenoLib();
 					}
-				  },
-				  props
+					},
+					props
 				)
-			  );
+				);
 			});
 		}
-  
+	
 		
 		start() {}
 		stop() {}
 	} : (([Plugin, Api]) => {
 		const plugin = (Plugin, Api) => {
-			const {PluginUtilities, DiscordModules, DiscordSelectors, ReactTools, DOMTools, Utilities, WebpackModules} = Api;
+			const { DiscordModules, WebpackModules} = Api;
+			const { React, ModalStack } = DiscordModules;
 
 			return class AvatarIconViewer extends Plugin {
 				onStart() {
@@ -139,7 +140,7 @@ var AvatarIconViewer = (() => {
 				handleContextMenu(_this, returnValue) {
 					let url, viewLabel, copyLabel;
 
-					if (_this.props.user) {
+					if (_this.props.user && _this.props.user.avatar) {
 						url = _this.props.user.avatarURL.split("?")[0] + "?size=2048";
 						
 						if (_this.props.user.avatar.startsWith("a_")) {
@@ -150,10 +151,10 @@ var AvatarIconViewer = (() => {
 						copyLabel = "Copy Avatar Link";
 					}
 
-					if (_this.props.guild) {
+					if (_this.props.guild && _this.props.guild.icon) {
 						url = _this.props.guild.getIconURL().split("?")[0] + "?size=2048";
 						
-						if (_this.props.guild.getIconURL().includes("/a_")) {
+						if (url.includes("/a_")) {
 							url = url.replace(".webp", ".gif");
 						}
 						
@@ -161,38 +162,34 @@ var AvatarIconViewer = (() => {
 						copyLabel = "Copy Icon Link";
 					}
 
-					if (_this.props.target.className.includes("emoji")) {
+					if (_this.props.target && typeof _this.props.target.className === 'string' && _this.props.target.className.includes("emoji")) {
 						url = _this.props.target.src;
 
 						viewLabel = "View Emoji";
 					}
 
-					if (url && viewLabel) {
-						let buttons = [
-							XenoLib.createContextMenuItem(viewLabel, () => {
-								DiscordModules.ModalStack.push(e => DiscordModules.React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
-									...e,
-									src: url,
-									placeholder: url,
-									original: url,
-									width: 2048,
-									height: 2048,
-									onClickUntrusted: e => e.openHref()
-								}));
-							})
-						];
-
-						if (copyLabel) {
-							buttons.push(
-								XenoLib.createContextMenuItem(copyLabel, () => {
-									Api.WebpackModules.getByProps("copy").copy(url);
-									DiscordModules.ContextMenuActions.closeContextMenu();
-								})
-							);
-						}
-
-						returnValue.props.children.push(XenoLib.createContextMenuGroup(buttons));
+					if (!url || !viewLabel)  return;
+					let buttons = [
+						XenoLib.createContextMenuItem(viewLabel, () => {
+							ModalStack.push(e => React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
+								...e,
+								src: url,
+								placeholder: url,
+								original: url,
+								width: 2048,
+								height: 2048,
+								onClickUntrusted: e => e.openHref()
+							}));
+						})
+					];
+					
+					if (copyLabel) {
+						buttons.push(
+							XenoLib.createContextMenuItem(copyLabel, () => WebpackModules.getByProps("copy").copy(url))
+						);
 					}
+					
+					returnValue.props.children.push(XenoLib.createContextMenuGroup(buttons));
 				}
 			}
 		};

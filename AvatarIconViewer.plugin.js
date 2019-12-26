@@ -32,15 +32,15 @@ var AvatarIconViewer = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.5.30",
+			version: "1.5.31",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
 		},
 		changelog: [{
-			title: "Shit",
+			title: "Dammit",
 			type: "improved",
-			items: ["I also forgot animated avatars."]
+			items: ["I ALSO forgot emojis."]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -137,41 +137,39 @@ var AvatarIconViewer = (() => {
 				}
 
 				handleContextMenu(_this, returnValue) {
+					let url, viewLabel, copyLabel;
+
 					if (_this.props.user) {
-						let url = _this.props.user.avatarURL.replace("?size=128", "?size=2048");
+						url = _this.props.user.avatarURL.replace("?size=128", "?size=2048");
 						
 						if (_this.props.user.avatar.startsWith("a_")) {
 							url = url.replace(".png", ".gif");
 						}
-						
-						returnValue.props.children.push(XenoLib.createContextMenuGroup([
-							XenoLib.createContextMenuItem("View Avatar", () => {
-								DiscordModules.ModalStack.push(e => DiscordModules.React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
-									...e,
-									src: url,
-									placeholder: url,
-									original: url,
-									width: 2048,
-									height: 2048,
-									onClickUntrusted: e => e.openHref()
-								}));
-							}),
-							XenoLib.createContextMenuItem("Copy Avatar Link", () => {
-								ZeresPluginLibrary.WebpackModules.getByProps(["copy"]).copy(url);
-								ZeresPluginLibrary.DiscordModules.ContextMenuActions.closeContextMenu();
-							})
-						]));
+
+						viewLabel = "View Avatar";
+						copyLabel = "Copy Avatar Link";
 					}
 
 					if (_this.props.guild) {
-						let url = _this.props.guild.getIconURL().replace("?size=128", "?size=2048");
+						url = _this.props.guild.getIconURL().replace("?size=128", "?size=2048");
 						
 						if (_this.props.guild.getIconURL().includes("/a_")) {
 							url = url.replace(".webp", ".gif");
 						}
+						
+						viewLabel = "View Icon";
+						copyLabel = "Copy Icon Link";
+					}
 
-						returnValue.props.children.push(XenoLib.createContextMenuGroup([
-							XenoLib.createContextMenuItem("View Icon", () => {
+					if (_this.props.target.className.includes("emoji")) {
+						url = _this.props.target.src;
+
+						viewLabel = "View Emoji";
+					}
+
+					if (url && viewLabel) {
+						let buttons = [
+							XenoLib.createContextMenuItem(viewLabel, () => {
 								DiscordModules.ModalStack.push(e => DiscordModules.React.createElement(WebpackModules.getByDisplayName("ImageModal"), {
 									...e,
 									src: url,
@@ -181,12 +179,19 @@ var AvatarIconViewer = (() => {
 									height: 2048,
 									onClickUntrusted: e => e.openHref()
 								}));
-							}),
-							XenoLib.createContextMenuItem("Copy Icon Link", () => {
-								ZeresPluginLibrary.WebpackModules.getByProps(["copy"]).copy(url);
-								ZeresPluginLibrary.DiscordModules.ContextMenuActions.closeContextMenu();
 							})
-						]))
+						];
+
+						if (copyLabel) {
+							buttons.push(
+								XenoLib.createContextMenuItem(copyLabel, () => {
+									Api.WebpackModules.getByProps("copy").copy(url);
+									DiscordModules.ContextMenuActions.closeContextMenu();
+								})
+							);
+						}
+
+						returnValue.props.children.push(XenoLib.createContextMenuGroup(buttons));
 					}
 				}
 			}

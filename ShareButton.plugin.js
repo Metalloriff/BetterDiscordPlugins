@@ -4,7 +4,7 @@ class ShareButton {
 	
     getName() { return "Share Button"; }
     getDescription() { return "Allows you to easily share images, videos, links and messages to other channels and servers via the context menu and message dropdown menu."; }
-    getVersion() { return "0.2.8"; }
+    getVersion() { return "0.2.9"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -19,6 +19,10 @@ class ShareButton {
             "0.2.7" :
             `
                 Fixed the plugin, but the recent channels is still broken. I will try to fix it soon.
+            `,
+            "0.2.8" :
+            `
+                Fixed not showing guilds
             `
 		};
 	}
@@ -337,7 +341,10 @@ class ShareButton {
             updateChannels();
         };
 
-        let guilds = this.sortedGuildModule.getSortedGuilds(), guildsParent, allChannels = Object.values(this.channelModule.getChannels()).sort((x, y) => x.position - y.position);
+        let guilds = [], guildsParent, allChannels = Object.values(this.channelModule.getChannels()).sort((x, y) => x.position - y.position);
+        this.sortedGuildModule.getSortedGuilds().forEach(e => {
+            guilds.push(...e.guilds);
+        });
 
         for(let i = 0; i < guilds.length; i++) {
             if(!guildsParent) {
@@ -420,7 +427,7 @@ class ShareButton {
                 };
             }
 
-            guildsParent.insertAdjacentHTML("beforeEnd", `<div data-server-id="${guilds[i].guild.id}" data-opened="false" class="sb-server-item sb-button"><div class="sb-server-item-icon" style="background-image: url('${guilds[i].guild.getIconURL()}');"><div class="sb-server-item-label">${guilds[i].guild.name}</div></div><div class="sb-server-item-channels"></div></div>`);
+            guildsParent.insertAdjacentHTML("beforeEnd", `<div data-server-id="${guilds[i].id}" data-opened="false" class="sb-server-item sb-button"><div class="sb-server-item-icon" style="background-image: url('${guilds[i].getIconURL()}');"><div class="sb-server-item-label">${guilds[i].name}</div></div><div class="sb-server-item-channels"></div></div>`);
         }
         
         let channelClickEvent = e => {

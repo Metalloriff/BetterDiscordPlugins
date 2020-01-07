@@ -1876,6 +1876,7 @@ var NeatoLib = {
 			menu.style.zIndex = 10000;
 			menu.style.top = event.clientY + "px";
 			menu.style.left = event.clientX + "px";
+			menu.style.position = 'relative';
 
 			let close = () => {
 				menu.remove();
@@ -2833,18 +2834,6 @@ NeatoLib.ContextMenu.classes = NeatoLib.Modules.get("contextMenu");
 
 NeatoLib.getSelectedServer = NeatoLib.getSelectedGuild;
 NeatoLib.getSelectedServerId = NeatoLib.getSelectedGuildId;
-
-if (window.neatoContextEvent) document.removeEventListener("contextmenu", window.neatoContextEvent);
-
-document.addEventListener("contextmenu", window.neatoContextEvent = e => {
-	let cm = NeatoLib.ContextMenu.get();
-
-	if (!cm) return;
-
-	let rect = cm.getBoundingClientRect();
-
-	if (rect.height + rect.y > window.innerHeight) cm.parentElement.style.top = `calc(${rect.y}px - ${rect.height + rect.y - window.innerHeight}px)`;
-});
 
 if (window.neatoStyles) window.neatoStyles.destroy();
 window.neatoStyles = NeatoLib.injectCSS(`

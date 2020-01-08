@@ -46,7 +46,7 @@ var PreventSpotifyAutoPause = (() => {
 		defaultConfig: []
 	};
 
-	return !global.ZeresPluginLibrary || !global.XenoLib ? class {
+	return !global.ZeresPluginLibrary ? class {
 		getName() { return config.info.name; }
 		getAuthor() { return config.info.authors.map(x => x.name).join(", "); }
 		getDescription() { return config.info.description; }

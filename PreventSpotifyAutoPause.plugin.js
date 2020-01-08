@@ -32,7 +32,7 @@ var PreventSpotifyAutoPause = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.0.2",
+			version: "1.0.3",
 			description: "Prevents Discord from automatically pausing Spotify after transmitting your microphone for 30 seconds.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/PreventSpotifyAutoPause.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/PreventSpotifyAutoPause.plugin.js"
@@ -40,13 +40,13 @@ var PreventSpotifyAutoPause = (() => {
 		changelog: [{
 			title: "Rewrite",
 			type: "fixed",
-			items: ["Rewritten with new libraries."]
+			items: ["Rewritten with new libraries.", "Removed unneeded XenoLib dependency"]
 		}],
 		main: "index.js",
 		defaultConfig: []
 	};
 
-	return !global.ZeresPluginLibrary || !global.XenoLib ? class {
+	return !global.ZeresPluginLibrary ? class {
 		getName() { return config.info.name; }
 		getAuthor() { return config.info.authors.map(x => x.name).join(", "); }
 		getDescription() { return config.info.description; }

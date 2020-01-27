@@ -4,7 +4,7 @@ class PinCollapsedChannels {
 
 	getName() { return "PinCollapsedChannels"; }
 	getDescription() { return "Allows you to pin channels on collapsed categories, similar to if there was an unread message."; }
-	getVersion() { return "0.0.1"; }
+	getVersion() { return "0.0.2"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -62,8 +62,10 @@ class PinCollapsedChannels {
 
 		NeatoLib.Updates.check(this);
 
-		this.unpatch = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get("isChannelCollapsed"), "isChannelCollapsed", e => {
-			if (this.settings.pinnedChannels.includes(e.args[0].id)) return false;
+		this.unpatch = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.find(m => m.default && m.default.toString().search(/return!0;return \w&&\w\.default\.isGuildCollapsed\(\w\)}/) !== -1), "default", e => {
+			if (this.settings.pinnedChannels.includes(e.args[0].id)){
+				return false;
+			}
 			else return e.callDefault();
 		});
 

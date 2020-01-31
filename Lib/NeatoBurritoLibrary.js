@@ -2579,7 +2579,7 @@ var NeatoLib = {
 
 		if (!document.getElementsByClassName("toasts").length) {
 
-			const container = document.getElementsByClassName(NeatoLib.Modules.get(['sidebar', 'guilds']).guilds)[0].nextSibling,
+			const container = document.getElementsByClassName(NeatoLib.Modules.get(['sidebar', 'guilds']).guilds.split(" ")[0])[0].nextSibling,
 				memberlist = container.getElementsByClassName(NeatoLib.Modules.get("membersWrap").membersWrap)[0],
 				form = container ? container.getElementsByTagName("form")[0] : undefined,
 				left = container ? container.getBoundingClientRect().left : 310,
@@ -2788,7 +2788,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 	for (let i = 0; i < mutations.length; i++) {
 
 		if (mutations[i].removedNodes[0] != undefined && mutations[i].removedNodes[0] instanceof Element) {
-			if (mutations[i].removedNodes[0].classList.contains(NeatoLib.Events.classes.activityFeed) || mutations[i].removedNodes[0].id == "friends") {
+			if (mutations[i].removedNodes[0].id == "friends") {
 				call("switch");
 			}
 		}
@@ -2799,7 +2799,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if (added.classList.contains(NeatoLib.Events.classes.layer)) call("settings");
 
-		if (added.classList.contains(NeatoLib.Events.classes.activityFeed) || added.id == "friends") call("switch");
+		if (added.id == "friends") call("switch");
 
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
@@ -2821,11 +2821,9 @@ NeatoLib.Modules.Stores = {
 	SelectedChannels: NeatoLib.Modules.get(["getChannelId", "getVoiceChannelId"]),
 	Users: NeatoLib.Modules.get(["getUser", "getUsers"]),
 	Members: NeatoLib.Modules.get(["getMember", "getMembers"]),
-	Activities: NeatoLib.Modules.get(["getActivity", "getActivities"])
 };
 
 NeatoLib.Events.classes = {
-	activityFeed: NeatoLib.Modules.get("activityFeed").activityFeed.split(" ")[0],
 	layer: NeatoLib.Modules.get("layer").layer.split(" ")[0],
 	socialLinks: NeatoLib.Modules.get("socialLinks").socialLinks.split(" ")[0]
 };

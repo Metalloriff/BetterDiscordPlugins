@@ -69,7 +69,7 @@ var AvatarIconViewer = (() => {
 				Object.assign(
 					{
 					header,
-					children: [TextElement({ color: TextElement.Colors.PRIMARY, children: [`${content} Please click Download Now to install ${(bothLibsMissing && 'them') || 'it'}.`] })],
+					children: [BdApi.React.createElement(TextElement, { color: TextElement.Colors.PRIMARY, children: [`${content} Please click Download Now to install ${(bothLibsMissing && 'them') || 'it'}.`] })],
 					red: false,
 					confirmText: 'Download Now',
 					cancelText: 'Cancel',

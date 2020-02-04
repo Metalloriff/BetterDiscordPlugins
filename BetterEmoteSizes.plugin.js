@@ -90,7 +90,7 @@ class BetterEmoteSizes {
 	}
 
 	update() {
-		const markup = NeatoLib.getClass("markup"), markupRtl = NeatoLib.getClass('markupRtl'), messageGroup = NeatoLib.getClass("containerCozyBounded", "container"), message = NeatoLib.getClass("message"), reaction = NeatoLib.getClass("reaction"), 		reactionMe = NeatoLib.getClass("reactionMe");
+		const markup = NeatoLib.getClass("markup"), markupRtl = NeatoLib.getClass('markupRtl'), messageGroup = "container-3FojY8", message = NeatoLib.getClass("message"), reaction = NeatoLib.getClass("reaction"), 		reactionMe = NeatoLib.getClass("reactionMe");
 
 		if (this.style) this.style.destroy();
 		this.style = NeatoLib.injectCSS(`.${messageGroup} { overflow: visible; }`);

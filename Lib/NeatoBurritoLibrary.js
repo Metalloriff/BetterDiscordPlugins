@@ -2803,7 +2803,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if ((added.classList.contains(NeatoLib.getClass("message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if ((added.classList.contains(NeatoLib.getClass("message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClasses("containerCozy", "container"))) call("message");
 
 		if (window.neatoObserver.addedTextarea != (window.neatoObserver.addedTextarea = added.getElementsByClassName(NeatoLib.getClass("textArea"))[0]) && window.neatoObserver.addedTextarea) call("chatbox", window.neatoObserver.addedTextarea);
 

@@ -4,7 +4,7 @@ class DetailedServerTooltips {
 
 	getName() { return "DetailedServerTooltips"; }
 	getDescription() { return "Displays a more detailed tooltip for servers similar to user popouts. Contains a larger image, owner's tag, date, time and days ago created, date, time and days ago joined, member count, channel count, role count, region, and whether or not the server is partnered."; }
-	getVersion() { return "0.3.13"; }
+	getVersion() { return "0.3.14"; }
 	getAuthor() { return "Metalloriff"; }
 	getChanges() {
 		return {
@@ -218,7 +218,6 @@ class DetailedServerTooltips {
 
 		this.guildObserver = new MutationObserver(this.switchEvent);
 		this.guildObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], { childList: true, subtree: true });
-		this.guildObserver.observe(document.getElementsByClassName(NeatoLib.getClass("firefoxFixScrollFlex"))[0], { childList: true, subtree: true });
 
 		NeatoLib.Events.attach("switch", this.switchEvent);
 

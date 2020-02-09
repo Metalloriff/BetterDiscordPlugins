@@ -82,7 +82,7 @@ var PreventSpotifyAutoPause = (() => {
 		const plugin = (Plugin, Api) => {
 			return class PreventSpotifyAutoPause extends Plugin {
 				onStart() {
-                    this.unpatch = Api.Patcher.instead(Api.WebpackModules.getAllByProps("SpotifyAPI", "pause"), "pause", () => {});
+                    this.unpatch = Api.Patcher.instead(Api.WebpackModules.getByProps("SpotifyAPI", "pause"), "pause", () => {});
 				}
 	
 				onStop() {

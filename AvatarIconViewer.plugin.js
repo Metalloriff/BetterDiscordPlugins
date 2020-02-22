@@ -171,11 +171,11 @@ var AvatarIconViewer = (() => {
 						if (nWidth > nHeight) {
 							const scale = 2048 / nWidth;
 							width = 2048;
-							height = nHeight * scale;
+							height = Math.ceil(nHeight * scale);
 						} else {
 							const scale = 2048 / nHeight;
 							height = 2048;
-							width = nWidth * scale;
+							width = Math.ceil(nWidth * scale);
 						}
 					}
 

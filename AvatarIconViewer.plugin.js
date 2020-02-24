@@ -32,7 +32,7 @@ var AvatarIconViewer = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.5.33",
+			version: "1.5.34",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
@@ -40,7 +40,7 @@ var AvatarIconViewer = (() => {
 		changelog: [{
 			title: "REEE",
 			type: "fixed",
-			items: ["Fixed an image size issue.", "Fixed errors being thrown when right clicking on a server with no icon."]
+			items: ["Fixed View Emoji proportions issue"]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -161,11 +161,22 @@ var AvatarIconViewer = (() => {
 						viewLabel = "View Icon";
 						copyLabel = "Copy Icon Link";
 					}
-
+					let width = 2048;
+					let height = 2048;
 					if (_this.props.target && typeof _this.props.target.className === 'string' && _this.props.target.className.includes("emoji")) {
 						url = _this.props.target.src;
-
 						viewLabel = "View Emoji";
+						const nWidth = _this.props.target.naturalWidth;
+						const nHeight = _this.props.target.naturalHeight;
+						if (nWidth > nHeight) {
+							const scale = 2048 / nWidth;
+							width = 2048;
+							height = Math.ceil(nHeight * scale);
+						} else {
+							const scale = 2048 / nHeight;
+							height = 2048;
+							width = Math.ceil(nWidth * scale);
+						}
 					}
 
 					if (!url || !viewLabel)  return;
@@ -176,8 +187,8 @@ var AvatarIconViewer = (() => {
 								src: url,
 								placeholder: url,
 								original: url,
-								width: 2048,
-								height: 2048,
+								width: width,
+								height: height,
 								onClickUntrusted: e => e.openHref()
 							}));
 						})

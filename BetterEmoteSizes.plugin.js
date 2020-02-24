@@ -22,6 +22,7 @@ class BetterEmoteSizes {
 			hoverSize: { label: "Emoji and BetterDiscord emote hover size multiplier", type: "number" },
 			reactionHoverSize: { label: "Reaction hover size multiplier", type: "number" },
 			transitionSpeed: { label: "Transition speed (seconds)", type: "number" },
+			delayAmount: { label: "Delay amount (seconds)", type: "number" },
 			equal: { label: "Small and large emote zoom to equal", type: "bool" }
 		};
 	}
@@ -41,6 +42,7 @@ class BetterEmoteSizes {
 			reactionSize: 16,
 			hoverSize: 3,
 			transitionSpeed: 0.5,
+			delayAmount: 0,
 			reactionHoverSize: 2,
 			equal: false
 		};
@@ -103,12 +105,14 @@ class BetterEmoteSizes {
 					width: auto;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
+					transition-delay: 0s;
 				}
 				#app-mount .${markup} > .emoji:not(.jumboable):hover,
 				#app-mount .${markupRtl} > .emoji:not(.jumboable):hover {
 					transform: scale(${this.settings.equal ? ((this.settings.largeSize / this.settings.smallSize) * this.settings.hoverSize) : this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
+					transition-delay: ${this.settings.delayAmount}s;
 				}
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markup} .emoji:not(.jumboable):hover,
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markupRtl} .emoji:not(.jumboable):hover {
@@ -125,12 +129,14 @@ class BetterEmoteSizes {
 					width: auto;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
+					transition-delay: 0s;
 				}
 				#app-mount .${markup} > .emoji.jumboable:hover,
 				#app-mount .${markupRtl} > .emoji.jumboable:hover {
 					transform: scale(${this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
+					transition-delay: ${this.settings.delayAmount}s;
 				}
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markup} .emoji.jumboable:hover,
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .${markupRtl} .emoji.jumboable:hover {
@@ -147,11 +153,13 @@ class BetterEmoteSizes {
 					max-height: ${this.settings.bdSize}px !important;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
+					transition-delay: 0s;
 				}
 				#app-mount .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):not(.jumboable):hover {
 					transform: scale(${this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
+					transition-delay: ${this.settings.delayAmount}s;
 				}
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .emote:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):not(.jumboable):hover {
 					transform: scale(${this.settings.hoverSize}) translateY(-35%);
@@ -167,11 +175,13 @@ class BetterEmoteSizes {
 					max-height: ${this.settings.largeBdSize}px !important;
 					transform: scale(1);
 					transition: transform ${this.settings.transitionSpeed}s;
+					transition-delay: 0s;
 				}
 				#app-mount .emote.jumboable:not(.emoteshake):not(.emoteshake2):not(.emoteshake3):hover {
 					transform: scale(${this.settings.hoverSize});
 					position: relative;
 					z-index: 1;
+					transition-delay: ${this.settings.delayAmount}s;
 				}
 				#app-mount .${messageGroup}:last-child .${message}:nth-last-child(2) .emote.jumboable:not(.emoteshake2):not(.emoteshake3):hover {
 					transform: scale(${this.settings.hoverSize}) translateY(-35%);
@@ -187,10 +197,12 @@ class BetterEmoteSizes {
 				}
 				#app-mount .${reaction} {
 					transition: transform ${this.settings.transitionSpeed}s;
+					transition-delay: 0s;
 				}
 				#app-mount .${reaction}:hover {
 					transform: scale(${this.settings.reactionHoverSize}) !important;
 					z-index: 1000;
+					transition-delay: ${this.settings.delayAmount}s;
 				}
 			`);
 		}

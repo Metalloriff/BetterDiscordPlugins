@@ -32,15 +32,15 @@ var PreventSpotifyAutoPause = (() => {
 				github_username: "Metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "1.0.3",
+			version: "1.0.4",
 			description: "Prevents Discord from automatically pausing Spotify after transmitting your microphone for 30 seconds.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/PreventSpotifyAutoPause.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/PreventSpotifyAutoPause.plugin.js"
 		},
 		changelog: [{
-			title: "Rewrite",
+			title: "fixed",
 			type: "fixed",
-			items: ["Rewritten with new libraries.", "Removed unneeded XenoLib dependency"]
+			items: ["Fixed not working"]
 		}],
 		main: "index.js",
 		defaultConfig: []
@@ -61,7 +61,7 @@ var PreventSpotifyAutoPause = (() => {
             ModalStack.push(function(props) {
                 return BdApi.React.createElement(ConfirmationModal, Object.assign({
                     header: title,
-                    children: [TextElement({color: TextElement.Colors.PRIMARY, children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]})],
+                    children: [BdApi.React.createElement(TextElement, {color: TextElement.Colors.PRIMARY, children: [`The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`]})],
                     red: false,
                     confirmText: "Download Now",
                     cancelText: "Cancel",
@@ -82,7 +82,7 @@ var PreventSpotifyAutoPause = (() => {
 		const plugin = (Plugin, Api) => {
 			return class PreventSpotifyAutoPause extends Plugin {
 				onStart() {
-                    this.unpatch = Api.Patcher.instead(ZLibrary.WebpackModules.getByProps("SpotifyResourceTypes", "pause"), "pause", () => {});
+                    this.unpatch = Api.Patcher.instead(Api.WebpackModules.getByProps("SpotifyAPI", "pause"), "pause", () => {});
 				}
 	
 				onStop() {

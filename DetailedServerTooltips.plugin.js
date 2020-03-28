@@ -262,22 +262,7 @@ class DetailedServerTooltips {
 
 		let creationDate = NeatoLib.getSnowflakeCreationDate(guild.id);
 
-		var imgURL;
-		if (guild.getIconURL()) {
-			imgURL = guild.getIconURL().split(".webp?size=128")[0] + ".gif";
-			var request;
-			if (window.XMLHttpRequest) request = new XMLHttpRequest();
-			else request = new ActiveXObject("Microsoft.XMLHTTP");
-			request.open('GET',imgURL,false);
-			try {
-				request.send();
-			}
-			catch(e) {
-				imgURL = guild.getIconURL();
-			}
-		} else {
-			imgURL = guild.getIconURL();
-		}
+		var imgURL = guild.getIconURL(guild && guild.icon && guild.icon.startsWith('a_') ? 'gif' : 'webp');
 		
 		tooltip.innerHTML = `${this.escapeHtml(guild.name)}
 				<div class="dst-tooltip-icon" style="background-image: url(${imgURL}?size=2048);"></div>

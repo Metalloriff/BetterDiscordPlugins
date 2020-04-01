@@ -497,7 +497,7 @@ var NeatoLib = {
 
 						if (field.array) {
 							const addButton = document.createElement("button"), clearButton = document.createElement("button");
-							addButton.className = clearButton.className = [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("button", "sizeMedium"), NeatoLib.getClass("grow")].join(" ");
+							addButton.className = clearButton.className = [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("sizeMedium"), NeatoLib.getClass("grow")].join(" ");
 							addButton.style = clearButton.style = "display:inline;margin:0 10px";
 
 							addButton.textContent = "Add";
@@ -831,7 +831,7 @@ var NeatoLib = {
 				let element = document.createElement("button");
 
 				element.setAttribute("style", `display:inline-block;${style}`);
-				element.setAttribute("class", [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("button", "sizeMedium"), NeatoLib.getClass("grow")].join(" "));
+				element.setAttribute("class", [NeatoLib.getClass("button"), NeatoLib.getClass("lookFilled"), NeatoLib.getClass("colorBrand"), NeatoLib.getClass("sizeMedium"), NeatoLib.getClass("grow")].join(" "));
 
 				for (let key in attributes) element.setAttribute(key, attributes[key]);
 
@@ -1660,10 +1660,6 @@ var NeatoLib = {
 
 				NeatoLib.showToast(`${pluginName} was updated to v${latestVersion}.`, "success");
 
-				let rnm = (window.bdplugins["Restart-No-More"] && window.pluginCookie["Restart-No-More"]) || (window.bdplugins["Restart No More"] && window.pluginCookie["Restart No More"]);
-
-				if (!rnm) {
-
 					if (!window.PluginUpdates.downloaded) {
 
 						window.PluginUpdates.downloaded = [];
@@ -1679,12 +1675,12 @@ var NeatoLib = {
 						});
 
 						let tooltip = document.createElement("div");
-						tooltip.className = NeatoLib.getClass("tooltips", "tooltip") + " " + NeatoLib.getClass("tooltips", "bottom") + " " + NeatoLib.getClass("tooltips", "black");
+						tooltip.className = NeatoLib.getClass("tooltip") + " " + NeatoLib.getClass("tooltip", "tooltipBottom") + " " + NeatoLib.getClass("tooltip", "tooltipBlack");
 
 						tooltip.style.maxWidth = "400px";
 
 						button.addEventListener("mouseenter", () => {
-							document.getElementsByClassName(NeatoLib.getClass("tooltips"))[0].appendChild(tooltip);
+							document.getElementsByClassName(NeatoLib.getClass("tooltip"))[0].appendChild(tooltip);
 							tooltip.innerText = window.PluginUpdates.downloaded.join(", ");
 							tooltip.style.left = button.getBoundingClientRect().left + (button.offsetWidth / 2) - (tooltip.offsetWidth / 2) + "px";
 							tooltip.style.top = button.getBoundingClientRect().top + button.offsetHeight + "px";
@@ -1699,8 +1695,6 @@ var NeatoLib = {
 					window.PluginUpdates.plugins[url].version = latestVersion;
 					window.PluginUpdates.downloaded.push(pluginName);
 					NeatoLib.Updates.hideNotice(pluginName);
-
-				}
 
 			});
 
@@ -2358,7 +2352,10 @@ var NeatoLib = {
 	},
 
 	getClass: function(moduleName, className = moduleName, index = 0) {
-		return NeatoLib.Modules.get(moduleName)[className].split(" ")[index];
+		let temp = NeatoLib.Modules.get(moduleName);
+		if(!temp) return;
+		if(!temp[className]) return temp[moduleName].split(" ")[index];
+		return temp[className].split(" ")[index];
 	},
 
 	getClasses: function(classes, returnAll = true) {
@@ -2758,10 +2755,12 @@ var NeatoLib = {
 
 var Metalloriff = NeatoLib;
 
-for (let pluginName in window.bdplugins) {
-	if (typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
+var mesquite = BdApi.Plugins.getAll().map(x => x.getName());
+
+for (let pluginName of mesquite) {
+	if (typeof BdApi.Plugins.get(pluginName).onLibLoaded == "function" && !BdApi.Plugins.get(pluginName).ready) {
 		setTimeout(() => {
-			if (window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
+			if (BdApi.Plugins.get(pluginName).onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(BdApi.Plugins.get(pluginName));
 		}, 100);
 	}
 }
@@ -2803,7 +2802,7 @@ window.neatoObserver = new MutationObserver(mutations => {
 
 		if (added.classList.contains(NeatoLib.getClass("messagesWrapper")) || added.getElementsByClassName(NeatoLib.getClass("messagesWrapper"))[0] != undefined) call("switch");
 
-		if ((added.classList.contains(NeatoLib.getClass("message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("containerCozy", "container"))) call("message");
+		if ((added.classList.contains(NeatoLib.getClass("message")) && !added.className.includes("sending")) || added.classList.contains(NeatoLib.getClass("cozyMessage"))) call("message");
 
 		if (window.neatoObserver.addedTextarea != (window.neatoObserver.addedTextarea = added.getElementsByClassName(NeatoLib.getClass("textArea"))[0]) && window.neatoObserver.addedTextarea) call("chatbox", window.neatoObserver.addedTextarea);
 

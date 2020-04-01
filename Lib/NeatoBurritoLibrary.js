@@ -1660,10 +1660,6 @@ var NeatoLib = {
 
 				NeatoLib.showToast(`${pluginName} was updated to v${latestVersion}.`, "success");
 
-				let rnm = (window.bdplugins["Restart-No-More"] && window.pluginCookie["Restart-No-More"]) || (window.bdplugins["Restart No More"] && window.pluginCookie["Restart No More"]);
-
-				if (!rnm) {
-
 					if (!window.PluginUpdates.downloaded) {
 
 						window.PluginUpdates.downloaded = [];
@@ -1699,8 +1695,6 @@ var NeatoLib = {
 					window.PluginUpdates.plugins[url].version = latestVersion;
 					window.PluginUpdates.downloaded.push(pluginName);
 					NeatoLib.Updates.hideNotice(pluginName);
-
-				}
 
 			});
 
@@ -2758,10 +2752,12 @@ var NeatoLib = {
 
 var Metalloriff = NeatoLib;
 
-for (let pluginName in window.bdplugins) {
-	if (typeof window.bdplugins[pluginName].plugin.onLibLoaded == "function" && !window.bdplugins[pluginName].plugin.ready) {
+var mesquite = BdApi.Plugins.getAll().map(x => x.getName());
+
+for (let pluginName in mesquite) {
+	if (typeof BdApi.Plugins.get(pluginName).onLibLoaded == "function" && !BdApi.Plugins.get(pluginName).ready) {
 		setTimeout(() => {
-			if (window.bdplugins[pluginName].plugin.onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(window.bdplugins[pluginName].plugin);
+			if (BdApi.Plugins.get(pluginName).onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(BdApi.Plugins.get(pluginName));
 		}, 100);
 	}
 }

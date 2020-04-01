@@ -2754,7 +2754,7 @@ var Metalloriff = NeatoLib;
 
 var mesquite = BdApi.Plugins.getAll().map(x => x.getName());
 
-for (let pluginName in mesquite) {
+for (let pluginName of mesquite) {
 	if (typeof BdApi.Plugins.get(pluginName).onLibLoaded == "function" && !BdApi.Plugins.get(pluginName).ready) {
 		setTimeout(() => {
 			if (BdApi.Plugins.get(pluginName).onLibLoaded.toString().indexOf("NeatoLib.Events.onPluginLoaded") == -1) NeatoLib.Events.onPluginLoaded(BdApi.Plugins.get(pluginName));

@@ -34,7 +34,7 @@ var AvatarIconViewer = (() => {
           twitter_username: 'Metalloriff'
         }
       ],
-      version: '1.6.0',
+      version: '1.6.1',
       description: 'Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.',
       github: 'https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js',
       github_raw: 'https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js'
@@ -64,7 +64,7 @@ var AvatarIconViewer = (() => {
     console.error('Error checking if libraries are out of date', i);
   }
 
-  return !global.ZeresPluginLibrary || !global.XenoLib
+  return !global.ZeresPluginLibrary || !global.XenoLib || ZeresPluginLibraryOutdated || XenoLibOutdated
     ? class {
         constructor() {
           this._XL_PLUGIN = true;
@@ -192,6 +192,7 @@ var AvatarIconViewer = (() => {
 
           const ImageModal = WebpackModules.getByDisplayName('ImageModal');
           const AvatarModule = WebpackModules.getByProps('getChannelIconURL');
+          const ElectronModule = require('electron');
 
           return class AvatarIconViewer extends Plugin {
             constructor() {
@@ -308,7 +309,7 @@ var AvatarIconViewer = (() => {
                   },
                   'aiv-view'
                 ),
-                canCopy ? XenoLib.createContextMenuItem(`Copy ${type} Link`, () => global.copy(url), 'aiv-copy') : null
+                canCopy ? XenoLib.createContextMenuItem(`Copy ${type} Link`, () => ElectronModule.clipboard.writeText(url), 'aiv-copy') : null
               ]);
             }
           };

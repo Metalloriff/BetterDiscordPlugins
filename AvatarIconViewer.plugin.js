@@ -34,7 +34,7 @@ var AvatarIconViewer = (() => {
           twitter_username: 'Metalloriff'
         }
       ],
-      version: '1.6.1',
+      version: '1.6.2',
       description: 'Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu. You may also directly copy the image URL or open the URL externally.',
       github: 'https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js',
       github_raw: 'https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js'
@@ -43,7 +43,7 @@ var AvatarIconViewer = (() => {
       {
         title: 'REEE',
         type: 'fixed',
-        items: ['Fixed plugin not working']
+        items: ['Fixed plugin not working, again']
       }
     ],
     main: 'index.js',
@@ -84,8 +84,8 @@ var AvatarIconViewer = (() => {
         }
         stop() {}
         handleMissingLib() {
-          const a = BdApi.findModuleByProps('isModalOpenWithKey');
-          if (a && a.isModalOpenWithKey(`${this.getName()}_DEP_MODAL`)) return;
+          const a = BdApi.findModuleByProps('openModal', 'hasModalOpen');
+          if (a && a.hasModalOpen(`${this.getName()}_DEP_MODAL`)) return;
           const b = !global.XenoLib,
             c = !global.ZeresPluginLibrary,
             d = (b && c) || ((b || c) && (XenoLibOutdated || ZeresPluginLibraryOutdated)),
@@ -97,102 +97,93 @@ var AvatarIconViewer = (() => {
               let a = `The ${d ? 'libraries' : 'library'} `;
               return b || XenoLibOutdated ? ((a += 'XenoLib '), (c || ZeresPluginLibraryOutdated) && (a += 'and ZeresPluginLibrary ')) : (c || ZeresPluginLibraryOutdated) && (a += 'ZeresPluginLibrary '), (a += `required for ${this.getName()} ${d ? 'are' : 'is'} ${b || c ? 'missing' : ''}${XenoLibOutdated || ZeresPluginLibraryOutdated ? (b || c ? ' and/or outdated' : 'outdated') : ''}.`), a;
             })(),
-            g = BdApi.findModuleByProps('push', 'update', 'pop', 'popWithKey'),
-            h = BdApi.findModuleByDisplayName('Text'),
-            i = BdApi.findModule(a => a.defaultProps && a.key && 'confirm-modal' === a.key()),
-            j = () => BdApi.alert(e, BdApi.React.createElement('span', {}, BdApi.React.createElement('div', {}, f), `Due to a slight mishap however, you'll have to download the libraries yourself. This is not intentional, something went wrong, errors are in console.`, c || ZeresPluginLibraryOutdated ? BdApi.React.createElement('div', {}, BdApi.React.createElement('a', { href: 'https://betterdiscord.net/ghdl?id=2252', target: '_blank' }, 'Click here to download ZeresPluginLibrary')) : null, b || XenoLibOutdated ? BdApi.React.createElement('div', {}, BdApi.React.createElement('a', { href: 'https://betterdiscord.net/ghdl?id=3169', target: '_blank' }, 'Click here to download XenoLib')) : null));
-          if (!g || !i || !h) return console.error(`Missing components:${(g ? '' : ' ModalStack') + (i ? '' : ' ConfirmationModalComponent') + (h ? '' : 'TextElement')}`), j();
-          class k extends BdApi.React.PureComponent {
+            g = BdApi.findModuleByDisplayName('Text'),
+            h = BdApi.findModuleByDisplayName('ConfirmModal'),
+            i = () => BdApi.alert(e, BdApi.React.createElement('span', {}, BdApi.React.createElement('div', {}, f), `Due to a slight mishap however, you'll have to download the libraries yourself. This is not intentional, something went wrong, errors are in console.`, c || ZeresPluginLibraryOutdated ? BdApi.React.createElement('div', {}, BdApi.React.createElement('a', { href: 'https://betterdiscord.net/ghdl?id=2252', target: '_blank' }, 'Click here to download ZeresPluginLibrary')) : null, b || XenoLibOutdated ? BdApi.React.createElement('div', {}, BdApi.React.createElement('a', { href: 'https://betterdiscord.net/ghdl?id=3169', target: '_blank' }, 'Click here to download XenoLib')) : null));
+          if (!a || !h || !g) return console.error(`Missing components:${(a ? '' : ' ModalStack') + (h ? '' : ' ConfirmationModalComponent') + (g ? '' : 'TextElement')}`), i();
+          class j extends BdApi.React.PureComponent {
             constructor(a) {
-              super(a), (this.state = { hasError: !1 });
-            }
-            componentDidCatch(a) {
-              console.error(`Error in ${this.props.label}, screenshot or copy paste the error above to Lighty for help.`), this.setState({ hasError: !0 }), 'function' == typeof this.props.onError && this.props.onError(a);
-            }
-            render() {
-              return this.state.hasError ? null : this.props.children;
+              super(a), (this.state = { hasError: !1 }), (this.componentDidCatch = a => (console.error(`Error in ${this.props.label}, screenshot or copy paste the error above to Lighty for help.`), this.setState({ hasError: !0 }), 'function' == typeof this.props.onError && this.props.onError(a))), (this.render = () => (this.state.hasError ? null : this.props.children));
             }
           }
-          class l extends i {
-            submitModal() {
-              this.props.onConfirm();
-            }
-          }
-          let m = !1,
-            n = !1;
-          const o = g.push(
-            a => {
-              if (n) return null;
+          let k = !1,
+            l = !1;
+          const m = a.openModal(
+            b => {
+              if (l) return null;
               try {
                 return BdApi.React.createElement(
-                  k,
-                  {
-                    label: 'missing dependency modal',
-                    onError: () => {
-                      g.popWithKey(o), j();
-                    }
-                  },
+                  j,
+                  { label: 'missing dependency modal', onError: () => (a.closeModal(m), i()) },
                   BdApi.React.createElement(
-                    l,
+                    h,
                     Object.assign(
                       {
                         header: e,
-                        children: [BdApi.React.createElement(h, { size: h.Sizes.SIZE_16, children: [`${f} Please click Download Now to download ${d ? 'them' : 'it'}.`] })],
+                        children: BdApi.React.createElement(g, { size: g.Sizes.SIZE_16, children: [`${f} Please click Download Now to download ${d ? 'them' : 'it'}.`] }),
                         red: !1,
                         confirmText: 'Download Now',
                         cancelText: 'Cancel',
+                        onCancel: b.onClose,
                         onConfirm: () => {
-                          if (m) return;
-                          m = !0;
-                          const a = require('request'),
-                            b = require('fs'),
-                            c = require('path'),
-                            d = BdApi.Plugins && BdApi.Plugins.folder ? BdApi.Plugins.folder : window.ContentManager.pluginsFolder,
-                            e = () => {
+                          if (k) return;
+                          k = !0;
+                          const b = require('request'),
+                            c = require('fs'),
+                            d = require('path'),
+                            e = BdApi.Plugins && BdApi.Plugins.folder ? BdApi.Plugins.folder : window.ContentManager.pluginsFolder,
+                            f = () => {
                               (global.XenoLib && !XenoLibOutdated) ||
-                                a('https://raw.githubusercontent.com/1Lighty/BetterDiscordPlugins/master/Plugins/1XenoLib.plugin.js', (a, e, f) => {
+                                b('https://raw.githubusercontent.com/1Lighty/BetterDiscordPlugins/master/Plugins/1XenoLib.plugin.js', (b, f, g) => {
                                   try {
-                                    if (a || 200 !== e.statusCode) return g.popWithKey(o), j();
-                                    b.writeFile(c.join(d, '1XenoLib.plugin.js'), f, () => {});
-                                  } catch (a) {
-                                    console.error('Fatal error downloading XenoLib', a), g.popWithKey(o), j();
+                                    if (b || 200 !== f.statusCode) return a.closeModal(m), i();
+                                    c.writeFile(d.join(e, '1XenoLib.plugin.js'), g, () => {});
+                                  } catch (b) {
+                                    console.error('Fatal error downloading XenoLib', b), a.closeModal(m), i();
                                   }
                                 });
                             };
                           !global.ZeresPluginLibrary || ZeresPluginLibraryOutdated
-                            ? a('https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js', (a, f, h) => {
+                            ? b('https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js', (b, g, h) => {
                                 try {
-                                  if (a || 200 !== f.statusCode) return g.popWithKey(o), j();
-                                  b.writeFile(c.join(d, '0PluginLibrary.plugin.js'), h, () => {}), e();
-                                } catch (a) {
-                                  console.error('Fatal error downloading ZeresPluginLibrary', a), g.popWithKey(o), j();
+                                  if (b || 200 !== g.statusCode) return a.closeModal(m), i();
+                                  c.writeFile(d.join(e, '0PluginLibrary.plugin.js'), h, () => {}), f();
+                                } catch (b) {
+                                  console.error('Fatal error downloading ZeresPluginLibrary', b), a.closeModal(m), i();
                                 }
                               })
-                            : e();
+                            : f();
                         }
                       },
-                      a
+                      b,
+                      { onClose: () => {} }
                     )
                   )
                 );
-              } catch (a) {
-                return console.error('There has been an error constructing the modal', a), (n = !0), g.popWithKey(o), j(), null;
+              } catch (b) {
+                return console.error('There has been an error constructing the modal', b), (l = !0), a.closeModal(m), i(), null;
               }
             },
-            void 0,
-            `${this.getName}_DEP_MODAL`
+            { modalKey: `${this.getName()}_DEP_MODAL` }
           );
         }
       }
     : (([Plugin, Api]) => {
         const plugin = (Plugin, Api) => {
           const { DiscordModules, WebpackModules, Logger, Utilities } = Api;
-          const { React, ModalStack } = DiscordModules;
+          const { React } = DiscordModules;
           const Patcher = XenoLib.createSmartPatcher(Api.Patcher);
+
+          const ModalStack = WebpackModules.getByProps('openModal', 'hasModalOpen');
 
           const ImageModal = WebpackModules.getByDisplayName('ImageModal');
           const AvatarModule = WebpackModules.getByProps('getChannelIconURL');
           const ElectronModule = require('electron');
+
+          const MaskedLink = WebpackModules.getByDisplayName('MaskedLink');
+          const renderLinkComponent = props => React.createElement(MaskedLink, props);
+          const Modals = WebpackModules.getByProps('ModalRoot');
+          const ImageModalClasses = WebpackModules.getByProps('modal', 'image');
 
           return class AvatarIconViewer extends Plugin {
             constructor() {
@@ -212,7 +203,7 @@ var AvatarIconViewer = (() => {
                 }
               };
               try {
-                ModalStack.popWithKey(`${this.getName()}_DEP_MODAL`);
+                ModalStack.closeModal(`${this.getName()}_DEP_MODAL`);
               } catch (e) {}
             }
             onStart() {
@@ -295,16 +286,23 @@ var AvatarIconViewer = (() => {
                 XenoLib.createContextMenuItem(
                   `View ${type}`,
                   () => {
-                    ModalStack.push(e =>
-                      React.createElement(ImageModal, {
-                        ...e,
-                        src: url,
-                        placeholder: url,
-                        original: url,
-                        width: width,
-                        height: height,
-                        onClickUntrusted: e => e.openHref()
-                      })
+                    ModalStack.openModal(e =>
+                      React.createElement(
+                        Modals.ModalRoot,
+                        { className: ImageModalClasses.modal, ...e, size: Modals.ModalSize.DYNAMIC },
+                        React.createElement(ImageModal, {
+                          ...e,
+                          src: url,
+                          placeholder: url,
+                          original: url,
+                          width: width,
+                          height: height,
+                          onClickUntrusted: e => e.openHref(),
+                          renderLinkComponent,
+                          className: ImageModalClasses.image,
+                          shouldAnimate: true
+                        })
+                      )
                     );
                   },
                   'aiv-view'

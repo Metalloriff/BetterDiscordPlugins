@@ -9,8 +9,8 @@
 
 module.exports = (() =>
 {
-    const config =
-    {
+	const config =
+	{
 		info:
 		{
 			name: "TheClapBestClapPluginClapEver",
@@ -28,9 +28,9 @@ module.exports = (() =>
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TheClapBestClapPluginClapEver.plugin.js"
 		}
-    };
+	};
 
-    return (([Plugin, Api]) => {
+	return (([Plugin, Api]) => {
 
 		const plugin = (Plugin, Api) =>
 		{
@@ -121,6 +121,6 @@ module.exports = (() =>
 			}
 		};
 
-        return plugin(Plugin, Api);
-    })(global.ZeresPluginLibrary.buildPlugin(config));
+		return plugin(Plugin, Api);
+	})(global.ZeresPluginLibrary.buildPlugin(config));
 })();

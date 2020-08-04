@@ -1,78 +1,99 @@
-//META{"name":"DoubleClickVoiceChannels","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DoubleClickVoiceChannels.plugin.js"}*//
+/**
+ * @name DoubleClickVoiceChannels
+ * @invite yNqzuJa
+ * @authorLink https://github.com/Metalloriff
+ * @donate https://www.paypal.me/israelboone
+ * @website https://metalloriff.github.io/toms-discord-stuff/
+ * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DoubleClickVoiceChannels.plugin.js
+ */
 
-class DoubleClickVoiceChannels {
-
-	getName() { return "DoubleClickVoiceChannels"; }
-	getDescription() { return "Requires you to double click voice channels to connect to them."; }
-	getVersion() { return "0.0.2"; }
-	getAuthor() { return "Metalloriff"; }
-	getChanges() {
-		return {
-
-		};
-	}
-
-	load() {}
-
-	start() {
-		let libLoadedEvent = () => {
-			try { this.onLibLoaded(); }
-			catch (err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch (err) { console.error(this.getName() + ".stop()", err); }}
-		};
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if (!lib) {
-			lib = document.createElement("script");
-			lib.id = "NeatoBurritoLibrary";
-			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
-			document.head.appendChild(lib);
+module.exports = (() =>
+{
+	const config =
+	{
+		info:
+		{
+			name: "DoubleClickVoiceChannels",
+			authors:
+			[
+				{
+					name: "Metalloriff",
+					discord_id: "264163473179672576",
+					github_username: "metalloriff",
+					twitter_username: "Metalloriff"
+				}
+			],
+			version: "2.0.0",
+			description: "Requires you to double click voice channels to join them.",
+			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DoubleClickVoiceChannels.plugin.js",
+			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/DoubleClickVoiceChannels.plugin.js"
 		}
-		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
-	}
+	};
 
-	getSettingsPanel() {
-		setTimeout(() => {
-			NeatoLib.Settings.pushElement(NeatoLib.Settings.Elements.createNewTextField("Double click time (ms)", this.settings.delay, e => {
-				if (isNaN(e.target.value)) return NeatoLib.showToast("Value must be a number", "error");
-				this.settings.delay = e.target.value;
-				this.saveSettings();
-			}), this.getName(), { tooltip: "The amount of time in milliseconds to wait for the next click" })
+	return !global.ZeresPluginLibrary ? class
+	{
+		constructor() { this._config = config; }
 
-			NeatoLib.Settings.pushChangelogElements(this);
-		}, 0);
+		getName = () => config.info.name;
+		getAuthor = () => config.info.description;
+		getVersion = () => config.info.version;
 
-		return NeatoLib.Settings.Elements.pluginNameLabel(this.getName());
-	}
+		load()
+		{
+			BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+				confirmText: "Download Now",
+				cancelText: "Cancel",
+				onConfirm: () =>
+				{
+					require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (err, res, body) =>
+					{
+						if (err) return require("electron").shell.openExternal("https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
+					});
+				}
+			});
+		}
 
-	saveSettings() { NeatoLib.Settings.save(this); }
+		start() { }
+		stop() { }
+	} : (([Plugin, Api]) => {
 
-	onLibLoaded() {
-		this.settings = NeatoLib.Settings.load(this, {
-			displayUpdateNotes: true,
-			delay: 250
-		});
+		const plugin = (Plugin, Api) =>
+		{
+			const { WebpackModules, Patcher } = Api;
 
-		NeatoLib.Updates.check(this);
+			const ChannelItem = WebpackModules.getByDisplayName("ChannelItem");
 
-		//if (this.settings.displayUpdateNotes) NeatoLib.Changelog.compareVersions(this.getName(), this.getChanges());
+			return class DoubleClickVoiceChannels extends Plugin
+			{
+				constructor()
+				{
+					super();
+				}
+	
+				onStart()
+				{
+					if (ChannelItem)
+					{
+						Patcher.after(ChannelItem.prototype, "render", (r, _, el) =>
+						{
+							if (r.props.channel.type == 2)
+							{
+								const onClick = el.props.onClick;
+								el.props.onDoubleClick = onClick;
+								el.props.onClick = () => {};
+							}
+						});
+					}
+				}
+	
+				onStop()
+				{
+					Patcher.unpatchAll();
+				}
+			}
+		};
 
-		let lastAttempt = 0;
-
-		this.unpatchSelect = NeatoLib.monkeyPatchInternal(NeatoLib.Modules.get("selectChannel"), "selectVoiceChannel", e => {
-			if (performance.now() - lastAttempt <= this.settings.delay || e.args[0] == null) {
-				e.callDefault();
-				lastAttempt = 0;
-			} else lastAttempt = performance.now();
-		});
-
-		NeatoLib.Events.onPluginLoaded(this);
-	}
-
-	stop() {
-		this.unpatchSelect();
-	}
-
-}
+		return plugin(Plugin, Api);
+	})(global.ZeresPluginLibrary.buildPlugin(config));
+})();

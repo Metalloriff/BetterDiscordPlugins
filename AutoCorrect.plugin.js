@@ -7,7 +7,9 @@
  * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AutoCorrect.plugin.js
  */
 
-const { send } = require("process");
+/* BUGS AND TODO
+	Implement DB's SpellChecker.
+*/
 
 module.exports = (() =>
 {
@@ -25,7 +27,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.0",
+			version: "2.0.1",
 			description: "Gives you the options to automatically replace all mis-spelled words with Discord's first correction, automatically punctuate and/or capitalize your sentences, and set up override aliases for typing.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AutoCorrect.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AutoCorrect.plugin.js"
@@ -35,7 +37,11 @@ module.exports = (() =>
 			{
 				title: "2.0 Rewrite",
 				type: "fixed",
-				items: ["AutoCorrect has been completely rewritten from the ground up, new bugs that I missed during development are likely to occur. If you experience any bugs, please report them to me."]
+				items: [
+					"AutoCorrect has been completely rewritten from the ground up, new bugs that I missed during development are likely to occur. If you experience any bugs, please report them to me.",
+					"Fixed a settings save/load issue.",
+					"Fixed spelling errors not auto replacing, I did big dumb."
+				]
 			}
 		]
 	};
@@ -70,7 +76,7 @@ module.exports = (() =>
 
 		const plugin = (Plugin, Api) =>
 		{
-			const { WebpackModules, DiscordModules, ReactComponents, Patcher, PluginUtilities, Settings } = Api;
+			const { WebpackModules, DiscordModules, ReactComponents, Patcher, PluginUtilities, Settings, Utilities } = Api;
 			const { React } = DiscordModules;
 
 			const process = require("process");
@@ -126,8 +132,8 @@ module.exports = (() =>
 					finally { super.showChangelog(footer); }
 				}
 
-				loadSettings = () => this.settings = PluginUtilities.loadSettings(this.name, this.defaultSettings);
-				saveSettings = () => PluginUtilities.saveSettings(this.name, this.settings);
+				loadSettings = () => this.settings = PluginUtilities.loadSettings(config.info.name, this.defaultSettings);
+				saveSettings = () => PluginUtilities.saveSettings(config.info.name, this.settings);
 
 				createSettingsSwitch(title, desc, setting)
 				{
@@ -235,17 +241,20 @@ module.exports = (() =>
 						if (index == -1)
 							return;
 
-						const spellCheckGroup = re.props.children[1].props.children.props.children;
-						spellCheckGroup.unshift(
-							React.createElement(
-								ContextMenu.MenuItem,
-								{
-									label: "Remove from Dictionary",
-									id: "ac-removefromdict",
-									action: () => this.forgetWord(index)
-								}
-							)
-						);
+						const spellCheckGroup = Utilities.getNestedProp(re, "props.children.1.props.children.props.children");
+						if (spellCheckGroup != null)
+							spellCheckGroup.unshift(
+								React.createElement(
+									ContextMenu.MenuItem,
+									{
+										label: "Remove from Dictionary",
+										id: "ac-removefromdict",
+										action: () => this.forgetWord(index)
+									}
+								)
+							);
+						else
+							console.warn("AutoCorrect: SpellCheckGroup nested prop could not be found!");
 					});
 
 					Patcher.instead(DiscordModules.MessageActions, "sendMessage", (_, args, sendMessage) =>
@@ -318,6 +327,7 @@ module.exports = (() =>
 
 							if (corrections && corrections.length > 0)
 							{
+								words[lastWordIndex] = corrections[0];
 								lastError = words[lastWordIndex];
 							}
 						}
@@ -342,10 +352,10 @@ module.exports = (() =>
 
 					if (this.settings.capitalize && (sending || textValue.endsWith(" ")))
 					{
+						if (words[lastWordIndex] == "i")
+							words[lastWordIndex] = "I";
 						if (words[0].charAt(0) != words[0].charAt(0).toUpperCase() && !words[0].trim().startsWith("http"))
-						{
 							words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
-						}
 						
 						for (let i = 0; i < words.length; i++)
 						{

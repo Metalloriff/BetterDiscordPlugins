@@ -35,7 +35,7 @@ class GuildCounter {
 		NeatoLib.Updates.check(this);
 
 		(this.guildsScroller = document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0]).addEventListener("DOMNodeInserted", this.count = () => {
-
+			if (typeof event !== "undefined" && event.relatedNode.id === "gc-counter") return;
 			let existing = document.getElementById("gc-counter"), count = Object.keys(NeatoLib.Modules.get("getGuilds").getGuilds()).length;
 	
 			if(existing) existing.innerText = count + " guilds";

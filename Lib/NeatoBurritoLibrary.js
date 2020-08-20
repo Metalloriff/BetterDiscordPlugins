@@ -2353,7 +2353,7 @@ var NeatoLib = {
 
 	getClass: function(moduleName, className = moduleName, index = 0) {
 		let temp = NeatoLib.Modules.get(moduleName);
-		if(!temp) return;
+		if(!temp || typeof temp[className] !== "string") return;
 		if(!temp[className]) return temp[moduleName].split(" ")[index];
 		return temp[className].split(" ")[index];
 	},

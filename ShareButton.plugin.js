@@ -95,7 +95,7 @@ class ShareButton {
         });
 
         setTimeout(() => {
-            if(document.getElementsByClassName("popouts-3dRSmE")) this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
+            if(document.getElementsByClassName("popouts-3dRSmE").length != 0) this.popoutObserver.observe(document.getElementsByClassName("popouts-3dRSmE")[0], { childList : true });
         }, 5000);
 
         this.contextEvent = e => {

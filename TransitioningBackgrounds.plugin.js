@@ -47,7 +47,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.0",
+			version: "2.0.1",
 			description: "Allows you to set a list of background images, or pick a source, to transitioning between using various animations and sort modes.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TransitioningBackgrounds.plugin.js"
@@ -168,7 +168,8 @@ module.exports = (() =>
 				items:
 				[
 					"TransitioningBackgrounds has been entirely rewritten, and its functionality has changed. Images will now load from a folder on your PC instead of a list of links.",
-					"In a later update, there will be more options for image sources (potential examples: imgur albums, google images search, subreddits, etc)."
+					"In a later update, there will be more options for image sources (potential examples: imgur albums, google images search, subreddits, etc).",
+					"Fixed changing your folder source requiring a restart."
 				]
 			},
 			{
@@ -347,6 +348,8 @@ module.exports = (() =>
 					this.inactiveImage = this.image0;
 
 					this.index = 0;
+
+					this.loadedImageNames = null;
 
 					this.loop = setInterval(() => this.main(), this.settings.general.imageLife * 1000);
 					this.main();

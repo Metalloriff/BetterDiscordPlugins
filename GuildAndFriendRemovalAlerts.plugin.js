@@ -1,377 +1,523 @@
-//META{"name":"GuildAndFriendRemovalAlerts","website":"https://metalloriff.github.io/toms-discord-stuff/","source":"https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js"}*//
+/**
+ * @name GuildAndFriendRemovalAlerts
+ * @invite yNqzuJa
+ * @authorLink https://github.com/Metalloriff
+ * @donate https://www.paypal.me/israelboone
+ * @website https://metalloriff.github.io/toms-discord-stuff/
+ * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js
+ */
 
-class GuildAndFriendRemovalAlerts {
-
-	getName() { return "Guild And Friend Removal Alerts"; }
-	getDescription() { return "Alerts you when a guild or friend is removed."; }
-	getVersion() { return "0.3.14"; }
-	getAuthor() { return "Metalloriff"; }
-
-	load() {}
-
-	start() {
-		const libLoadedEvent = () => {
-			try{ this.onLibLoaded(); }
-			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-		};
-
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if (!lib) {
-			lib = document.createElement("script");
-			lib.id = "NeatoBurritoLibrary";
-			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
-			document.head.appendChild(lib);
-		}
-
-		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if (typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
-	}
-
-	get settingFields() {
-		return {
-			guildNotifications: { label: "Display alerts for server removals", type: "bool" },
-			friendNotifications: { label: "Display alerts for friend removals", type: "bool" },
-			windowsNotifications: { label: "Display Windows/OS notifications", type: "bool" },
-			ignoredServers: { label: "Ignored server IDs", type: "string", array: true },
-			color: { label: "Notification background color", type: "color" },
-			preview: {
-				type: "custom",
-				html: `<div class="ra-serveritem">
-				<header class="ra-serveritem-inner">
-					<div class="ra-icon"><img src="/assets/f046e2247d730629309457e902d5c5b3.svg" height="90" width="90"></div>
-					<div style="flex: 1;">
-						<span class="ra-label">A Server</span>
-						<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
-						<div class="ra-label ra-description">Owner: SomeOwner#6969</div>
-					</div>
-					<span class="ra-x-button" style="margin-bottom: 9%;">X</span>
-				</header>
-			</div>`
+module.exports = (() =>
+{
+	const config =
+	{
+		info:
+		{
+			name: "GuildAndFriendRemovalAlerts",
+			authors:
+			[
+				{
+					name: "Metalloriff",
+					discord_id: "264163473179672576",
+					github_username: "metalloriff",
+					twitter_username: "Metalloriff"
+				}
+			],
+			version: "2.0.0",
+			description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
+			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js",
+			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts.plugin.js"
+		},
+		changelog:
+		[
+			{
+				title: "2.0 rewrite",
+				type: "fixed",
+				items:
+				[
+					"Guild and Friend Removal Alerts has been rewritten. As with the old plugin, a modal will show when a server or friend is removed, and you may right click the home button to view the history.",
+					"If you experience any bugs, please report them to me."
+				]
+			},
+			{
+				title: "new features",
+				items:
+				[
+					"If you click a removed friend item, it will open a DM channel with the user.",
+					"If you click a removed guild item, it will open a DM channel with the owner of the guild, if available."
+				]
 			}
-		};
-	}
+		]
+	};
 
-	get defaultSettings() {
-		return {
-			guildNotifications: true,
-			friendNotifications: true,
-			windowsNotifications: true,
-			ignoredServers: "280806472928198656",
-			color: "#7289da"
-		};
-	}
+	return !global.ZeresPluginLibrary ? class
+	{
+		constructor() { this._config = config; }
 
-	getSettingsPanel() {
-		return NeatoLib.Settings.createPanel(this);
-	}
+		getName = () => config.info.name;
+		getAuthor = () => config.info.description;
+		getVersion = () => config.info.version;
 
-	saveSettings() {
-		this.applyCSS();
-		NeatoLib.Settings.save(this);
-	}
-
-	save() {
-		NeatoLib.Data.save(this.getName(), "data", {
-			guilds: (this.settings.guildNotifications ? this.allGuilds : []),
-			friends: (this.settings.friendNotifications ? this.allFriends : []),
-			history: this.history
-		});
-	}
-
-	onLibLoaded() {
-		NeatoLib.Updates.check(this);
-
-		this.settings = NeatoLib.Settings.load(this);
-
-		const data = NeatoLib.Data.load(this.getName(), "data", {
-			guilds: [],
-			friends: [],
-			history: []
-		});
-
-		this.allGuilds = data.guilds;
-		this.allFriends = data.friends;
-
-		this.history = data.history;
-
-		this.guildsModule = NeatoLib.Modules.get("getGuilds");
-		this.friendsModule = NeatoLib.Modules.get("getFriendIDs");
-		this.userModule = NeatoLib.Modules.get("getUser");
-
-		this.guildsObserver = new MutationObserver(() => this.checkGuilds());
-		this.guildsObserver.observe(document.getElementsByClassName(NeatoLib.getClass("unreadMentionsBar", "scroller"))[0], { childList: true });
-
-		document.getElementsByTagName("foreignObject")[0].addEventListener("contextmenu", this.homeContextEvent = e => {
-			let contextMenu = NeatoLib.ContextMenu.get() || NeatoLib.ContextMenu.create([], e);
-
-			contextMenu.appendChild(NeatoLib.ContextMenu.createItem("View GFR History", () => {
-				this.showHistory();
-				NeatoLib.ContextMenu.close();
-			}));
-		});
-
-		this.checkLoopFunc = setInterval(() => {
-			this.checkGuilds();
-			this.checkFriends();
-		}, 5000);
-
-		this.applyCSS();
-	}
-
-	applyCSS() {
-		if (this.styles) this.styles.destroy();
-
-		this.styles = NeatoLib.injectCSS(`
-
-			#ra-modal {
-				opacity: 1;
-				overflow-y: auto;
-				justify-content: flex-start;
-				position: absolute;
-				left: 0;
-				right: 0;
-				top: 0;
-				bottom: 0;
-				z-index: 1001;
-				background: rgba(0, 0, 0, 0.85);
-			}
-
-			.ra-serveritem {
-				margin: 20px;
-				height: 110px;
-				display: flex;
-				flex-direction: column;
-				contain: layout;
-				pointer-events: auto;
-			}
-
-			.ra-serveritem-inner {
-				padding: 10px;
-				align-items: center;
-				display: flex;
-				background: ${this.settings.color};
-				border-radius: 5px;
-				min-width: 400px;
-			}
-
-			.ra-icon {
-				margin-right: 10px;
-				height: 90px;
-				width: 90px;
-			}
-
-			.ra-icon img {
-				border-radius: 5px;
-			}
-
-			.ra-label {
-				color: white;
-				margin-top: 10px;
-				width: 95%;
-			}
-
-			.ra-description {
-				opacity: 0.6;
-			}
-
-			.ra-x-button {
-				float: right;
-				cursor: pointer;
-				color: white;
-				width: 15px;
-				height: 15px;
-				margin-bottom: 4.5%;
-			}
-
-		`);
-	}
-
-	getGuilds() {
-		const guilds = NeatoLib.Modules.get("getGuilds").getGuilds(), arr = [];
-
-		for (let id in guilds) {
-			const guild = guilds[id], ownerUser = NeatoLib.Modules.get("getUser").getUser(guild.ownerId), ownerTag = ownerUser ? ownerUser.tag : null;
-
-			arr.push({
-				id: guild.id,
-				name: guild.name,
-				owner: ownerTag,
-				icon: guild.getIconURL()
+		load()
+		{
+			BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+				confirmText: "Download Now",
+				cancelText: "Cancel",
+				onConfirm: () =>
+				{
+					require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (err, res, body) =>
+					{
+						if (err) return require("electron").shell.openExternal("https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+						await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
+					});
+				}
 			});
 		}
 
-		return arr;
-	}
+		start() { }
+		stop() { }
+	} : (([Plugin, Api]) => {
 
-	showHistory() {
-		if (this.history.length == 0) {
-			NeatoLib.showToast("No removals recorded!", "error");
-			return;
-		}
+		const plugin = (Plugin, Api) =>
+		{
+			const { WebpackModules, DiscordModules, DiscordClasses, PluginUtilities, ReactComponents, Patcher } = Api;
+			const { React, ContextMenuActions } = DiscordModules;
 
-		if (!document.getElementById("ra-alertwindow")) document.getElementsByClassName(NeatoLib.getClass("app"))[0].insertAdjacentHTML("beforeend", `
-		<div id="ra-alertwindow">
-			<div id="ra-modal" onclick="this.parentElement.remove();"></div>
-		</div>`);
+			const { getUser: fetchUser } = WebpackModules.getByProps("getUser", "acceptAgreements");
+			const { getUser } = DiscordModules.UserStore;
+			const { getGuild, getGuilds } = DiscordModules.GuildStore;
+			const { getFriendIDs } = WebpackModules.getByProps("getFriendIDs");
 
-		const modal = document.getElementById("ra-modal");
+			const getSerializableGuild = gid =>
+			{
+				const r = { id: gid, invalid: true, name: "Unknown Guild", iconURL: "/assets/1531b79c2f2927945582023e1edaaa11.png" };
+				const guild = getGuild(gid);
+				
+				try
+				{
+					if (guild != null)
+					{
+						r.invalid = false;
+						r.name = guild.name;
+						r.ownerId = guild.ownerId;
+						if (guild.getIconURL != null)
+							r.iconURL = guild.getIconURL();
+					}
+				} finally { }
 
-		for (let i = 0; i < this.history.length; i++) {
-			if (typeof this.history[i] != "string")
-				continue;
-			modal.insertAdjacentHTML("afterbegin", this.history[i]);
-			modal.firstElementChild.getElementsByClassName("ra-x-button")[0].remove();
-		}
-	}
+				return r;
+			};
 
-	checkGuilds() {
-		if (!this.settings.guildNotifications) return;
+			const getSerializableUser = uid =>
+			{
+				const r = { id: uid, invalid: true, tag: "Unknown User", avatarURL: "/assets/1cbd08c76f8af6dddce02c5138971129.png" };
+				const user = getUser(uid);
 
-		const guilds = this.getGuilds(), guildIds = Array.from(guilds, guild => guild.id), app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
-		if (!guilds.length) return setTimeout(() => this.checkGuilds(), 5000);
+				try
+				{
+					if (user != null)
+					{
+						r.invalid = false;
+						r.tag = user.tag;
+						if (user.getAvatarURL != null)
+							r.avatarURL = user.getAvatarURL();
+					}
+				} finally { }
 
-		if (typeof this.settings.ignoredServers == "string") this.settings.ignoredServers = this.settings.ignoredServers.split(" ");
+				return r;
+			};
 
-		let save = false;
+			const PrivateModule = WebpackModules.getByProps("openPrivateChannel");
 
-		for (let i = 0; i < this.allGuilds.length; i++) {
-			const guild = this.allGuilds[i];
+			const { ModalRoot } = WebpackModules.getByProps("ModalRoot");
+			const ModalStack = WebpackModules.getByProps("openModal");
 
-			if (this.settings.ignoredServers.includes(guild.id)) continue;
+			const { default: ScrollWrapper } = WebpackModules.getByProps("ScrollerAuto");
+			const { default: Avatar } = WebpackModules.getByProps("AnimatedAvatar");
+			const { default: ContextMenu } = WebpackModules.getByProps("MenuStyle", "default");
+			const { MenuGroup: CtxMenuGroup, MenuItem: CtxMenuItem } = WebpackModules.find(m => m.MenuRadioItem && !m.default);
 
-			if (!guildIds.includes(guild.id)) {
-				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
-				<div id="ra-alertwindow">
-					<div id="ra-modal" onclick="this.parentElement.remove();"></div>
-				</div>`);
+			const { listRow, listRowContent, listName } = WebpackModules.getByProps("header", "botTag", "listAvatar");
 
-				const modal = document.getElementById("ra-modal");
+			class GuildItem extends React.Component
+			{
+				constructor(props)
+				{
+					super(props);
+					this.state = { owner: "" };
+				}
 
-				modal.insertAdjacentHTML("beforeend", `
-				<div class="ra-serveritem">
-					<header class="ra-serveritem-inner">
-						<div class="ra-icon"><img src="${guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
-						<div style="flex: 1;">
-							<span class="ra-label">${guild.name}</span>
-							<div class="ra-label ra-description">Server no longer present! It is either temporarliy down, you were kicked/banned, or it was deleted.</div>
-							<div class="ra-label ra-description" style="width:auto;position:absolute;right:30px;">at ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
-							<div class="ra-label ra-description">${guild.owner ? "Owner: " + guild.owner : "Owner unknown"}</div>
-						</div>
-						<span class="ra-x-button">X</span>
-					</header>
-				</div>`);
+				async componentDidMount()
+				{
+					if (this.props.guild.ownerId != null)
+					{
+						let owner = getUser(this.props.guild.ownerId);
+						if (owner == null || owner.tag == null)
+						{
+							fetchUser(this.props.guild.ownerId).then(owner =>
+							{
+								this.setState({ owner: owner.tag }); // TODO: add interactable user object for guild owners.
+							}).catch(console.warn);
+						}
+						else
+						{
+							this.setState({ owner: owner.tag });
+						}
+					}
+				}
 
-				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
-					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.parentElement.parentElement.remove();
-				};
-
-				this.history.push(modal.lastElementChild.outerHTML);
-
-				if (this.history.length >= 100)
-					this.history.splice(0, 1);
-
-				if (this.settings.windowsNotifications) new Notification(guild.name, {
-					silent: true,
-					body: "Server removed",
-					icon: guild.icon || "/assets/f046e2247d730629309457e902d5c5b3.svg"
-				});
-
-				save = true;
+				render()
+				{
+					return React.createElement(
+						"div",
+						{
+							className: listRow,
+							onClick: () =>
+							{
+								if (this.props.guild.ownerId != null)
+								{
+									PrivateModule.openPrivateChannel(this.props.guild.ownerId);
+									this.props.onClose();
+								}
+							},
+							children:
+							[
+								React.createElement(
+									Avatar,
+									{
+										src: this.props.guild.iconURL,
+										isMobile: false,
+										isTyping: false,
+										size: "SIZE_40"
+									}
+								),
+								React.createElement(
+									"div",
+									{
+										className: listRowContent,
+										style: { marginLeft: "5px" },
+										children:
+										[
+											React.createElement(
+												"div",
+												{
+													className: listName,
+													children:
+													[
+														this.props.guild.name,
+														React.createElement(
+															"span",
+															{
+																style: { opacity: 0.5, marginLeft: 10 },
+																children: "Owner: " + this.state.owner
+															}
+														)
+													]
+												}
+											)
+										]
+									}
+								)
+							]
+						}
+					)
+				}
 			}
-		}
 
-		if (this.allGuilds.length != guilds.length) save = true;
+			class UserItem extends React.Component
+			{
+				constructor(props)
+				{
+					super(props);
+					this.state = { user: props.user };
+				}
 
-		this.allGuilds = guilds;
+				async componentDidMount()
+				{
+					if (this.state.user.invalid == true)
+					{
+						fetchUser(this.state.user.id).then(u => this.setState({ user: u })).catch(console.warn);
+					}
+				}
 
-		if (save) this.save();
-	}
-
-	getFriends() {
-		const friends = NeatoLib.Modules.get("getFriendIDs").getFriendIDs(), arr = [];
-
-		for (let i = 0; i < friends.length; i++) {
-			const friend = NeatoLib.Modules.get("getUser").getUser(friends[i]);
-			if (friend) arr.push({
-				id: friend.id,
-				tag: friend.tag,
-				avatar: friend.getAvatarURL()
-			});
-		}
-
-		return arr;
-	}
-
-	checkFriends() {
-		if (!this.settings.friendNotifications) return;
-
-		const friends = this.getFriends(), friendIds = Array.from(friends, friend => friend.id), app = document.getElementsByClassName(NeatoLib.getClass("app"))[0];
-		if (!friends.length) return setTimeout(() => this.checkFriends(), 5000);
-
-		let save = false;
-
-		for (let i = 0; i < this.allFriends.length; i++) {
-			const friend = this.allFriends[i];
-
-			if (!friendIds.includes(friend.id)) {
-				if (!document.getElementById("ra-alertwindow")) app.insertAdjacentHTML("beforeend", `
-				<div id="ra-alertwindow">
-					<div id="ra-modal" onclick="$(this).parent().remove();"></div>
-				</div>`);
-
-				const modal = document.getElementById("ra-modal");
-
-				modal.insertAdjacentHTML("beforeend", `
-				<div class="ra-serveritem">
-					<header class="ra-serveritem-inner">
-						<div class="ra-icon"><img src="${friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"}" height="90" width="90"></div>
-						<div style="flex: 1;">
-							<span class="ra-label">${friend.tag}</span>
-							<div class="ra-label ra-description">Friend was removed.</div>
-							<div class="ra-label ra-description" style="width:auto;position:absolute;right:30px;">at ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
-						</div>
-						<span class="ra-x-button">X</span>
-					</header>
-				</div>`);
-
-				modal.lastChild.getElementsByClassName("ra-x-button")[0].onclick = e => {
-					if (modal.children.length <= 1) modal.parentElement.remove();
-					else e.currentTarget.parentElement.parentElement.remove();
-				};
-
-				this.history.push(modal.lastElementChild.outerHTML);
-
-				if (this.history.length >= 100)
-					this.history.splice(0, 1);
-
-				if (this.settings.windowsNotifications) new Notification(friend.tag, {
-					silent: true,
-					body: "Friend removed",
-					icon: friend.avatar || "/assets/f046e2247d730629309457e902d5c5b3.svg"
-				});
-
-				save = true;
+				render()
+				{
+					return React.createElement(
+						"div",
+						{
+							className: listRow,
+							onClick: () =>
+							{
+								if (this.state.user.id != null)
+								{
+									PrivateModule.openPrivateChannel(this.state.user.id);
+									this.props.onClose();
+								}
+							},
+							children:
+							[
+								React.createElement(
+									Avatar,
+									{
+										src: this.state.user.avatarURL,
+										isMobile: false,
+										isTyping: false,
+										size: "SIZE_40"
+									}
+								),
+								React.createElement(
+									"div",
+									{
+										className: listRowContent,
+										style: { marginLeft: "5px" },
+										children:
+										[
+											React.createElement(
+												"div",
+												{
+													className: listName,
+													children: this.state.user.tag
+												}
+											)
+										]
+									}
+								)
+							]
+						}
+					)
+				}
 			}
-		}
 
-		if (this.allFriends.length != friends.length) save = true;
+			class Menu extends React.Component
+			{
+				constructor(props)
+				{
+					super(props);
+				}
 
-		this.allFriends = friends;
+				render()
+				{
+					return React.createElement(
+						"div",
+						{
+							style: { marginTop: 10 },
+							children:
+							[
+								React.createElement(
+									ScrollWrapper,
+									{
+										style: { maxHeight: 600 },
+										children:
+										[
+											React.createElement(
+												"div",
+												{
+													className: DiscordClasses.Changelog.fixed.value,
+													style: { margin: 10 },
+													children:
+													[
+														React.createElement(
+															"div",
+															{ children: `removed guilds (${this.props.removedGuilds.length})` }
+														)
+													]
+												}
+											),
+											this.props.removedGuilds.length > 0
+												? this.props.removedGuilds.map(
+													gid =>
+														React.createElement(
+															GuildItem,
+															{
+																guild: getSerializableGuild(gid),
+																onClose: this.props.onClose
+															}
+														)
+													)
+												: React.createElement(
+													"div",
+													{
+														className: listRow,
+														children:
+															React.createElement(
+																"div",
+																{
+																	className: listRowContent,
+																	children: "No removed guilds."
+																}
+															)
+													}
+												),
+											React.createElement(
+												"div",
+												{
+													className: DiscordClasses.Changelog.fixed.value,
+													style: { margin: 10 },
+													children:
+													[
+														React.createElement(
+															"div",
+															{ children: `removed friends (${this.props.removedFriends.length})` }
+														)
+													]
+												}
+											),
+											this.props.removedFriends.length > 0
+												? this.props.removedFriends.map(
+													uid =>
+														React.createElement(
+															UserItem,
+															{
+																user: getSerializableUser(uid),
+																onClose: this.props.onClose
+															}
+														)
+												)
+												: React.createElement(
+													"div",
+													{
+														className: listRow,
+														children:
+															React.createElement(
+																"div",
+																{
+																	className: listRowContent,
+																	children: "No removed friends."
+																}
+															)
+													}
+												)
+										]
+									}
+								)
+							]
+						}
+					);
+				}
+			}
 
-		if (save) this.save();
-	}
+			return class GuildAndFriendRemovalAlerts extends Plugin
+			{
+				constructor()
+				{
+					super();
+				}
 
-	stop() {
-		if (this.guildsObserver) this.guildsObserver.disconnect();
+				async showChangelog(footer)
+				{
+					try { footer = (await fetchUser("264163473179672576")).tag + " | https://discord.gg/yNqzuJa"; }
+					finally { super.showChangelog(footer); }
+				}
+	
+				onStart()
+				{
+					this.loop = setInterval(() => this.tick(), 5000);
 
-		clearInterval(this.checkLoopFunc);
+					this.removedGuildHistory = PluginUtilities.loadData(this.getName(), "removedGuildHistory", []);
+					this.removedFriendHistory = PluginUtilities.loadData(this.getName(), "removedFriendHistory", []);
 
-		document.getElementsByTagName("foreignObject")[0].removeEventListener("contextmenu", this.homeContextEvent);
+					ReactComponents.getComponentByName("DefaultHomeButton", "*").then(r =>
+					{
+						Patcher.after(r.component.prototype, "render", (props, args, re) =>
+						{
+							re.props.onContextMenu = e =>
+							{
+								ContextMenuActions.openContextMenu(e, () =>
+									React.createElement(
+										ContextMenu,
+										{
+											navId: "HomeContextMenu",
+											onClose: ContextMenuActions.closeContextMenu,
+											children:
+											[
+												React.createElement(
+													CtxMenuGroup,
+													{
+														children:
+															React.createElement(
+																CtxMenuItem,
+																{
+																	label: "View GFR History",
+																	id: "view-gfr-history",
+																	action: () => this.openModal(this.removedGuildHistory, this.removedFriendHistory)
+																}
+															)
+													}
+												)
+											]
+										}
+									)
+								);
+							};
+						});
+					}).catch(exc => console.warn(this.getName() + ": Failed to patch react component 'DefaultHomeButton'. Reason: " + exc));
+				}
 
-		this.styles.destroy();
-	}
+				tick()
+				{
+					const guilds = Object.values(getGuilds()).map(g => ({ id: g.id, name: g.name, iconURL: g.getIconURL(), ownerId: g.ownerId }));
+					const friends = getFriendIDs().map(uid => getSerializableUser(uid));
 
-}
+					const lastGuilds = PluginUtilities.loadData(this.getName(), "guildCache", []);
+					const lastFriends = PluginUtilities.loadData(this.getName(), "friendCache", []);
+
+					const removedGuilds = lastGuilds.filter(g => !guilds.some(l => l.id == g.id)).map(g => g.id);
+					const removedFriends = lastFriends.filter(u => !friends.some(l => l.id == u.id)).map(u => u.id);
+
+					if (lastGuilds.length != guilds.length || lastFriends.length != friends.length)
+					{
+						if (removedGuilds.length > 0 || removedFriends.length > 0)
+						{
+							this.openModal(removedGuilds, removedFriends);
+
+							this.removedGuildHistory.push(...removedGuilds);
+							this.removedFriendHistory.push(...removedFriends);
+
+							PluginUtilities.saveData(this.getName(), "removedGuildHistory", this.removedGuildHistory);
+							PluginUtilities.saveData(this.getName(), "removedFriendHistory", this.removedFriendHistory);
+						}
+
+						PluginUtilities.saveData(this.getName(), "guildCache", guilds);
+						PluginUtilities.saveData(this.getName(), "friendCache", friends);
+					}
+				}
+
+				openModal(removedGuilds, removedFriends)
+				{
+					if (this.activeModalKey != null && ModalStack.hasModalOpen(this.activeModalKey))
+					{
+						ModalStack.closeModal(this.activeModalKey);
+						this.activeModalKey = null;
+					}
+
+					this.activeModalKey = ModalStack.openModal(
+						props =>
+							React.createElement(
+								ModalRoot,
+								{
+									...props,
+									size: "medium"
+								},
+								React.createElement(
+									Menu,
+									{
+										...props,
+										removedGuilds,
+										removedFriends
+									}
+								)
+							)
+					);
+				}
+	
+				onStop()
+				{
+					clearInterval(this.loop);
+					Patcher.unpatchAll();
+				}
+			}
+		};
+
+		return plugin(Plugin, Api);
+	})(global.ZeresPluginLibrary.buildPlugin(config));
+})();

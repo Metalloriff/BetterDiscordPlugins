@@ -23,7 +23,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.0",
+			version: "2.0.1",
 			description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts.plugin.js"
@@ -46,6 +46,23 @@ module.exports = (() =>
 					"If you click a removed friend item, it will open a DM channel with the user.",
 					"If you click a removed guild item, it will open a DM channel with the owner of the guild, if available."
 				]
+			}
+		],
+		defaultConfig:
+		[
+			{
+				id: "showModal",
+				type: "switch",
+				name: "Auto Show Modal",
+				note: "Whether or not to automatically show the modal when a guild/friend is removed.",
+				value: true
+			},
+			{
+				id: "showDeskNotifs",
+				type: "switch",
+				name: "Show Desktop Notifications",
+				note: "Whether or not to show desktop notifications when a guild/friend is removed.",
+				value: false
 			}
 		]
 	};
@@ -325,11 +342,11 @@ module.exports = (() =>
 											),
 											this.props.removedGuilds.length > 0
 												? this.props.removedGuilds.map(
-													gid =>
+													guild =>
 														React.createElement(
 															GuildItem,
 															{
-																guild: getSerializableGuild(gid),
+																guild: guild || getSerializableGuild(null),
 																onClose: this.props.onClose
 															}
 														)
@@ -364,11 +381,11 @@ module.exports = (() =>
 											),
 											this.props.removedFriends.length > 0
 												? this.props.removedFriends.map(
-													uid =>
+													user =>
 														React.createElement(
 															UserItem,
 															{
-																user: getSerializableUser(uid),
+																user: user || getSerializableUser(null),
 																onClose: this.props.onClose
 															}
 														)
@@ -408,6 +425,8 @@ module.exports = (() =>
 					try { footer = (await fetchUser("264163473179672576")).tag + " | https://discord.gg/yNqzuJa"; }
 					finally { super.showChangelog(footer); }
 				}
+
+				getSettingsPanel = () => this.buildSettingsPanel().getElement();
 	
 				onStart()
 				{
@@ -461,14 +480,38 @@ module.exports = (() =>
 					const lastGuilds = PluginUtilities.loadData(this.getName(), "guildCache", []);
 					const lastFriends = PluginUtilities.loadData(this.getName(), "friendCache", []);
 
-					const removedGuilds = lastGuilds.filter(g => !guilds.some(l => l.id == g.id)).map(g => g.id);
-					const removedFriends = lastFriends.filter(u => !friends.some(l => l.id == u.id)).map(u => u.id);
+					const removedGuilds = lastGuilds.filter(g => !guilds.some(l => l.id == g.id));
+					const removedFriends = lastFriends.filter(u => !friends.some(l => l.id == u.id));
 
 					if (lastGuilds.length != guilds.length || lastFriends.length != friends.length)
 					{
 						if (removedGuilds.length > 0 || removedFriends.length > 0)
 						{
-							this.openModal(removedGuilds, removedFriends);
+							if (this.settings.showModal)
+								this.openModal(removedGuilds, removedFriends);
+
+							if (this.settings.showDeskNotifs)
+							{
+								for (let guild of removedGuilds)
+									new Notification(
+										guild.name,
+										{
+											silent: true,
+											body: "Server removed",
+											icon: guild.iconURL
+										}
+									);
+
+								for (let friend of removedFriends)
+									new Notification(
+										friend.tag,
+										{
+											silent: true,
+											body: "Friend removed",
+											icon: friend.avatarURL
+										}
+									);
+							}
 
 							this.removedGuildHistory.push(...removedGuilds);
 							this.removedFriendHistory.push(...removedFriends);
@@ -484,6 +527,9 @@ module.exports = (() =>
 
 				openModal(removedGuilds, removedFriends)
 				{
+					removedGuilds = removedGuilds.filter(g => typeof(g) == "object").reverse();
+					removedFriends = removedFriends.filter(u => typeof(u) == "object").reverse();
+
 					if (this.activeModalKey != null && ModalStack.hasModalOpen(this.activeModalKey))
 					{
 						ModalStack.closeModal(this.activeModalKey);

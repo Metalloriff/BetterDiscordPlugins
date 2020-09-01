@@ -23,7 +23,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.1",
+			version: "2.1.1",
 			description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts.plugin.js"
@@ -43,6 +43,7 @@ module.exports = (() =>
 				title: "new features",
 				items:
 				[
+					"GFRA's data is now local user ID based. This will prevent issues when using multiple accounts and switching between them.",
 					"If you click a removed friend item, it will open a DM channel with the user.",
 					"If you click a removed guild item, it will open a DM channel with the owner of the guild, if available."
 				]
@@ -101,7 +102,7 @@ module.exports = (() =>
 			const { React, ContextMenuActions } = DiscordModules;
 
 			const { getUser: fetchUser } = WebpackModules.getByProps("getUser", "acceptAgreements");
-			const { getUser } = DiscordModules.UserStore;
+			const { getUser, getCurrentUser } = DiscordModules.UserStore;
 			const { getGuild, getGuilds } = DiscordModules.GuildStore;
 			const { getFriendIDs } = WebpackModules.getByProps("getFriendIDs");
 
@@ -427,13 +428,15 @@ module.exports = (() =>
 				}
 
 				getSettingsPanel = () => this.buildSettingsPanel().getElement();
+
+				getDataName = () => this.getName() + "_" + getCurrentUser().id;
 	
 				onStart()
 				{
 					this.loop = setInterval(() => this.tick(), 5000);
 
-					this.removedGuildHistory = PluginUtilities.loadData(this.getName(), "removedGuildHistory", []);
-					this.removedFriendHistory = PluginUtilities.loadData(this.getName(), "removedFriendHistory", []);
+					this.removedGuildHistory = PluginUtilities.loadData(this.getDataName(), "removedGuildHistory", []);
+					this.removedFriendHistory = PluginUtilities.loadData(this.getDataName(), "removedFriendHistory", []);
 
 					ReactComponents.getComponentByName("DefaultHomeButton", "*").then(r =>
 					{
@@ -477,8 +480,8 @@ module.exports = (() =>
 					const guilds = Object.values(getGuilds()).map(g => ({ id: g.id, name: g.name, iconURL: g.getIconURL(), ownerId: g.ownerId }));
 					const friends = getFriendIDs().map(uid => getSerializableUser(uid));
 
-					const lastGuilds = PluginUtilities.loadData(this.getName(), "guildCache", []);
-					const lastFriends = PluginUtilities.loadData(this.getName(), "friendCache", []);
+					const lastGuilds = PluginUtilities.loadData(this.getDataName(), "guildCache", []);
+					const lastFriends = PluginUtilities.loadData(this.getDataName(), "friendCache", []);
 
 					const removedGuilds = lastGuilds.filter(g => !guilds.some(l => l.id == g.id));
 					const removedFriends = lastFriends.filter(u => !friends.some(l => l.id == u.id));
@@ -516,12 +519,12 @@ module.exports = (() =>
 							this.removedGuildHistory.push(...removedGuilds);
 							this.removedFriendHistory.push(...removedFriends);
 
-							PluginUtilities.saveData(this.getName(), "removedGuildHistory", this.removedGuildHistory);
-							PluginUtilities.saveData(this.getName(), "removedFriendHistory", this.removedFriendHistory);
+							PluginUtilities.saveData(this.getDataName(), "removedGuildHistory", this.removedGuildHistory);
+							PluginUtilities.saveData(this.getDataName(), "removedFriendHistory", this.removedFriendHistory);
 						}
 
-						PluginUtilities.saveData(this.getName(), "guildCache", guilds);
-						PluginUtilities.saveData(this.getName(), "friendCache", friends);
+						PluginUtilities.saveData(this.getDataName(), "guildCache", guilds);
+						PluginUtilities.saveData(this.getDataName(), "friendCache", friends);
 					}
 				}
 

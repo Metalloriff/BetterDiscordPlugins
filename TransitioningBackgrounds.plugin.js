@@ -43,7 +43,8 @@ module.exports = (() =>
 		Auto: "auto",
 		Cover: "cover",
 		Contain: "contain",
-		Initial: "initial"
+		Initial: "initial",
+		Stretch: "100% 100%"
 	};
 
 	const config =
@@ -60,7 +61,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.1.1",
+			version: "2.1.2",
 			description: "Allows you to set a list of background images, or pick a source, to transitioning between using various animations and sort modes.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TransitioningBackgrounds.plugin.js"
@@ -97,7 +98,8 @@ module.exports = (() =>
 							{ label: "Auto", value: ImageSizeMode.Auto },
 							{ label: "Cover", value: ImageSizeMode.Cover },
 							{ label: "Contain", value: ImageSizeMode.Contain },
-							{ label: "Initial", value: ImageSizeMode.Initial }
+							{ label: "Initial", value: ImageSizeMode.Initial },
+							{ label: "Stretch", value: ImageSizeMode.Stretch }
 						]
 					},
 					{
@@ -197,6 +199,7 @@ module.exports = (() =>
 				type: "added",
 				items:
 				[
+					"Added sort mode 'stretch'.",
 					"Added 'on startup' image life option. To use this, drag the image life slider rightmost. This will make the image change every time you start Discord or refresh the plugin.",
 					"Added 'image size mode' option."
 				]
@@ -206,6 +209,7 @@ module.exports = (() =>
 				type: "fixed",
 				items:
 				[
+					"Fixed non-default transition modes not working.",
 					"Backgrounds will now hide when Discord is fully minimized instead of on focus loss. This will make the plugin useful for multiple screens.",
 					"Fixed some minor bugs with the 'force transparency' setting."
 				]
@@ -296,7 +300,6 @@ module.exports = (() =>
 							width: 100%;
 							height: 100%;
 							position: absolute;
-							transition: ${this.settings.transition.method == TransitionMethod.FadeInOut ? "opacity" : "transform, opacity"} ${this.settings.transition.time}s ease-in-out;
 							filter: brightness(${this.settings.general.backgroundBrightness});
 						}
 
@@ -305,15 +308,15 @@ module.exports = (() =>
 							display: block;
 						}
 
-						.tb-transition-${TransitionMethod.FadeInOut} { opacity: 0 }
-						.tb-transition-${TransitionMethod.SlideLeft} { transform: translateX(-100%) }
-						.tb-transition-${TransitionMethod.SlideRight} { transform: translateX(100%) }
-						.tb-transition-${TransitionMethod.SlideUp} { transform: translateY(-100%) }
-						.tb-transition-${TransitionMethod.SlideDown} { transform: translateY(100%) }
-						.tb-transition-${TransitionMethod.Shrink} { transform: scale(0) }
-						.tb-transition-${TransitionMethod.RotateX} { transform: rotateX(180deg) }
-						.tb-transition-${TransitionMethod.RotateY} { transform: rotateY(180deg) }
-						.tb-transition-${TransitionMethod.ZoomFade} { transform: scale(5); opacity: 1 }
+						.tb-transition-${TransitionMethod.FadeInOut} { transition: opacity ${this.settings.transition.time}s; opacity: 0 }
+						.tb-transition-${TransitionMethod.SlideLeft} { transition: transform ${this.settings.transition.time}s; transform: translateX(-100%) }
+						.tb-transition-${TransitionMethod.SlideRight} { transition: transform ${this.settings.transition.time}s; transform: translateX(100%) }
+						.tb-transition-${TransitionMethod.SlideUp} { transition: transform ${this.settings.transition.time}s; transform: translateY(-100%) }
+						.tb-transition-${TransitionMethod.SlideDown} { transition: transform ${this.settings.transition.time}s; transform: translateY(100%) }
+						.tb-transition-${TransitionMethod.Shrink} { transition: transform ${this.settings.transition.time}s; transform: scale(0) }
+						.tb-transition-${TransitionMethod.RotateX} { transition: transform ${this.settings.transition.time}s; transform: rotateX(180deg) }
+						.tb-transition-${TransitionMethod.RotateY} { transition: transform ${this.settings.transition.time}s; transform: rotateY(180deg) }
+						.tb-transition-${TransitionMethod.ZoomFade} { transition: transform ${this.settings.transition.time}s, opacity ${this.settings.transition.time}s; transform: scale(5); opacity: 1 }
 					`;
 				}
 

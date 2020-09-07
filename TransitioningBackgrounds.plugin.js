@@ -7,6 +7,11 @@
  * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js
  */
 
+ /* TODO
+	Add server-based images.
+	Slow zoom option.
+ */
+
 module.exports = (() =>
 {
 	const ImageSource =
@@ -33,6 +38,14 @@ module.exports = (() =>
 		AZ: 2
 	};
 
+	const ImageSizeMode =
+	{
+		Auto: "auto",
+		Cover: "cover",
+		Contain: "contain",
+		Initial: "initial"
+	};
+
 	const config =
 	{
 		info:
@@ -47,7 +60,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.1",
+			version: "2.1.1",
 			description: "Allows you to set a list of background images, or pick a source, to transitioning between using various animations and sort modes.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TransitioningBackgrounds.plugin.js"
@@ -68,8 +81,24 @@ module.exports = (() =>
 						id: "imageLife",
 						value: 30,
 						min: 0,
-						max: 600,
-						renderValue: v => Math.round(v) + " seconds"
+						max: 601,
+						renderValue: v =>
+							v <= 600
+								? Math.round(v) + " seconds"
+								: "on startup"
+					},
+					{
+						type: "dropdown",
+						name: "Image Size Mode",
+						id: "imageSizeMode",
+						value: ImageSizeMode.Cover,
+						options:
+						[
+							{ label: "Auto", value: ImageSizeMode.Auto },
+							{ label: "Cover", value: ImageSizeMode.Cover },
+							{ label: "Contain", value: ImageSizeMode.Contain },
+							{ label: "Initial", value: ImageSizeMode.Initial }
+						]
 					},
 					{
 						type: "switch",
@@ -126,7 +155,8 @@ module.exports = (() =>
 						name: "Transition Method",
 						id: "method",
 						value: TransitionMethod.FadeInOut,
-						options: [
+						options:
+						[
 							{ label: "Fade In/Out", value: TransitionMethod.FadeInOut },
 							{ label: "Slide Left", value: TransitionMethod.SlideLeft },
 							{ label: "Slide Right", value: TransitionMethod.SlideRight },
@@ -163,22 +193,21 @@ module.exports = (() =>
 		changelog:
 		[
 			{
-				title: "Rewrite",
-				type: "fixed",
-				items:
-				[
-					"TransitioningBackgrounds has been entirely rewritten, and its functionality has changed. Images will now load from a folder on your PC instead of a list of links.",
-					"In a later update, there will be more options for image sources (potential examples: imgur albums, google images search, subreddits, etc).",
-					"Fixed changing your folder source requiring a restart."
-				]
-			},
-			{
-				title: "NOTE",
+				title: "added",
 				type: "added",
 				items:
 				[
-					"With this plugin being rewritten, you may encounter new bugs, if you do, please contact me about the issues you're having.",
-					"If you're having issues with the plugin, close discord, navigate to %appdata%/BetterDiscord/plugins and delete TransitioningBackgrounds.config.json, then re-launch Discord."
+					"Added 'on startup' image life option. To use this, drag the image life slider rightmost. This will make the image change every time you start Discord or refresh the plugin.",
+					"Added 'image size mode' option."
+				]
+			},
+			{
+				title: "changes and bug fixes",
+				type: "fixed",
+				items:
+				[
+					"Backgrounds will now hide when Discord is fully minimized instead of on focus loss. This will make the plugin useful for multiple screens.",
+					"Fixed some minor bugs with the 'force transparency' setting."
 				]
 			}
 		]
@@ -214,7 +243,7 @@ module.exports = (() =>
 
 		const plugin = (Plugin, Api) =>
 		{
-			const { WebpackModules } = Api;
+			const { WebpackModules, PluginUtilities } = Api;
 
 			const fs = require("fs");
 			const path = require("path");
@@ -257,71 +286,72 @@ module.exports = (() =>
 
 				get CSS()
 				{
-					const s = this.createElement("style",
-					{
-						innerHTML: `
-							.tb-image
-							{
-								display: none;
-								background-size: cover;
-								background-position: center;
-								width: 100%;
-								height: 100%;
-								position: absolute;
-								transition: ${this.settings.transition.method == TransitionMethod.FadeInOut ? "opacity" : "transform, opacity"} ${this.settings.transition.time}s ease-in-out;
-								filter: brightness(${this.settings.general.backgroundBrightness});
-							}
+					return `
+						.tb-image
+						{
+							display: none;
+							background-size: ${this.settings.general.imageSizeMode};
+							background-position: center;
+							background-repeat: no-repeat;
+							width: 100%;
+							height: 100%;
+							position: absolute;
+							transition: ${this.settings.transition.method == TransitionMethod.FadeInOut ? "opacity" : "transform, opacity"} ${this.settings.transition.time}s ease-in-out;
+							filter: brightness(${this.settings.general.backgroundBrightness});
+						}
 
-							.app-focused .tb-image
-							{
-								display: block;
-							}
+						.tb-active .tb-image
+						{
+							display: block;
+						}
 
-							.tb-transition-${TransitionMethod.FadeInOut} { opacity: 0 }
-							.tb-transition-${TransitionMethod.SlideLeft} { transform: translateX(-100%) }
-							.tb-transition-${TransitionMethod.SlideRight} { transform: translateX(100%) }
-							.tb-transition-${TransitionMethod.SlideUp} { transform: translateY(-100%) }
-							.tb-transition-${TransitionMethod.SlideDown} { transform: translateY(100%) }
-							.tb-transition-${TransitionMethod.Shrink} { transform: scale(0) }
-							.tb-transition-${TransitionMethod.RotateX} { transform: rotateX(180deg) }
-							.tb-transition-${TransitionMethod.RotateY} { transform: rotateY(180deg) }
-							.tb-transition-${TransitionMethod.ZoomFade} { transform: scale(5); opacity: 1 }
-						`
-					});
-
-					document.head.appendChild(s);
-
-					return s;
+						.tb-transition-${TransitionMethod.FadeInOut} { opacity: 0 }
+						.tb-transition-${TransitionMethod.SlideLeft} { transform: translateX(-100%) }
+						.tb-transition-${TransitionMethod.SlideRight} { transform: translateX(100%) }
+						.tb-transition-${TransitionMethod.SlideUp} { transform: translateY(-100%) }
+						.tb-transition-${TransitionMethod.SlideDown} { transform: translateY(100%) }
+						.tb-transition-${TransitionMethod.Shrink} { transform: scale(0) }
+						.tb-transition-${TransitionMethod.RotateX} { transform: rotateX(180deg) }
+						.tb-transition-${TransitionMethod.RotateY} { transform: rotateY(180deg) }
+						.tb-transition-${TransitionMethod.ZoomFade} { transform: scale(5); opacity: 1 }
+					`;
 				}
 
 				get ForceTransparencyCSS()
 				{
 					if (!this.settings.general.forceTransparency)
-						return { remove: () => {} };
+						return "";
 
 					const opacity = 0.3;
 
-					const s = this.createElement("style", {
-						innerHTML: `
-							:root
-							{
-								--background-primary: rgba(0,0,0,${opacity});
-								--background-secondary: rgba(0,0,0,${opacity});
-								--background-secondary-alt: rgba(0,0,0,${opacity});
-								--background-tertiary: rgba(0,0,0,${opacity});
-								--background-accent: rgba(0,0,0,${opacity});
-								--background-floating: rgba(0,0,0,${opacity});
+					return `
+						:root
+						{
+							--background-primary: rgba(0,0,0,${opacity});
+							--background-secondary: rgba(0,0,0,${opacity});
+							--background-secondary-alt: rgba(0,0,0,${opacity});
+							--background-tertiary: rgba(0,0,0,${opacity});
+							--background-accent: rgba(0,0,0,${opacity});
+							--background-floating: rgba(0,0,0,${opacity});
 
-								--background-modifier-hover: rgba(0,0,0,0.1);
-								--background-modifier-selected: rgba(0,0,0,0.3);
-								--channeltextarea-background: rgba(0,0,0,${opacity});
-							}
-						`
-					});
+							--background-modifier-hover: rgba(0,0,0,0.1);
+							--background-modifier-selected: rgba(0,0,0,0.3);
+							--channeltextarea-background: rgba(0,0,0,${opacity});
+						}
+						
+						.theme-dark .container-1D34oG
+						{
+							background: var(--background-primary);
+						}
 
-					document.head.appendChild(s);
-
-					return s;
+						.typeWindows-1za-n7
+						{
+							background: black;
+							margin: 0;
+							border: 3px solid black;
+						}
+						
+						`;
 				}
 
 				onStart = () => this.init();
@@ -332,10 +362,10 @@ module.exports = (() =>
 					if (this.settings.forceTransparency != undefined)
 						this.settings = this.defaultSettings;
 
-					this.style = this.CSS;
-					this.tStyle = this.ForceTransparencyCSS;
+					PluginUtilities.addStyle("tb-css", this.CSS);
+					PluginUtilities.addStyle("tb-ft-css", this.ForceTransparencyCSS);
 
-					this.el = this.createElement("div", { id: "tb-container" });
+					this.el = this.createElement("div", { id: "tb-container", className: "tb-active" });
 					this.image0 = this.createElement("div", { id: "tb-image-0", className: "tb-image" });
 					this.image1 = this.createElement("div", { id: "tb-image-1", className: "tb-image" });
 
@@ -351,9 +381,18 @@ module.exports = (() =>
 
 					this.loadedImageNames = null;
 
-					this.loop = setInterval(() => this.main(), this.settings.general.imageLife * 1000);
+					if (this.settings.general.imageLife <= 600)
+						this.loop = setInterval(() => this.main(), this.settings.general.imageLife * 1000);
 					this.main();
 					this.updateNextImage();
+
+					this.onVisibilityChanged = () =>
+					{
+						const container = document.getElementById("tb-container");
+						container.classList[document.hidden ? "remove" : "add"]("tb-active");
+					};
+
+					document.addEventListener("visibilitychange", this.onVisibilityChanged);
 				}
 
 				set nextImageURL(url)
@@ -461,10 +500,13 @@ module.exports = (() =>
 				{
 					this.el.remove();
 
-					this.style.remove();
-					this.tStyle.remove();
+					PluginUtilities.removeStyle("tb-css");
+					PluginUtilities.removeStyle("tb-ft-css");
 
-					clearTimeout(this.loop);
+					document.removeEventListener("visibilitychange", this.onVisibilityChanged);
+
+					if (this.loop != null)
+						clearTimeout(this.loop);
 				}
 			}
 		};

@@ -1,8 +1,10 @@
 /**
- * @name ViewGuildRelationsips
- * @displayName ViewGuildRelationsips
- * @authorId 415849376598982656
- * @invite gvA2ree
+ * @name ViewGuildRelationships
+ * @invite yNqzuJa
+ * @authorLink https://github.com/Metalloriff
+ * @donate https://www.paypal.me/israelboone
+ * @website https://metalloriff.github.io/toms-discord-stuff/
+ * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ViewGuildRelationships.plugin.js.plugin.js
  */
 /*@cc_on
 @if (@_jscript)
@@ -377,7 +379,7 @@ module.exports = (() => {
 						this.setState({ selected: e });
 					}
 				}
-				return class ViewGuildRelationsips extends Plugin {
+				return class ViewGuildRelationships extends Plugin {
 					constructor() {
 						super();
 					}

@@ -9,8 +9,8 @@
 
 module.exports = (() =>
 {
-	const config =
-	{
+    const config =
+    {
 		info:
 		{
 			name: "TheClapBestClapPluginClapEver",
@@ -23,14 +23,25 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.0",
-			description: "Literally useless, toxic cancer. Write 'clapclap$' at the beginning of your message to separate each word with a clap emoji. Write 'clapclap( :your_emoji: )$' to separate each word with your own custom emoji. 'superclapclap$' or 'superclapclap( :emoji: )$' for every letter instead of every word. 'ra$' to replace every letter with a regional indicator emoji. 'reverse$' to reverse your message. 'b$' to replace every 'b' with the B emoji. 'owo$' if you have no will to live.",
+			version: "2.1.0",
+			description: "Literally useless, toxic cancer. Write 'clapclap$' at the beginning of your message to separate each word with a clap emoji. Write 'clapclap( :your_emoji: )$' to separate each word with your own custom emoji. 'superclapclap$' or 'superclapclap( :emoji: )$' for every letter instead of every word. 'ra$' to replace every letter with a regional indicator emoji. 'reverse$' to reverse your message. 'b$' to replace every 'b' with the B emoji. 'woke$' to capitalize every other letter. 'owo$' if you have no will to live.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TheClapBestClapPluginClapEver.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TheClapBestClapPluginClapEver.plugin.js"
-		}
-	};
+		},
+		changelog:
+		[
+			{
+				title: "2.1.0",
+				type: "added",
+				items:
+				[
+					"Added 'woke$' option. This will capitalize every other letter in your message, showing that you are, in fact, the most intelligent and dominant person in chat."
+				]
+			}
+		]
+    };
 
-	return (([Plugin, Api]) => {
+    return (([Plugin, Api]) => {
 
 		const plugin = (Plugin, Api) =>
 		{
@@ -110,6 +121,14 @@ module.exports = (() =>
 									.replace(/b/g, ":b:");
 
 								break;
+							
+							case "woke":
+								const woke = (/^woke\$ /g).exec(content);
+
+								message.content = message.content.substr(woke[0].length, message.content.length)
+									.replace(/.{2}/gm, c => c[0].toUpperCase() + c[1].toLowerCase());
+
+								break;
 						}
 					});
 				}
@@ -121,6 +140,6 @@ module.exports = (() =>
 			}
 		};
 
-		return plugin(Plugin, Api);
-	})(global.ZeresPluginLibrary.buildPlugin(config));
+        return plugin(Plugin, Api);
+    })(global.ZeresPluginLibrary.buildPlugin(config));
 })();

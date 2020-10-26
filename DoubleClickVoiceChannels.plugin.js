@@ -23,7 +23,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.0.1",
+			version: "2.0.2",
 			description: "Requires you to double click voice channels to join them.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DoubleClickVoiceChannels.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/DoubleClickVoiceChannels.plugin.js"
@@ -33,7 +33,7 @@ module.exports = (() =>
 			{
 				title: "Patched",
 				type: "fixed",
-				items: ["Discord b0rked, I fixed."]
+				items: ["Fixed plugin not working [cmd430]"]
 			}
 		]
 	};
@@ -93,7 +93,7 @@ module.exports = (() =>
 						{
 							if (r.props.channel.type == 2)
 							{
-								const props = Utilities.getNestedProp(el, "props.children.1.props.children.0.props");
+								const props = Utilities.getNestedProp(el, "props.children.props.children.1.props.children.0.props");
 
 								if (props)
 								{

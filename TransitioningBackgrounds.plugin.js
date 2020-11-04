@@ -61,7 +61,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.1.2",
+			version: "2.2.2",
 			description: "Allows you to set a list of background images, or pick a source, to transitioning between using various animations and sort modes.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TransitioningBackgrounds.plugin.js"
@@ -195,23 +195,11 @@ module.exports = (() =>
 		changelog:
 		[
 			{
-				title: "added",
-				type: "added",
-				items:
-				[
-					"Added sort mode 'stretch'.",
-					"Added 'on startup' image life option. To use this, drag the image life slider rightmost. This will make the image change every time you start Discord or refresh the plugin.",
-					"Added 'image size mode' option."
-				]
-			},
-			{
 				title: "changes and bug fixes",
 				type: "fixed",
 				items:
 				[
-					"Fixed non-default transition modes not working.",
-					"Backgrounds will now hide when Discord is fully minimized instead of on focus loss. This will make the plugin useful for multiple screens.",
-					"Fixed some minor bugs with the 'force transparency' setting."
+					"Your settings are now based on your user ID."
 				]
 			}
 		]
@@ -247,7 +235,7 @@ module.exports = (() =>
 
 		const plugin = (Plugin, Api) =>
 		{
-			const { WebpackModules, PluginUtilities } = Api;
+			const { WebpackModules, DiscordModules: { UserStore: { getCurrentUser } }, PluginUtilities } = Api;
 
 			const fs = require("fs");
 			const path = require("path");
@@ -264,6 +252,10 @@ module.exports = (() =>
 					try { footer = (await WebpackModules.getByProps("getUser", "acceptAgreements").getUser("264163473179672576")).tag + " | https://discord.gg/yNqzuJa"; }
 					finally { super.showChangelog(footer); }
 				}
+
+				getDataName = () => this.getName() + "." + getCurrentUser().id;
+				loadSettings = s => PluginUtilities.loadSettings(this.getDataName(), PluginUtilities.loadSettings(this.getName(), s || this.defaultSettings));
+				saveSettings = s => PluginUtilities.saveSettings(this.getDataName(), this.settings || s);
 
 				getSettingsPanel() {
 					const panel = this.buildSettingsPanel();

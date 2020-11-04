@@ -89,8 +89,6 @@ module.exports = (() => {
 									c.props.children = () => {
 										const h = handler({});
 
-										console.log(h);
-
 										if (!h.props.connected) {
 											// for whatever reason, onDoubleClick stopped working, so here's a dumb workaround
 											const onClick = h.props.onClick;

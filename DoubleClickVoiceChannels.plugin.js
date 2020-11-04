@@ -22,7 +22,7 @@ module.exports = (() => {
 						twitter_username: "Metalloriff"
 					}
 				],
-			version: "2.0.3",
+			version: "2.0.4",
 			description: "Requires you to double click voice channels to join them.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/DoubleClickVoiceChannels.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/DoubleClickVoiceChannels.plugin.js"
@@ -32,7 +32,7 @@ module.exports = (() => {
 				{
 					title: "Patched",
 					type: "fixed",
-					items: ["Discord b0rked, I fixed, in a really dumb and hacky way."]
+					items: ["Fixed again. Thanks cmd430 for the help!"]
 				}
 			]
 	};
@@ -76,37 +76,50 @@ module.exports = (() => {
 
 				async onStart() {
 					const { component: ChannelItem } = await ReactComponents.getComponentByName("VoiceChannel", "*");
-
+				
 					if (ChannelItem) {
 						Patcher.after(ChannelItem.prototype, "render", (r, _, el) => {
-							const children = Utilities.getNestedProp(el, "props.children.props.children.0.props.children.props.children");
-
-							if (children) {
-								el.props.children.props.children[0].props.children.props.children = () => {
-									const c = children();
-
+					  const children_type0 = Utilities.getNestedProp(el, "props.children.props.children.0.props.children.props.children");
+					  const children_type1 = Utilities.getNestedProp(el, "props.children.0.props.children.props.children");
+				
+							if (children_type0 || children_type1) {
+						const handleClick = (children) => {
+						  const c = children();
+				
 									const handler = c.props.children;
 									c.props.children = () => {
 										const h = handler({});
-
+				
 										if (!h.props.connected) {
 											// for whatever reason, onDoubleClick stopped working, so here's a dumb workaround
 											const onClick = h.props.onClick;
 											let t = performance.now() - 200;
-
+				
 											h.props.onClick = () => {
 												if (performance.now() - t < 200)
 													onClick();
-
+				
 												t = performance.now();
 											};
 										}
-
+				
 										return h;
 									};
-
+				
 									return c;
+						};
+						
+						if (children_type0) {
+						  el.props.children.props.children[0].props.children.props.children = () => {
+							return handleClick(children_type0);
+						  };
+						} 
+						if (children_type1) {
+						  el.props.children[0].props.children.props.children = () => {
+							return handleClick(children_type1);
+						  };
 								};
+				
 							}
 							else {
 								console.warn("DoubleClickVoiceChannel: Failed to get nested props!");

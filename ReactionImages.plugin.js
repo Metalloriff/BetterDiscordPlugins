@@ -17,17 +17,16 @@ module.exports = (() => {
 				github_username: "metalloriff",
 				twitter_username: "Metalloriff"
 			}],
-			version: "2.0.0",
+			version: "2.0.1",
 			description: "Allows you to define custom reaction image folders and send images with 'foldername/imagesearch'. Example: 'reactions/goodmeme'",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/ReactionImages.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/ReactionImages.plugin.js"
 		},
 		changelog: [{
 			type: "fixed",
-			title: "2.0 rewrite",
+			title: "Shitcord patch",
 			items: [
-				"This plugin has been rewritten. If you experience any new bugs, please contact me.",
-				"Please note that all settings have been reset and you will have to reconfigure them."
+				"Shitcord broke, I fixed. Thanks Strencher for letting me know."
 			]
 		}],
 		defaultConfig: [{
@@ -253,7 +252,7 @@ module.exports = (() => {
 							return { results };
 						},
 
-						renderResults: (channel, query, selectedIndex, select, choose, config, { results }) => {
+						renderResults: (channel, query, selectedIndex, select, choose, config, _, { results }) => {
 							const strong = c => React.createElement("strong", {}, c);
 
 							return [

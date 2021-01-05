@@ -23,7 +23,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "3.0.0",
+			version: "3.0.1",
 			description: "Displays notifications when users join/leave, mute/unmute, deafen/undeafen, or are moved in the voice channel you're in.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/VoiceChatNotifications.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/VoiceChatNotifications.plugin.js"

@@ -81,7 +81,7 @@ module.exports = (() =>
 							case "ra":
 								const ra = (/^ra\$/g).exec(content);
 
-								message.content = message.content.substr(ra[0].length, message.content.length)
+								message.content = message.content.toLowerCase().substr(ra[0].length, message.content.length)
 									.split(" ")
 									.join("\t")
 									.replace(/[A-Za-z]/g, x => ` :regional_indicator_${x}: `);

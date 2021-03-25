@@ -59,7 +59,7 @@ module.exports = (() =>
 					Patcher.after(DiscordModules.MessageActions, "sendMessage", (_, [, message]) =>
 					{
 						const content = message.content.toLowerCase();
-						const clapclap = (/^clapclap(\S| )*\$ /g).exec(content) || (/^superclapclap(\S| )*\$ /g).exec(content);
+						const clapclap = (/^clapclap(\S| )*\$/g).exec(content) || (/^superclapclap(\S| )*\$/g).exec(content);
 						
 						if (clapclap)
 						{	
@@ -79,7 +79,7 @@ module.exports = (() =>
 						switch (content.split("$")[0])
 						{
 							case "ra":
-								const ra = (/^ra\$ /g).exec(content);
+								const ra = (/^ra\$/g).exec(content);
 
 								message.content = message.content.substr(ra[0].length, message.content.length)
 									.split(" ")
@@ -89,7 +89,7 @@ module.exports = (() =>
 								break;
 
 							case "reverse":
-								const reverse = (/^reverse\$ /g).exec(content);
+								const reverse = (/^reverse\$/g).exec(content);
 
 								message.content = message.content.substr(reverse[0].length, message.content.length)
 									.split("")
@@ -99,7 +99,7 @@ module.exports = (() =>
 								break;
 
 							case "owo":
-								const owo = (/^owo\$ /g).exec(content);
+								const owo = (/^owo\$/g).exec(content);
 
 								message.content = message.content.substr(owo[0].length, message.content.length)
 									.replace(/r/g, "w")
@@ -115,7 +115,7 @@ module.exports = (() =>
 								break;
 
 							case "b":
-								const b = (/^b\$ /g).exec(content);
+								const b = (/^b\$/g).exec(content);
 
 								message.content = message.content.substr(b[0].length, message.content.length)
 									.replace(/b/g, ":b:");
@@ -123,7 +123,7 @@ module.exports = (() =>
 								break;
 							
 							case "woke":
-								const woke = (/^woke\$ /g).exec(content);
+								const woke = (/^woke\$/g).exec(content);
 
 								message.content = message.content.substr(woke[0].length, message.content.length)
 									.replace(/.{2}/gm, c => c[0].toUpperCase() + c[1].toLowerCase());

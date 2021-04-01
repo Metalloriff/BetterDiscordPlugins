@@ -1,11 +1,11 @@
 /**
-	* @name UserBirthdays
-	* @invite yNqzuJa
-	* @authorLink https://github.com/metalloriff
-	* @donate https://www.paypal.me/israelboone
-	* @website https://metalloriff.github.io/toms-discord-stuff
-	* @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js
-*/
+ * @name UserBirthdays
+ * @invite yNqzuJa
+ * @authorLink https://github.com/metalloriff
+ * @donate https://www.paypal.me/israelboone
+ * @website https://metalloriff.github.io/toms-discord-stuff
+ * @source https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js
+ */
 /*@cc_on
 @if (@_jscript)
 	
@@ -27,244 +27,265 @@
 		shell.Popup("I'm installed!", 0, "Successfully installed", 0x40);
 	}
 	WScript.Quit();
+
 @else@*/
 
-// REPLACE: UserBirthdays, VERSION, DESCRIPTION
+module.exports = (() => {
+    const config = {
+        "info": {
+            "name": "UserBirthdays",
+            "authors": [{
+                "name": "Metalloriff",
+                "discord_id": "264163473179672576",
+                "github_username": "Metalloriff",
+                "twitter_username": "Metalloriff"
+            }],
+            "version": "3.0.0",
+            "description": "Allows you to set birthdays for users and get notified when it's a user's birthday.",
+            "github": "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/UserBirthdays.plugin.js",
+            "github_raw": "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/UserBirthdays.plugin.js"
+        },
+        "changelog": [{
+            "title": "Rewritten!",
+            "type": "improved",
+            "items": ["UserBirthdays fixed by Danielle#1788"]
+        }],
+        "main": "index.js"
+    };
 
-class UserBirthdays {
+    return !global.ZeresPluginLibrary ? class {
+        constructor() {
+            this._config = config;
+        }
+        getName() {
+            return config.info.name;
+        }
+        getAuthor() {
+            return config.info.authors.map(a => a.name).join(", ");
+        }
+        getDescription() {
+            return config.info.description;
+        }
+        getVersion() {
+            return config.info.version;
+        }
+        load() {
+            BdApi.showConfirmationModal("Library Missing", `The library plugin needed for ${config.info.name} is missing. Please click Download Now to install it.`, {
+                confirmText: "Download Now",
+                cancelText: "Cancel",
+                onConfirm: () => {
+                    require("request").get("https://rauenzi.github.io/BDPluginLibrary/release/0PluginLibrary.plugin.js", async (error, response, body) => {
+                        if (error) return require("electron").shell.openExternal("https://betterdiscord.net/ghdl?url=https://raw.githubusercontent.com/rauenzi/BDPluginLibrary/master/release/0PluginLibrary.plugin.js");
+                        await new Promise(r => require("fs").writeFile(require("path").join(BdApi.Plugins.folder, "0PluginLibrary.plugin.js"), body, r));
+                    });
+                }
+            });
+        }
+        start() {}
+        stop() {}
+    } : (([Plugin, Api]) => {
+        const plugin = (Plugin, Api) => {
 
-	getName() { return "UserBirthdays" }
-	getAuthor() { return "Metalloriff" }
-	getDescription() { return "Allows you to set birthdays for users and get notified when it's a user's birthday." }
-	getVersion() { return "2.0.0" }
+            const {
+                Toasts,
+                PluginUtilities,
+                DiscordModules
+            } = Api;
 
-	load() {}
+            const {
+                UserStore
+            } = DiscordModules;
 
-	start() {
-		const libLoadedEvent = () => {
-			try{ this._start(NeatoLib); }
-			catch(err) { console.error(this.getName(), "fatal error, plugin could not be started!", err); try { this.stop(); } catch(err) { console.error(this.getName() + ".stop()", err); } }
-		};
+            return class UserBirthdays extends Plugin {
 
-		let lib = document.getElementById("NeatoBurritoLibrary");
-		if(!lib) {
-			lib = document.createElement("script");
-			lib.id = "NeatoBurritoLibrary";
-			lib.type = "text/javascript";
-			lib.src = "https://rawgit.com/Metalloriff/BetterDiscordPlugins/master/Lib/NeatoBurritoLibrary.js";
-			document.head.appendChild(lib);
-		}
+                onStart() {
+                    this.birthdays = PluginUtilities.loadData(this.getName(), "birthdays", {
+                        "264163473179672576": {
+                            day: "5/20",
+                            hadIn: ""
+                        }
+                    });
 
-		this.forceLoadTimeout = setTimeout(libLoadedEvent, 30000);
-		if(typeof window.NeatoLib !== "undefined") libLoadedEvent();
-		else lib.addEventListener("load", libLoadedEvent);
-	}
+                    const noteItem = (profile, uid) => {
+                        let el = document.createElement("div");
+                        let tt = document.createElement("div");
+                        let birthday = this.birthdays[uid];
 
-	get c() {
-		return {
-			app: "app-1q1i1E",
-			layerContainer: "layerContainer-yqaFcK",
-			userPopout: "userPopout-3XzG_A",
-			popouts: "popouts-2bnG9Z",
-			note: {
-				self: "note-3kmerW note-3HfJZ5",
-				title: "bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845",
-				textArea: "scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9"
-			},
-			profile: {
-				self: "userInfoSection-2acyCx",
-				note: "note-3kmerW note-QfFU8y"
-			},
-			tooltip: {
-				self: "tooltip-2QfLtc tooltipTop-XDDSxx tooltipBlack-PPG47z tooltipDisablePointerEvents-3eaBGN",
-				pointer: "tooltipPointer-3ZfirK"
-			}
-		}
-	}
+                        tt.className = this.c.tooltip.self;
+                        tt.style = "opacity:0;position:absolute;top:15%;right:10%;transition:opacity 0.5s;animation: none;"
+                        tt.innerHTML = `<div class="${this.c.tooltip.pointer}"></div>Inproper date format!</div>`;
 
-	setBirthday(uid, day) {
-		if (day) {
-			this.birthdays[uid] = {
-				day: day,
-				hadIn: ""
-			}
-		} else {
-			delete this.birthdays[uid];
-		}
+                        el.appendChild(tt);
 
-		NeatoLib.Data.save(this.getName(), "birthdays", this.birthdays);
-	}
+                        el.innerHTML += `
+                    <div id="ub-field" class="${this.c.note.title}">Birthday</div>
+                    <div class="${profile ? this.c.profile.note : this.c.note.self}">
+                        <textarea placeholder="Example: 4/20, April 20 or YYYY-MM-DD" maxlength="50" autocorrect="off" class="${this.c.note.textArea}" style="height:35px">${birthday ? birthday.day : ""}</textarea>
+                    </div>`
 
-	_start(l) {
-		l.Updates.check(this);
+                        el.getElementsByTagName("textarea")[0].addEventListener("input", e => {
+                            let v = e.target.value;
+                            let d = new Date(v);
+                            let t = e.target.parentElement.parentElement.getElementsByClassName(this.c.tooltip.self)[0];
 
-		this.birthdays = l.Data.load(this.getName(), "birthdays", {
-			"264163473179672576": {
-				day: "5/20",
-				hadIn: ""
-			}
-		});
+                            if (v.length && d == "Invalid Date") {
+                                t.style.opacity = 1;
+                            } else {
+                                t.style.opacity = 0;
+                                this.setBirthday(uid, v);
+                            }
+                        });
 
-		const noteItem = (profile, uid) => {
-			let el = document.createElement("div");
-			let tt = document.createElement("div");
-			let birthday = this.birthdays[uid];
+                        return el;
+                    };
 
-			tt.className = this.c.tooltip.self;
-			tt.style = "opacity:0;position:absolute;top:15%;right:10%;transition:opacity 0.5s;"
-			tt.innerHTML = `<div class="${this.c.tooltip.pointer}"></div>Inproper date format!</div>`;
+                    (this.o = new MutationObserver(m => {
+                        for (let i = 0; i < m.length; i++) {
+                            const p = m[i].addedNodes[0];
 
-			el.appendChild(tt);
+                            if (p != null) {
+                                if (p.getElementsByClassName(this.c.userPopout)[0]) {
+                                    let uid = p.getElementsByClassName(this.c.userPopout)[0].getAttribute("user_by_bdfdb");
+                                    if (uid) {
+                                        p.getElementsByClassName(this.c.note.self)[0].appendChild(noteItem(false, uid));
+                                    }
+                                }
 
-			el.innerHTML += `
-			<div id="ub-field" class="${this.c.note.title}">Birthday</div>
-			<div class="${profile ? this.c.profile.note : this.c.note.self}">
-				<textarea placeholder="Example: 4/20 or April 20" maxlength="50" autocorrect="off" class="${this.c.note.textArea}" style="height:35px">${birthday ? birthday.day : ""}</textarea>
-			</div>`
+                                if (p.getElementsByClassName(this.c.profile.self)[0]) {
+                                    p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true, p.getElementsByClassName(this.c.profile.self)[0].parentElement.parentElement.parentElement.getAttribute("user_by_bdfdb")));
+                                }
+                            }
+                        }
+                    })).observe(document.getElementsByClassName(this.c.layerContainer)[1], {
+                        childList: true
+                    });
+                    this.o.observe(document.getElementsByClassName(this.c.layerContainer)[1].previousSibling.previousElementSibling, {
+                        childList: true
+                    });
+                    this.o.observe(document.getElementsByClassName(this.c.popouts)[0], {
+                        childList: true
+                    });
 
-			el.getElementsByTagName("textarea")[0].addEventListener("input", e => {
-				let v = e.target.value;
-				let d = new Date(v);
-				let t = e.target.parentElement.parentElement.getElementsByClassName(this.c.tooltip.self)[0];
+                    this.loop = setInterval(() => {
+                        const now = new Date();
 
-				if (v.length && d == "Invalid Date") {
-					t.style.opacity = 1;
-				} else {
-					t.style.opacity = 0;
-					this.setBirthday(uid, v);
-				}
-			});
+                        for (let uid in this.birthdays) {
+                            const _user = UserStore.getUser(uid),
+                                birthday = new Date(this.birthdays[uid].day);
+                            let user;
+                            if (_user) {
+                                user = {
+                                    avatar: _user.getAvatarURL(),
+                                    tag: _user.tag,
+                                    name: _user.username,
+                                    id: uid
+                                }
+                            } else if (uid == "264163473179672576") {
+                                user = {
+                                    avatar: "https://cdn.discordapp.com/attachments/396895633732272139/707233064031486002/well_frickly_frack.png",
+                                    tag: "Metalloriff#2891",
+                                    name: "Metalloriff",
+                                    id: uid
+                                }
+                            } else {
+                                user = {
+                                    avatar: "/assets/f046e2247d730629309457e902d5c5b3.svg",
+                                    tag: uid,
+                                    name: "Unknown User",
+                                    id: uid
+                                }
+                            }
 
-			return el;
-		};
-		
-		(this.o = new MutationObserver(m => {
-			for (let i = 0; i < m.length; i++) {
-				const p = m[i].addedNodes[0];
-			
-				if (p != null) {
-					if (p.getElementsByClassName(this.c.userPopout)[0]) {
-						let uid = l.ReactData.getOwner(p.getElementsByClassName(this.c.userPopout)[0])._reactInternalFiber.return.memoizedProps.user.id;
-						if (uid) {
-							p.getElementsByClassName(this.c.note.self)[0].appendChild(noteItem(false, uid));
-						}
-					}
-	
-					if (p.getElementsByClassName(this.c.profile.self)[0]) {
-						p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true));
-					}
-				}
-			}
-		})).observe(document.getElementsByClassName(this.c.layerContainer)[1], {childList: true});
-		this.o.observe(document.getElementsByClassName(this.c.layerContainer)[1].previousSibling.previousSibling, {childList: true});
-		this.o.observe(document.getElementsByClassName(this.c.popouts)[0], {childList: true});
+                            if (now.getMonth() == birthday.getMonth() && now.getDate() == birthday.getDate() &&
+                                (this.birthdays[uid].hadIn == "" || isNaN(this.birthdays[uid].hadIn) || now.getFullYear() != this.birthdays[uid].hadIn)) {
+                                this.createBirthdayItem(user);
 
-		this.loop = setInterval(() => {
-			const now = new Date();
+                                this.birthdays[uid].hadIn = now.getFullYear();
+                                PluginUtilities.saveData(this.getName(), "birthdays", this.birthdays);
+                            }
+                        }
+                    }, 60 * 1000)
+                }
 
-			for (let uid in this.birthdays) {
-				const _user = l.Modules.get("getUser").getUser(uid),
-					birthday = new Date(this.birthdays[uid].day);
-				let user;
+                onStop() {
+                    this.o.disconnect();
+                    clearInterval(this.loop);
+                }
 
-				if (_user) {
-					user = {
-						avatar: _user.getAvatarURL(),
-						tag: _user.tag,
-						name: _user.username,
-						id: uid
-					}
-				} else if (uid == "264163473179672576") {
-					user = {
-						avatar: "https://cdn.discordapp.com/attachments/396895633732272139/707233064031486002/well_frickly_frack.png",
-						tag: "Metalloriff#2891",
-						name: "Metalloriff",
-						id: uid
-					}
-				} else {
-					user = {
-						avatar: "/assets/f046e2247d730629309457e902d5c5b3.svg",
-						tag: uid,
-						name: "Unknown User",
-						id: uid
-					}
-				}
+                get c() {
+                    return {
+                        app: "app-1q1i1E",
+                        layerContainer: "layerContainer-yqaFcK",
+                        userPopout: "userPopout-3XzG_A",
+                        popouts: "popouts-2bnG9Z",
+                        note: {
+                            self: "note-3HfJZ5",
+                            title: "bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845",
+                            textArea: "textarea-2r0oV8 scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9"
+                        },
+                        profile: {
+                            self: "userInfoSection-2acyCx",
+                            note: "note-QfFU8y"
+                        },
+                        tooltip: {
+                            self: "tooltip-2QfLtc tooltipTop-XDDSxx tooltipBlack-PPG47z tooltipDisablePointerEvents-3eaBGN",
+                            pointer: "tooltipPointer-3ZfirK"
+                        }
+                    }
+                }
 
-				if (now.getMonth() == birthday.getMonth() && now.getDate() == birthday.getDate() &&
-					(this.birthdays[uid].hadIn == "" || isNaN(this.birthdays[uid].hadIn) || now.getFullYear() != this.birthdays[uid].hadIn)) {
-					this.createBirthdayItem(l, user);
+                setBirthday(uid, day) {
+                    if (day) {
+                        this.birthdays[uid] = {
+                            day: day,
+                            hadIn: ""
+                        }
+                    } else {
+                        delete this.birthdays[uid];
+                    }
 
-					this.birthdays[uid].hadIn = now.getFullYear();
-					NeatoLib.Data.save(this.getName(), "birthdays", this.birthdays);
+                    PluginUtilities.saveData(this.getName(), "birthdays", this.birthdays);
+                    Toasts.success("Birthday Set!")
+                }
 
-					console.log(this.birthdays[uid])
-				}
-			}
-		}, 60 * 100)
+                createBirthdayItem(user) {
+                    let i = document.getElementById("ub-birthday-item-" + user.id);
 
-		l.Events.onPluginLoaded(this);
-	}
+                    if (!i) {
+                        i = document.createElement("div");
 
-	createBirthdayItem(l, user) {
-		let i = document.getElementById("ub-birthday-item-" + user.id);
-		
-		if (!i) {
-			i = document.createElement("div");
+                        i.id = "ub-birthday-item-" + user.id;
 
-			i.id = "ub-birthday-item-" + user.id;
+                        i.style = `
+                    background: white;
+                    border-radius: 10px;
+    
+                    width: 80%;
+                    height: 150px;
+                    margin-top: 40px;
+                `;
 
-			i.style = `
-				background: white;
-				border-radius: 10px;
+                        i.innerHTML = `
+                    <div style="width: 130px; height: 130px; margin: 10px; border-radius: 10px; background: url(${user.avatar}) no-repeat; background-size: cover;">
+                    <div style="position: relative; left: 105%; font-size: 35px; font-weight: bold;">${user.tag}</div>
+                    <div style="position: relative; left: 105%; font-size: 35px; width: 1000px;">It's ${user.name}'s birthday today!</div>
+                    </div>`;
 
-				width: 80%;
-				height: 150px;
-				margin-top: 40px;
-			`;
+                        this.createBirthdayContainer().appendChild(i);
+                    }
 
-			i.innerHTML = `
-				<div style="
-					width: 130px;
-					height: 130px;
-					margin: 10px;
-					border-radius: 10px;
+                    return i;
+                }
 
-					background: url(${user.avatar}) no-repeat;
-					background-size: cover;
-				">
-					<div style="
-						position: relative;
-						left: 105%;
+                createBirthdayContainer() {
+                    let c = document.getElementById("ub-birthday-container");
 
-						font-size: 35px;
-						font-weight: bold;
-					">${user.tag}</div>
-					<div style="
-						position: relative;
-						left: 105%;
-						margin-top: 45%;
+                    if (!c) {
+                        c = document.createElement("div");
 
-						font-size: 35px;
-						width: 1000px;
-					">It's ${user.name}'s birthday today!</div>
-				</div>
-			`;
+                        c.id = "ub-birthday-container";
 
-			this.createBirthdayContainer(l).appendChild(i);
-		}
-
-		return i;
-	}
-
-	createBirthdayContainer(l) {
-		let c = document.getElementById("ub-birthday-container");
-
-		if (!c) {
-			c = document.createElement("div");
-
-			c.id = "ub-birthday-container";
-
-			c.style = `
+                        c.style = `
 				background: rgba(0, 0, 0, 0.7);
 				overflow: scroll;
 
@@ -284,28 +305,28 @@ class UserBirthdays {
 				grid-auto-rows: 15%;
 			`;
 
-			c.addEventListener("click", e => {
-				e.currentTarget.style.opacity = 0;
+                        c.addEventListener("click", e => {
+                            e.currentTarget.style.opacity = 0;
 
-				setTimeout(() => {
-					c.remove();
-				}, 600);
-			});
+                            setTimeout(() => {
+                                c.remove();
+                            }, 600);
+                        });
 
-			document.getElementsByClassName(this.c.app)[0].appendChild(c);
-			
-			setTimeout(() => {
-				c.style.opacity = 1;
-			}, 100);
-		}
+                        document.getElementsByClassName(this.c.app)[0].appendChild(c);
 
-		return c;
-	}
+                        setTimeout(() => {
+                            c.style.opacity = 1;
+                        }, 100);
+                    }
 
-	stop() {
-		this.o.disconnect();
-		clearInterval(this.loop);
-	}
+                    return c;
+                }
 
-}
+            };
+
+        };
+        return plugin(Plugin, Api);
+    })(global.ZeresPluginLibrary.buildPlugin(config));
+})();
 /*@end@*/

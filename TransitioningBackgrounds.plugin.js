@@ -61,7 +61,7 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.2.2",
+			version: "2.2.3",
 			description: "Allows you to set a list of background images, or pick a source, to transitioning between using various animations and sort modes.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/TransitioningBackgrounds.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/TransitioningBackgrounds.plugin.js"
@@ -239,6 +239,7 @@ module.exports = (() =>
 
 			const fs = require("fs");
 			const path = require("path");
+			const { Buffer } = require("buffer");
 
 			return class TransitioningBackgrounds extends Plugin
 			{

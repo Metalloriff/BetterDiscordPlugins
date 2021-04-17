@@ -49,8 +49,7 @@ module.exports = (() => {
             "title": "Rewritten!",
             "type": "improved",
             "items": ["UserBirthdays fixed by Danielle#1788"]
-        }],
-        "main": "index.js"
+        }]
     };
 
     return !global.ZeresPluginLibrary ? class {
@@ -145,14 +144,14 @@ module.exports = (() => {
 
                             if (p != null) {
                                 if (p.getElementsByClassName(this.c.userPopout)[0]) {
-                                    let uid = p.getElementsByClassName(this.c.userPopout)[0].getAttribute("user_by_bdfdb");
+                                    let uid = p.getElementsByClassName(this.c.userPopout)[0].getAttribute("data-user-id");
                                     if (uid) {
                                         p.getElementsByClassName(this.c.note.self)[0].appendChild(noteItem(false, uid));
                                     }
                                 }
 
                                 if (p.getElementsByClassName(this.c.profile.self)[0]) {
-                                    p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true, p.getElementsByClassName(this.c.profile.self)[0].parentElement.parentElement.parentElement.getAttribute("user_by_bdfdb")));
+                                    p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true, p.getElementsByClassName(this.c.profile.self)[0].parentElement.parentElement.parentElement.getAttribute("data-user-id")));
                                 }
                             }
                         }

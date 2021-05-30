@@ -23,13 +23,21 @@ module.exports = (() =>
 					twitter_username: "Metalloriff"
 				}
 			],
-			version: "2.1.1",
+			version: "2.1.2",
 			description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/GuildAndFriendRemovalAlerts.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts.plugin.js"
 		},
 		changelog:
 		[
+			{
+				title: "fixed constant display of modal when a friend removed you",
+				items:
+				[
+					"fini's a god B)",
+					"When removed by a user, the modal would constantly display. This problem has been fixed."
+				]
+			},
 			{
 				title: "2.0 rewrite",
 				type: "fixed",
@@ -437,6 +445,9 @@ module.exports = (() =>
 
 					this.removedGuildHistory = PluginUtilities.loadData(this.getDataName(), "removedGuildHistory", []);
 					this.removedFriendHistory = PluginUtilities.loadData(this.getDataName(), "removedFriendHistory", []);
+
+					this.removedGuildHistory = this.removedGuildHistory ? this.removedGuildHistory : []
+					this.removedFriendHistory = this.removedFriendHistory ? this.removedFriendHistory : []
 
 					ReactComponents.getComponentByName("DefaultHomeButton", "*").then(r =>
 					{

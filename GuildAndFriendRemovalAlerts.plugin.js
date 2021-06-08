@@ -155,7 +155,7 @@ module.exports = (() =>
 			const { default: ContextMenu } = WebpackModules.getByProps("MenuStyle", "default");
 			const { MenuGroup: CtxMenuGroup, MenuItem: CtxMenuItem } = WebpackModules.find(m => m.MenuRadioItem && !m.default);
 
-			const { listRow, listRowContent, listName } = WebpackModules.getByProps("header", "botTag", "listAvatar");
+			const { listRow, listRowContent, listName } = WebpackModules.getByProps("listName", "listRow", "listAvatar");
 
 			class GuildItem extends React.Component
 			{

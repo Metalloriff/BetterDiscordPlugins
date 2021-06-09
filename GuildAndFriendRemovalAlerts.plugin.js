@@ -433,46 +433,49 @@ module.exports = (() =>
 	
 				onStart()
 				{
-					this.loop = setInterval(() => this.tick(), 5000);
+					this.awaitLoad = setInterval(function(){
+						if(getCurrentUser()===undefined)return;
+						clearInterval(this.awaitLoad);
+						this.loop = setInterval(() => this.tick(), 5000);
+						this.removedGuildHistory = PluginUtilities.loadData(this.getDataName(), "removedGuildHistory", []);
+						this.removedFriendHistory = PluginUtilities.loadData(this.getDataName(), "removedFriendHistory", []);
 
-					this.removedGuildHistory = PluginUtilities.loadData(this.getDataName(), "removedGuildHistory", []);
-					this.removedFriendHistory = PluginUtilities.loadData(this.getDataName(), "removedFriendHistory", []);
-
-					ReactComponents.getComponentByName("DefaultHomeButton", "*").then(r =>
-					{
-						Patcher.after(r.component.prototype, "render", (props, args, re) =>
+						ReactComponents.getComponentByName("DefaultHomeButton", "*").then(r =>
 						{
-							re.props.onContextMenu = e =>
+							Patcher.after(r.component.prototype, "render", (props, args, re) =>
 							{
-								ContextMenuActions.openContextMenu(e, () =>
-									React.createElement(
-										ContextMenu,
-										{
-											navId: "HomeContextMenu",
-											onClose: ContextMenuActions.closeContextMenu,
-											children:
-											[
-												React.createElement(
-													CtxMenuGroup,
-													{
-														children:
-															React.createElement(
-																CtxMenuItem,
-																{
-																	label: "View GFR History",
-																	id: "view-gfr-history",
-																	action: () => this.openModal(this.removedGuildHistory, this.removedFriendHistory)
-																}
-															)
-													}
-												)
-											]
-										}
-									)
-								);
-							};
-						});
-					}).catch(exc => console.warn(this.getName() + ": Failed to patch react component 'DefaultHomeButton'. Reason: " + exc));
+								re.props.onContextMenu = e =>
+								{
+									ContextMenuActions.openContextMenu(e, () =>
+										React.createElement(
+											ContextMenu,
+											{
+												navId: "HomeContextMenu",
+												onClose: ContextMenuActions.closeContextMenu,
+												children:
+												[
+													React.createElement(
+														CtxMenuGroup,
+														{
+															children:
+																React.createElement(
+																	CtxMenuItem,
+																	{
+																		label: "View GFR History",
+																		id: "view-gfr-history",
+																		action: () => this.openModal(this.removedGuildHistory, this.removedFriendHistory)
+																	}
+																)
+														}
+													)
+												]
+											}
+										)
+									);
+								};
+							});
+						}).catch(exc => console.warn(this.getName() + ": Failed to patch react component 'DefaultHomeButton'. Reason: " + exc));
+					}.bind(this),1000);
 				}
 
 				tick()

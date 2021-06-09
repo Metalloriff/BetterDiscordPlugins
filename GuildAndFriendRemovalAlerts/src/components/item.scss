@@ -1,0 +1,48 @@
+﻿.item {
+  display: flex;
+  margin: 5px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  
+  &:hover {
+    background-color: var(--background-modifier-hover);
+  }
+  
+  .image {
+    width: 60px;
+    height: 60px;
+    border-radius: 5px;
+  }
+  
+  .inner {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    margin-left: 10px;
+    
+    .title {
+      margin: auto 0;
+      
+      max-width: 400px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      
+      font-weight: bolder;
+      font-size: 1.1rem;
+    }
+    
+    .description {
+      margin: auto 0;
+    }
+  }
+  
+  &.userItem {
+    
+  }
+  
+  &.guildItem {
+    
+  }
+}

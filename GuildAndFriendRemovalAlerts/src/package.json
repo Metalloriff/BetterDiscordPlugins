@@ -1,0 +1,42 @@
+{
+	"info": {
+		"name": "GuildAndFriendRemovalAlerts",
+		"version": "3.0.0",
+		"description": "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
+		"authors": [
+			{
+				"name": "Metalloriff",
+				"discord_id": "264163473179672576",
+				"github_username": "Metalloriff"
+			}
+		],
+		"github": "https://github.com/Metalloriff/BetterDiscordPlugins/GuildAndFriendRemovalAlerts",
+		"github_raw": "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts/GuildAndFriendRemovalAlerts.plugin.js",
+		"website": "https://metalloriff.github.io/toms-discord-stuff/#/",
+		"donate": "https://paypal.me/israelboone",
+		"invite": "yNqzuJa"
+	},
+	"changelog": [{
+		"title": "3.0 rewrite",
+		"type": "fixed",
+		"items": [
+			"This plugin has been rewritten. Functionality is simliar, and settings and data should still be valid.",
+			"If you experience any bugs, please contact me."
+		]
+	}],
+	"build": {
+		"zlibrary": true,
+		"copy": true,
+		"production": false,
+		"scssHash": false,
+		"alias": {
+			"components": "components/index.js"
+		},
+		"release": {
+			"source": true,
+			"readme": true,
+			"public": true,
+			"contributors": null
+		}
+	}
+}

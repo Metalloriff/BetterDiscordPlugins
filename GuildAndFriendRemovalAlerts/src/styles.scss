@@ -1,0 +1,42 @@
+﻿.modal {
+  color: white;
+  
+  .itemContainer {
+    .title {
+      margin: 20px;
+      font-size: 1.2rem;
+      font-weight: bolder;
+    }
+    
+    .items {
+      
+    }
+  }
+
+  .nothingHere {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    
+    font-size: 2rem;
+    font-weight: bolder;
+    opacity: 0.5;
+  }
+  
+  .clearButton {
+    margin-top: 20px;
+    
+    background-color: rgba(237, 66, 69, 0.1);
+    color: #ff6666;
+    
+    border-radius: 5px;
+    padding: 15px 10px;
+    
+    text-align: center;
+    cursor: pointer;
+  }
+}
+
+.floatRight {
+  margin-left: auto;
+}

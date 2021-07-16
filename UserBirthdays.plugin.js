@@ -144,14 +144,14 @@ module.exports = (() => {
 
                             if (p != null) {
                                 if (p.getElementsByClassName(this.c.userPopout)[0]) {
-                                    let uid = p.getElementsByClassName(this.c.userPopout)[0].getAttribute("data-user-id");
+                                    let uid = p.getElementsByClassName(this.c.userPopout)[0].dataset.userId;
                                     if (uid) {
                                         p.getElementsByClassName(this.c.note.self)[0].appendChild(noteItem(false, uid));
                                     }
                                 }
 
                                 if (p.getElementsByClassName(this.c.profile.self)[0]) {
-                                    p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true, p.getElementsByClassName(this.c.profile.self)[0].parentElement.parentElement.parentElement.getAttribute("data-user-id")));
+                                    p.getElementsByClassName(this.c.profile.self)[0].appendChild(noteItem(true, p.getElementsByClassName(this.c.profile.self)[0].parentElement.parentElement.parentElement.dataset.userId));
                                 }
                             }
                         }
@@ -215,16 +215,16 @@ module.exports = (() => {
                     return {
                         app: "app-1q1i1E",
                         layerContainer: "layerContainer-yqaFcK",
-                        userPopout: "userPopout-3XzG_A",
+                        userPopout: "userPopout-xaxa6l",
                         popouts: "popouts-2bnG9Z",
                         note: {
-                            self: "note-3HfJZ5",
-                            title: "bodyTitle-Y0qMQz marginBottom8-AtZOdT size12-3R0845",
+                            self: "note-1oo11U",
+                            title: "bodyTitle-1ySSKn base-1x0h_U size12-3cLvbJ",
                             textArea: "textarea-2r0oV8 scrollbarGhostHairline-1mSOM1 scrollbar-3dvm_9"
                         },
                         profile: {
-                            self: "userInfoSection-2acyCx",
-                            note: "note-QfFU8y"
+                            self: "userInfoSection-q_35fn",
+                            note: "note-367eZJ"
                         },
                         tooltip: {
                             self: "tooltip-2QfLtc tooltipTop-XDDSxx tooltipBlack-PPG47z tooltipDisablePointerEvents-3eaBGN",

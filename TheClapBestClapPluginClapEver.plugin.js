@@ -84,7 +84,7 @@ module.exports = (() =>
 								message.content = message.content.substr(ra[0].length, message.content.length)
 									.split(" ")
 									.join("\t")
-									.replace(/[A-Za-z]/g, x => ` :regional_indicator_${x}: `);
+									.replace(/[A-Za-z]/g, x => ` :regional_indicator_${x.toLowerCase()}: `);
 								
 								break;
 

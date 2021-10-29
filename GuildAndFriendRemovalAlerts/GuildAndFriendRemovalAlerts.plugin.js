@@ -78,14 +78,217 @@ function buildPlugin([BasePlugin, PluginApi]) {
 	};
 	(() => {
 		"use strict";
-		let __plugin_styles__ = "";
-		let __style_element__ = null;
+		class StyleLoader {
+			static styles = "";
+			static element = null;
+			static append(module, css) {
+				this.styles += `/* ${module} */\n${css}`;
+			}
+			static inject(name = config.info.name) {
+				if (this.element) this.element.remove();
+				this.element = document.head.appendChild(Object.assign(document.createElement("style"), {
+					id: name,
+					textContent: this.styles
+				}));
+			}
+			static remove() {
+				if (this.element) {
+					this.element.remove();
+					this.element = null;
+				}
+			}
+		}
+		function ___createMemoize___(instance, name, value) {
+			value = value();
+			Object.defineProperty(instance, name, {
+				value,
+				configurable: true
+			});
+			return value;
+		};
+		const Modules = {
+			get 'react-spring'() {
+				return ___createMemoize___(this, 'react-spring', () => BdApi.findModuleByProps('useSpring'))
+			},
+			'@discord/utils': {
+				get 'joinClassNames'() {
+					return ___createMemoize___(this, 'joinClassNames', () => BdApi.findModule(e => e.toString().indexOf('return e.join(" ")') > 200))
+				},
+				get 'useForceUpdate'() {
+					return ___createMemoize___(this, 'useForceUpdate', () => BdApi.findModuleByProps('useForceUpdate')?.useForceUpdate)
+				},
+				get 'Logger'() {
+					return ___createMemoize___(this, 'Logger', () => BdApi.findModuleByProps('setLogFn')?.default)
+				},
+				get 'Navigation'() {
+					return ___createMemoize___(this, 'Navigation', () => BdApi.findModuleByProps('replaceWith', 'currentRouteIsPeekView'))
+				}
+			},
+			'@discord/components': {
+				get 'Tooltip'() {
+					return ___createMemoize___(this, 'Tooltip', () => BdApi.findModuleByDisplayName('Tooltip'))
+				},
+				get 'TooltipContainer'() {
+					return ___createMemoize___(this, 'TooltipContainer', () => BdApi.findModuleByProps('TooltipContainer')?.TooltipContainer)
+				},
+				get 'TextInput'() {
+					return ___createMemoize___(this, 'TextInput', () => BdApi.findModuleByDisplayName('TextInput'))
+				},
+				get 'SlideIn'() {
+					return ___createMemoize___(this, 'SlideIn', () => BdApi.findModuleByDisplayName('SlideIn'))
+				},
+				get 'SettingsNotice'() {
+					return ___createMemoize___(this, 'SettingsNotice', () => BdApi.findModuleByDisplayName('SettingsNotice'))
+				},
+				get 'TransitionGroup'() {
+					return ___createMemoize___(this, 'TransitionGroup', () => BdApi.findModuleByDisplayName('TransitionGroup'))
+				},
+				get 'Button'() {
+					return ___createMemoize___(this, 'Button', () => BdApi.findModuleByProps('DropdownSizes'))
+				},
+				get 'Popout'() {
+					return ___createMemoize___(this, 'Popout', () => BdApi.findModuleByDisplayName('Popout'))
+				},
+				get 'Flex'() {
+					return ___createMemoize___(this, 'Flex', () => BdApi.findModuleByDisplayName('Flex'))
+				},
+				get 'Text'() {
+					return ___createMemoize___(this, 'Text', () => BdApi.findModuleByDisplayName('Text'))
+				},
+				get 'Card'() {
+					return ___createMemoize___(this, 'Card', () => BdApi.findModuleByDisplayName('Card'))
+				}
+			},
+			'@discord/modules': {
+				get 'Dispatcher'() {
+					return ___createMemoize___(this, 'Dispatcher', () => BdApi.findModuleByProps('dirtyDispatch', 'subscribe'))
+				},
+				get 'ComponentDispatcher'() {
+					return ___createMemoize___(this, 'ComponentDispatcher', () => BdApi.findModuleByProps('ComponentDispatch')?.ComponentDispatch)
+				},
+				get 'EmojiUtils'() {
+					return ___createMemoize___(this, 'EmojiUtils', () => BdApi.findModuleByProps('uploadEmoji'))
+				},
+				get 'PermissionUtils'() {
+					return ___createMemoize___(this, 'PermissionUtils', () => BdApi.findModuleByProps('computePermissions', 'canManageUser'))
+				},
+				get 'DMUtils'() {
+					return ___createMemoize___(this, 'DMUtils', () => BdApi.findModuleByProps('openPrivateChannel'))
+				}
+			},
+			'@discord/stores': {
+				get 'Messages'() {
+					return ___createMemoize___(this, 'Messages', () => BdApi.findModuleByProps('getMessage', 'getMessages'))
+				},
+				get 'Channels'() {
+					return ___createMemoize___(this, 'Channels', () => BdApi.findModuleByProps('getChannel', 'getDMFromUserId'))
+				},
+				get 'Guilds'() {
+					return ___createMemoize___(this, 'Guilds', () => BdApi.findModuleByProps('getGuild'))
+				},
+				get 'SelectedGuilds'() {
+					return ___createMemoize___(this, 'SelectedGuilds', () => BdApi.findModuleByProps('getGuildId', 'getLastSelectedGuildId'))
+				},
+				get 'SelectedChannels'() {
+					return ___createMemoize___(this, 'SelectedChannels', () => BdApi.findModuleByProps('getChannelId', 'getLastSelectedChannelId'))
+				},
+				get 'Info'() {
+					return ___createMemoize___(this, 'Info', () => BdApi.findModuleByProps('getSessionId'))
+				},
+				get 'Status'() {
+					return ___createMemoize___(this, 'Status', () => BdApi.findModuleByProps('getStatus', 'getActivities', 'getState'))
+				},
+				get 'Users'() {
+					return ___createMemoize___(this, 'Users', () => BdApi.findModuleByProps('getUser', 'getCurrentUser'))
+				},
+				get 'SettingsStore'() {
+					return ___createMemoize___(this, 'SettingsStore', () => BdApi.findModuleByProps('afkTimeout', 'status'))
+				},
+				get 'UserProfile'() {
+					return ___createMemoize___(this, 'UserProfile', () => BdApi.findModuleByProps('getUserProfile'))
+				},
+				get 'Members'() {
+					return ___createMemoize___(this, 'Members', () => BdApi.findModuleByProps('getMember'))
+				},
+				get 'Activities'() {
+					return ___createMemoize___(this, 'Activities', () => BdApi.findModuleByProps('getActivities'))
+				},
+				get 'Games'() {
+					return ___createMemoize___(this, 'Games', () => BdApi.findModuleByProps('getGame', 'games'))
+				},
+				get 'Auth'() {
+					return ___createMemoize___(this, 'Auth', () => BdApi.findModuleByProps('getId', 'isGuest'))
+				},
+				get 'TypingUsers'() {
+					return ___createMemoize___(this, 'TypingUsers', () => BdApi.findModuleByProps('isTyping'))
+				}
+			},
+			'@discord/actions': {
+				get 'ProfileActions'() {
+					return ___createMemoize___(this, 'ProfileActions', () => BdApi.findModuleByProps('fetchProfile'))
+				},
+				get 'GuildActions'() {
+					return ___createMemoize___(this, 'GuildActions', () => BdApi.findModuleByProps('requestMembersById'))
+				}
+			},
+			get '@discord/i18n'() {
+				return ___createMemoize___(this, '@discord/i18n', () => BdApi.findModule(m => m.Messages?.CLOSE && typeof(m.getLocale) === 'function'))
+			},
+			get '@discord/constants'() {
+				return ___createMemoize___(this, '@discord/constants', () => BdApi.findModuleByProps('API_HOST'))
+			},
+			get '@discord/contextmenu'() {
+				return ___createMemoize___(this, '@discord/contextmenu', () => {
+					const ctx = Object.assign({}, BdApi.findModuleByProps('openContextMenu'), BdApi.findModuleByProps('MenuItem'));
+					ctx.Menu = ctx.default;
+					return ctx;
+				})
+			},
+			get '@discord/forms'() {
+				return ___createMemoize___(this, '@discord/forms', () => BdApi.findModuleByProps('FormItem'))
+			},
+			get '@discord/scrollbars'() {
+				return ___createMemoize___(this, '@discord/scrollbars', () => BdApi.findModuleByProps('ScrollerAuto'))
+			},
+			get '@discord/native'() {
+				return ___createMemoize___(this, '@discord/native', () => BdApi.findModuleByProps('requireModule'))
+			},
+			get '@discord/flux'() {
+				return ___createMemoize___(this, '@discord/flux', () => Object.assign({}, BdApi.findModuleByProps('useStateFromStores').default, BdApi.findModuleByProps('useStateFromStores')))
+			},
+			get '@discord/modal'() {
+				return ___createMemoize___(this, '@discord/modal', () => Object.assign({}, BdApi.findModuleByProps('ModalRoot'), BdApi.findModuleByProps('openModal', 'closeAllModals')))
+			},
+			get '@discord/connections'() {
+				return ___createMemoize___(this, '@discord/connections', () => BdApi.findModuleByProps('get', 'isSupported', 'map'))
+			},
+			get '@discord/sanitize'() {
+				return ___createMemoize___(this, '@discord/sanitize', () => BdApi.findModuleByProps('stringify', 'parse', 'encode'))
+			},
+			get '@discord/icons'() {
+				return ___createMemoize___(this, '@discord/icons', () => BdApi.findAllModules(m => m.displayName && ~m.toString().indexOf('currentColor')).reduce((icons, icon) => (icons[icon.displayName] = icon, icons), {}))
+			},
+			'@discord/classes': {
+				get 'Timestamp'() {
+					return ___createMemoize___(this, 'Timestamp', () => BdApi.findModuleByPrototypes('toDate', 'month'))
+				},
+				get 'Message'() {
+					return ___createMemoize___(this, 'Message', () => BdApi.findModuleByPrototypes('getReaction', 'isSystemDM'))
+				},
+				get 'User'() {
+					return ___createMemoize___(this, 'User', () => BdApi.findModuleByPrototypes('tag'))
+				},
+				get 'Channel'() {
+					return ___createMemoize___(this, 'Channel', () => BdApi.findModuleByPrototypes('isOwner', 'isCategory'))
+				}
+			}
+		};
 		var __webpack_modules__ = {
-			714: (module, __webpack_exports__, __webpack_require__) => {
+			86: (module, __webpack_exports__, __webpack_require__) => {
 				__webpack_require__.d(__webpack_exports__, {
 					Z: () => __WEBPACK_DEFAULT_EXPORT__
 				});
-				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(645);
+				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(246);
 				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = __webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
 				var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()((function(i) {
 					return i[1];
@@ -98,14 +301,14 @@ function buildPlugin([BasePlugin, PluginApi]) {
 					title: "GuildAndFriendRemovalAlerts-item-title",
 					description: "GuildAndFriendRemovalAlerts-item-description"
 				};
-				__plugin_styles__ += `\n/* ${module.id} */\n${___CSS_LOADER_EXPORT___}\n`;
+				StyleLoader.append(module.id, ___CSS_LOADER_EXPORT___.toString());
 				const __WEBPACK_DEFAULT_EXPORT__ = Object.assign(___CSS_LOADER_EXPORT___, ___CSS_LOADER_EXPORT___.locals);
 			},
-			631: (module, __webpack_exports__, __webpack_require__) => {
+			377: (module, __webpack_exports__, __webpack_require__) => {
 				__webpack_require__.d(__webpack_exports__, {
 					Z: () => __WEBPACK_DEFAULT_EXPORT__
 				});
-				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(645);
+				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(246);
 				var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = __webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
 				var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()((function(i) {
 					return i[1];
@@ -119,13 +322,345 @@ function buildPlugin([BasePlugin, PluginApi]) {
 					clearButton: "GuildAndFriendRemovalAlerts-styles-clearButton",
 					floatRight: "GuildAndFriendRemovalAlerts-styles-floatRight"
 				};
-				__plugin_styles__ += `\n/* ${module.id} */\n${___CSS_LOADER_EXPORT___}\n`;
+				StyleLoader.append(module.id, ___CSS_LOADER_EXPORT___.toString());
 				const __WEBPACK_DEFAULT_EXPORT__ = Object.assign(___CSS_LOADER_EXPORT___, ___CSS_LOADER_EXPORT___.locals);
 			},
-			645: module => {
+			234: (__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+				__webpack_require__.r(__webpack_exports__);
+				__webpack_require__.d(__webpack_exports__, {
+					default: () => GuildAndFriendRemovalAlerts
+				});
+				const external_BasePlugin_namespaceObject = BasePlugin;
+				var external_BasePlugin_default = __webpack_require__.n(external_BasePlugin_namespaceObject);
+				const external_PluginApi_namespaceObject = PluginApi;
+				var external_BdApi_React_ = __webpack_require__(832);
+				var external_BdApi_React_default = __webpack_require__.n(external_BdApi_React_);
+				var React = __webpack_require__(832);
+				function _extends() {
+					_extends = Object.assign || function(target) {
+						for (var i = 1; i < arguments.length; i++) {
+							var source = arguments[i];
+							for (var key in source)
+								if (Object.prototype.hasOwnProperty.call(source, key)) target[key] = source[key];
+						}
+						return target;
+					};
+					return _extends.apply(this, arguments);
+				}
+				const createUpdateWrapper = (Component, valueProp = "value", changeProp = "onChange", valueIndex = 0) => props => {
+					const [value, setValue] = React.useState(props[valueProp]);
+					return React.createElement(Component, _extends({}, props, {
+						[valueProp]: value,
+						[changeProp]: (...args) => {
+							const value = args[valueIndex];
+							if ("function" === typeof props[changeProp]) props[changeProp](value);
+							setValue(value);
+						}
+					}));
+				};
+				const hooks_createUpdateWrapper = createUpdateWrapper;
+				const package_namespaceObject = JSON.parse('{"um":{"u2":"GuildAndFriendRemovalAlerts"}}');
+				function _defineProperty(obj, key, value) {
+					if (key in obj) Object.defineProperty(obj, key, {
+						value,
+						enumerable: true,
+						configurable: true,
+						writable: true
+					});
+					else obj[key] = value;
+					return obj;
+				}
+				class Settings {}
+				_defineProperty(Settings, "settings", external_PluginApi_namespaceObject.PluginUtilities.loadSettings(package_namespaceObject.um.u2, {}));
+				_defineProperty(Settings, "get", ((key, defaultValue) => Settings.settings[key] ?? defaultValue));
+				_defineProperty(Settings, "set", ((key, value) => {
+					Settings.settings[key] = value;
+					Settings.save();
+				}));
+				_defineProperty(Settings, "save", (() => external_PluginApi_namespaceObject.PluginUtilities.saveSettings(package_namespaceObject.um.u2, Settings.settings)));
+				const Switch = hooks_createUpdateWrapper(external_PluginApi_namespaceObject.WebpackModules.getByDisplayName("SwitchItem"));
+				function SettingsPanel() {
+					return external_BdApi_React_default().createElement("div", {
+						className: "gafSettingsPanel"
+					}, external_BdApi_React_default().createElement(Switch, {
+						note: "Whether or not to automatically show the modal when a guild/friend is removed.",
+						value: Settings.get("showModal", true),
+						onChange: value => Settings.set("showModal", value)
+					}, "Auto Show Modal"), external_BdApi_React_default().createElement(Switch, {
+						note: "Whether or not to show desktop notifications when a guild/friend is removed.",
+						value: Settings.get("showDeskNotifs", false),
+						onChange: value => Settings.set("showDeskNotifs", value)
+					}, "Show Desktop Notifications"));
+				}
+				const stores_namespaceObject = Modules["@discord/stores"];
+				var stores_default = __webpack_require__.n(stores_namespaceObject);
+				const modal_namespaceObject = Modules["@discord/modal"];
+				const external_StyleLoader_namespaceObject = StyleLoader;
+				var external_StyleLoader_default = __webpack_require__.n(external_StyleLoader_namespaceObject);
+				var styles = __webpack_require__(377);
+				var item = __webpack_require__(86);
+				const utils_namespaceObject = Modules["@discord/utils"];
+				const PrivateModule = external_PluginApi_namespaceObject.WebpackModules.getByProps("openPrivateChannel");
+				function Item({
+					title,
+					description,
+					icon,
+					clickId,
+					closeModal
+				}) {
+					return external_BdApi_React_default().createElement("div", {
+						className: (0, utils_namespaceObject.joinClassNames)(item.Z.item, item.Z.userItem),
+						onClick: () => {
+							PrivateModule.openPrivateChannel(clickId);
+							closeModal();
+						}
+					}, external_BdApi_React_default().createElement("img", {
+						className: item.Z.image,
+						src: icon || "/assets/485a854d5171c8dc98088041626e6fea.png",
+						alt: "image"
+					}), external_BdApi_React_default().createElement("div", {
+						className: item.Z.inner
+					}, external_BdApi_React_default().createElement("div", {
+						className: item.Z.title
+					}, title), description?.length ? external_BdApi_React_default().createElement("div", {
+						className: item.Z.description
+					}, description) : null));
+				}
+				const contextmenu_namespaceObject = Modules["@discord/contextmenu"];
+				var contextmenu_default = __webpack_require__.n(contextmenu_namespaceObject);
+				const constants_namespaceObject = Modules["@discord/constants"];
+				const modules_namespaceObject = Modules["@discord/modules"];
+				var GuildAndFriendRemovalAlerts_React = __webpack_require__(832);
+				function GuildAndFriendRemovalAlerts_extends() {
+					GuildAndFriendRemovalAlerts_extends = Object.assign || function(target) {
+						for (var i = 1; i < arguments.length; i++) {
+							var source = arguments[i];
+							for (var key in source)
+								if (Object.prototype.hasOwnProperty.call(source, key)) target[key] = source[key];
+						}
+						return target;
+					};
+					return GuildAndFriendRemovalAlerts_extends.apply(this, arguments);
+				}
+				function GuildAndFriendRemovalAlerts_defineProperty(obj, key, value) {
+					if (key in obj) Object.defineProperty(obj, key, {
+						value,
+						enumerable: true,
+						configurable: true,
+						writable: true
+					});
+					else obj[key] = value;
+					return obj;
+				}
+				const {
+					getFriendIDs
+				} = external_PluginApi_namespaceObject.WebpackModules.getByProps("getFriendIDs");
+				const HomeButton = external_PluginApi_namespaceObject.WebpackModules.find((m => m?.default?.toString().indexOf("showDMsOnly") > -1));
+				const events = [constants_namespaceObject.ActionTypes.GUILD_CREATE, constants_namespaceObject.ActionTypes.GUILD_DELETE, constants_namespaceObject.ActionTypes.GUILD_UPDATE, constants_namespaceObject.ActionTypes.RELATIONSHIP_ADD, constants_namespaceObject.ActionTypes.RELATIONSHIP_REMOVE, constants_namespaceObject.ActionTypes.RELATIONSHIP_UPDATE, constants_namespaceObject.ActionTypes.FRIEND_REQUEST_ACCEPTED];
+				class GuildAndFriendRemovalAlerts extends(external_BasePlugin_default()) {
+					constructor(...args) {
+						super(...args);
+						GuildAndFriendRemovalAlerts_defineProperty(this, "history", {
+							guilds: Settings.get("removedGuildHistory", []),
+							friends: Settings.get("removedFriendHistory", []),
+							update: () => {
+								Settings.set("removedGuildHistory", this.history.guilds);
+								Settings.set("removedFriendHistory", this.history.friends);
+							},
+							clear: () => {
+								Object.assign(this.history, {
+									guilds: [],
+									friends: []
+								});
+								this.history.update();
+							}
+						});
+						GuildAndFriendRemovalAlerts_defineProperty(this, "snapshots", {
+							guilds: Settings.get("guildsSnapshot", []),
+							friends: Settings.get("friendsSnapshot", []),
+							update: ({
+								guilds,
+								friends
+							}) => {
+								Settings.set("guildsSnapshot", this.snapshots.guilds = guilds);
+								Settings.set("friendsSnapshot", this.snapshots.friends = friends);
+							}
+						});
+						GuildAndFriendRemovalAlerts_defineProperty(this, "getSettingsPanel", (() => GuildAndFriendRemovalAlerts_React.createElement(SettingsPanel, null)));
+						GuildAndFriendRemovalAlerts_defineProperty(this, "main", (() => {
+							console.log("main()");
+							const guilds = Object.keys(stores_default().Guilds.getGuilds()).map((guildId => this.serializeGuild(guildId)));
+							const friends = getFriendIDs().map((uid => this.serializeUser(uid)));
+							const removedGuilds = this.snapshots.guilds.filter((snapshot => !guilds.some((guild => snapshot.id === guild.id))));
+							const removedFriends = this.snapshots.friends.filter((snapshot => !friends.some((friend => snapshot.id === friend.id))));
+							if (removedGuilds.length || removedFriends.length) {
+								if (Settings.get("showModal", true)) this.openModal(removedGuilds, removedFriends);
+								removedGuilds.forEach((guild => this.history.guilds.unshift(guild)));
+								removedFriends.forEach((friend => this.history.friends.unshift(friend)));
+								if (Settings.get("showDeskNotifs", false)) {
+									removedGuilds.forEach((guild => new Notification(guild.name, {
+										silent: true,
+										body: "Server removed",
+										icon: guild.iconUrl
+									})));
+									removedFriends.forEach((friend => new Notification(friend.name, {
+										silent: true,
+										body: "Friend removed",
+										icon: friend.avatarUrl
+									})));
+								}
+							}
+							if (guilds.length !== this.snapshots.guilds.length || friends.length !== this.snapshots.friends.length) {
+								this.history.update();
+								this.snapshots.update({
+									guilds,
+									friends
+								});
+								console.log("update");
+							}
+						}));
+					}
+					onStart() {
+						const PatchedHomeButton = ({
+							originalType,
+							...props
+						}) => {
+							const returnValue = Reflect.apply(originalType, this, [props]);
+							try {
+								returnValue.props.onContextMenu = e => {
+									(0, contextmenu_namespaceObject.openContextMenu)(e, (() => GuildAndFriendRemovalAlerts_React.createElement(contextmenu_default().default, {
+										navId: package_namespaceObject.um.u2,
+										onClose: contextmenu_namespaceObject.closeContextMenu
+									}, GuildAndFriendRemovalAlerts_React.createElement(contextmenu_namespaceObject.MenuItem, {
+										label: "View GFR Logs",
+										action: () => this.openModal(this.history.guilds, this.history.friends, true),
+										id: package_namespaceObject.um.u2 + "-logs"
+									}), GuildAndFriendRemovalAlerts_React.createElement(contextmenu_namespaceObject.MenuItem, {
+										label: "View All Guilds and Friends",
+										action: () => this.openModal(),
+										id: package_namespaceObject.um.u2 + "-view-all"
+									}))));
+								};
+							} catch (error) {
+								external_PluginApi_namespaceObject.Logger.error("Error in DefaultHomeButton patch:", error);
+							}
+							return returnValue;
+						};
+						external_PluginApi_namespaceObject.Patcher.after(HomeButton, "default", ((_, __, component) => {
+							const originalType = component.type;
+							component.type = PatchedHomeButton;
+							Object.assign(component.props, {
+								originalType
+							});
+						}));
+						external_StyleLoader_default().inject();
+						events.forEach((eventType => modules_namespaceObject.Dispatcher.subscribe(eventType, this.main)));
+					}
+					serializeGuild(guildId) {
+						const serialized = {
+							id: guildId,
+							invalid: true,
+							name: "Unknown Guild",
+							iconUrl: "/assets/1531b79c2f2927945582023e1edaaa11.png"
+						};
+						try {
+							const guild = stores_default().Guilds.getGuild(guildId);
+							if (guild) Object.assign(serialized, {
+								invalid: false,
+								name: guild.name,
+								ownerId: guild.ownerId,
+								iconUrl: "function" === typeof guild.getIconURL ? guild.getIconURL("webp") : serialized.iconUrl
+							});
+						} finally {}
+						return serialized;
+					}
+					serializeUser(userId) {
+						const serialized = {
+							id: userId,
+							invalid: true,
+							tag: "Unknown User",
+							avatarURL: "/assets/1cbd08c76f8af6dddce02c5138971129.png"
+						};
+						try {
+							const user = stores_default().Users.getUser(userId);
+							if (user) Object.assign(serialized, {
+								invalid: false,
+								tag: user.tag,
+								avatarUrl: "function" === typeof user.getAvatarURL ? user.getAvatarURL("webp") : serialized.avatarUrl
+							});
+						} finally {}
+						return serialized;
+					}
+					openModal(guilds, friends, showClearButton = false) {
+						if (!guilds && !friends) {
+							guilds = this.snapshots.guilds;
+							friends = this.snapshots.friends;
+						}
+						const clearLogs = () => BdApi.showConfirmationModal("Are you sure?", "Do you really want to clear the logs?\nThis action cannot be undone.", {
+							danger: true,
+							onConfirm: () => {
+								this.history.clear();
+								(0, modal_namespaceObject.closeModal)(modalId);
+							},
+							confirmText: "Clear"
+						});
+						const modalId = (0, modal_namespaceObject.openModal)((props => GuildAndFriendRemovalAlerts_React.createElement(modal_namespaceObject.ModalRoot, GuildAndFriendRemovalAlerts_extends({}, props, {
+							size: "large",
+							className: styles.Z.modal
+						}), GuildAndFriendRemovalAlerts_React.createElement(modal_namespaceObject.ModalHeader, null, "Guild And Friend Removal Alerts ", GuildAndFriendRemovalAlerts_React.createElement(modal_namespaceObject.ModalCloseButton, {
+							className: styles.Z.floatRight,
+							onClick: props.onClose
+						})), GuildAndFriendRemovalAlerts_React.createElement(modal_namespaceObject.ModalContent, props, guilds?.length || friends?.length ? GuildAndFriendRemovalAlerts_React.createElement(GuildAndFriendRemovalAlerts_React.Fragment, null, showClearButton ? GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.clearButton,
+							onClick: clearLogs
+						}, "Clear Logs") : null, guilds?.length ? GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.itemContainer
+						}, GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.title
+						}, "Guilds - ", GuildAndFriendRemovalAlerts_React.createElement("span", {
+							style: {
+								color: "var(--control-brand-foreground-new)"
+							}
+						}, guilds.length)), GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.items
+						}, guilds.map(((guild, i) => GuildAndFriendRemovalAlerts_React.createElement(Item, {
+							key: i,
+							title: guild.name,
+							description: "Owner ID - " + guild.ownerId,
+							icon: guild.iconUrl,
+							clickId: guild.ownerId,
+							closeModal: props.onClose
+						}))))) : null, friends?.length ? GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.itemContainer
+						}, GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.title
+						}, "Friends - ", GuildAndFriendRemovalAlerts_React.createElement("span", {
+							style: {
+								color: "var(--control-brand-foreground-new)"
+							}
+						}, friends.length)), GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.items
+						}, friends.map(((friend, i) => GuildAndFriendRemovalAlerts_React.createElement(Item, {
+							key: i,
+							title: friend.tag,
+							icon: friend.avatarUrl,
+							clickId: friend.id,
+							closeModal: props.onClose
+						}))))) : null) : GuildAndFriendRemovalAlerts_React.createElement("div", {
+							className: styles.Z.nothingHere
+						}, "No logs to show.")))));
+					}
+					onStop() {
+						external_PluginApi_namespaceObject.Patcher.unpatchAll();
+						external_StyleLoader_default().remove();
+						events.forEach((eventType => modules_namespaceObject.Dispatcher.unsubscribe(eventType, this.main)));
+					}
+				}
+			},
+			246: module => {
 				module.exports = function(cssWithMappingToString) {
 					var list = [];
-					list.toString = function toString() {
+					list.toString = function() {
 						return this.map((function(item) {
 							var content = cssWithMappingToString(item);
 							if (item[2]) return "@media ".concat(item[2], " {").concat(content, "}");
@@ -154,8 +689,8 @@ function buildPlugin([BasePlugin, PluginApi]) {
 					return list;
 				};
 			},
-			698: module => {
-				module.exports = window["BdApi"]["React"];
+			832: module => {
+				module.exports = BdApi.React;
 			}
 		};
 		var __webpack_module_cache__ = {};
@@ -200,637 +735,11 @@ function buildPlugin([BasePlugin, PluginApi]) {
 				});
 			};
 		})();
-		var __webpack_exports__ = {};
-		(() => {
-			__webpack_require__.r(__webpack_exports__);
-			__webpack_require__.d(__webpack_exports__, {
-				default: () => GuildAndFriendRemovalAlerts
-			});
-			const external_BasePlugin_namespaceObject = BasePlugin;
-			var external_BasePlugin_default = __webpack_require__.n(external_BasePlugin_namespaceObject);
-			const external_PluginApi_namespaceObject = PluginApi;
-			var external_BdApi_React_ = __webpack_require__(698);
-			var external_BdApi_React_default = __webpack_require__.n(external_BdApi_React_);
-			var React = __webpack_require__(698);
-			function _extends() {
-				_extends = Object.assign || function(target) {
-					for (var i = 1; i < arguments.length; i++) {
-						var source = arguments[i];
-						for (var key in source)
-							if (Object.prototype.hasOwnProperty.call(source, key)) target[key] = source[key];
-					}
-					return target;
-				};
-				return _extends.apply(this, arguments);
-			}
-			const createUpdateWrapper = (Component, valueProp = "value", changeProp = "onChange") => props => {
-				const [value, setValue] = React.useState(props[valueProp]);
-				return React.createElement(Component, _extends({}, props, {
-					[valueProp]: value,
-					[changeProp]: value => {
-						if ("function" === typeof props[changeProp]) props[changeProp](value);
-						setValue(value);
-					}
-				}));
-			};
-			const hooks_createUpdateWrapper = createUpdateWrapper;
-			const GuildAndFriendRemovalAlerts_package = {
-				info: {
-					name: "GuildAndFriendRemovalAlerts",
-					version: "3.0.0",
-					description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
-					authors: [{
-						name: "Metalloriff",
-						discord_id: "264163473179672576",
-						github_username: "Metalloriff"
-					}],
-					github: "https://github.com/Metalloriff/BetterDiscordPlugins/GuildAndFriendRemovalAlerts",
-					github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts/GuildAndFriendRemovalAlerts.plugin.js",
-					website: "https://metalloriff.github.io/toms-discord-stuff/#/",
-					donate: "https://paypal.me/israelboone",
-					invite: "yNqzuJa"
-				},
-				changelog: [{
-					title: "3.0 rewrite",
-					type: "fixed",
-					items: ["This plugin has been rewritten. Functionality is simliar, and settings and data should still be valid.", "If you experience any bugs, please contact me."]
-				}],
-				build: {
-					zlibrary: true,
-					copy: true,
-					production: false,
-					scssHash: false,
-					alias: {
-						components: "components/index.js"
-					},
-					release: {
-						source: true,
-						readme: true,
-						public: true,
-						contributors: null
-					}
-				}
-			};
-			var info = {
-				name: "GuildAndFriendRemovalAlerts",
-				version: "3.0.0",
-				description: "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
-				authors: [{
-					name: "Metalloriff",
-					discord_id: "264163473179672576",
-					github_username: "Metalloriff"
-				}],
-				github: "https://github.com/Metalloriff/BetterDiscordPlugins/GuildAndFriendRemovalAlerts",
-				github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/GuildAndFriendRemovalAlerts/GuildAndFriendRemovalAlerts.plugin.js",
-				website: "https://metalloriff.github.io/toms-discord-stuff/#/",
-				donate: "https://paypal.me/israelboone",
-				invite: "yNqzuJa"
-			};
-			var changelog = [{
-				title: "3.0 rewrite",
-				type: "fixed",
-				items: ["This plugin has been rewritten. Functionality is simliar, and settings and data should still be valid.", "If you experience any bugs, please contact me."]
-			}];
-			var build = {
-				zlibrary: true,
-				copy: true,
-				production: false,
-				scssHash: false,
-				alias: {
-					components: "components/index.js"
-				},
-				release: {
-					source: true,
-					readme: true,
-					public: true,
-					contributors: null
-				}
-			};
-			function _defineProperty(obj, key, value) {
-				if (key in obj) Object.defineProperty(obj, key, {
-					value,
-					enumerable: true,
-					configurable: true,
-					writable: true
-				});
-				else obj[key] = value;
-				return obj;
-			}
-			class Settings {}
-			_defineProperty(Settings, "settings", external_PluginApi_namespaceObject.PluginUtilities.loadSettings(GuildAndFriendRemovalAlerts_package.info.name, {}));
-			_defineProperty(Settings, "get", ((key, defaultValue) => Settings.settings[key] ?? defaultValue));
-			_defineProperty(Settings, "set", ((key, value) => {
-				Settings.settings[key] = value;
-				Settings.save();
-			}));
-			_defineProperty(Settings, "save", (() => external_PluginApi_namespaceObject.PluginUtilities.saveSettings(GuildAndFriendRemovalAlerts_package.info.name, Settings.settings)));
-			const Switch = hooks_createUpdateWrapper(external_PluginApi_namespaceObject.WebpackModules.getByDisplayName("SwitchItem"));
-			function SettingsPanel() {
-				return external_BdApi_React_default().createElement("div", {
-					className: "gafSettingsPanel"
-				}, external_BdApi_React_default().createElement(Switch, {
-					note: "Whether or not to automatically show the modal when a guild/friend is removed.",
-					value: Settings.get("showModal", true),
-					onChange: value => Settings.set("showModal", value)
-				}, "Auto Show Modal"), external_BdApi_React_default().createElement(Switch, {
-					note: "Whether or not to show desktop notifications when a guild/friend is removed.",
-					value: Settings.get("showDeskNotifs", false),
-					onChange: value => Settings.set("showDeskNotifs", value)
-				}, "Show Desktop Notifications"));
-			}
-			const external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_namespaceObject = {
-				get Messages() {
-					const value = BdApi.findModuleByProps("getMessage", "getMessages");
-					Object.defineProperty(this, "Messages", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Channels() {
-					const value = BdApi.findModuleByProps("getChannel");
-					Object.defineProperty(this, "Channels", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Guilds() {
-					const value = BdApi.findModuleByProps("getGuild");
-					Object.defineProperty(this, "Guilds", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get SelectedGuilds() {
-					const value = BdApi.findModuleByProps("getGuildId", "getLastSelectedGuildId");
-					Object.defineProperty(this, "SelectedGuilds", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get SelectedChannels() {
-					const value = BdApi.findModuleByProps("getChannelId", "getLastSelectedChannelId");
-					Object.defineProperty(this, "SelectedChannels", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Info() {
-					const value = BdApi.findModuleByProps("getCurrentUser");
-					Object.defineProperty(this, "Info", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Status() {
-					const value = BdApi.findModuleByProps("getStatus");
-					Object.defineProperty(this, "Status", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Users() {
-					const value = BdApi.findModuleByProps("getUser");
-					Object.defineProperty(this, "Users", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Settings() {
-					const value = BdApi.findModuleByProps("afkTimeout", "status");
-					Object.defineProperty(this, "Settings", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get UserProfile() {
-					const value = BdApi.findModuleByProps("getUserProfile");
-					Object.defineProperty(this, "UserProfile", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Members() {
-					const value = BdApi.findModuleByProps("getMember");
-					Object.defineProperty(this, "Members", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Activities() {
-					const value = BdApi.findModuleByProps("getActivities");
-					Object.defineProperty(this, "Activities", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Games() {
-					const value = BdApi.findModuleByProps("getGame");
-					Object.defineProperty(this, "Games", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Auth() {
-					const value = BdApi.findModuleByProps("getId", "isGuest");
-					Object.defineProperty(this, "Auth", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get TypingUsers() {
-					const value = BdApi.findModuleByProps("isTyping");
-					Object.defineProperty(this, "TypingUsers", {
-						value,
-						configurable: true
-					});
-					return value;
-				}
-			};
-			var external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_default = __webpack_require__.n(external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_namespaceObject);
-			const external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject = Object.assign({}, BdApi.findModuleByProps("ModalRoot"), BdApi.findModuleByProps("openModal"));
-			const external_n_inject_name_config_info_name_n_if_style_element_style_element_remove_n_style_element_document_head_appendChild_Object_assign_document_createElement_style_id_name_textContent_plugin_styles_n_n_remove_n_if_style_element_n_style_element_remove_n_style_element_null_n_n_n_namespaceObject = {
-				inject: (name = config.info.name) => {
-					if (__style_element__) __style_element__.remove();
-					__style_element__ = document.head.appendChild(Object.assign(document.createElement("style"), {
-						id: name,
-						textContent: __plugin_styles__
-					}));
-				},
-				remove: () => {
-					if (__style_element__) {
-						__style_element__.remove();
-						__style_element__ = null;
-					}
-				}
-			};
-			var external_n_inject_name_config_info_name_n_if_style_element_style_element_remove_n_style_element_document_head_appendChild_Object_assign_document_createElement_style_id_name_textContent_plugin_styles_n_n_remove_n_if_style_element_n_style_element_remove_n_style_element_null_n_n_n_default = __webpack_require__.n(external_n_inject_name_config_info_name_n_if_style_element_style_element_remove_n_style_element_document_head_appendChild_Object_assign_document_createElement_style_id_name_textContent_plugin_styles_n_n_remove_n_if_style_element_n_style_element_remove_n_style_element_null_n_n_n_namespaceObject);
-			var styles = __webpack_require__(631);
-			var item = __webpack_require__(714);
-			const external_get_joinClassNames_n_const_value_BdApi_findModule_m_typeof_m_default_default_function_default_n_Object_defineProperty_this_joinClassNames_n_value_n_configurable_true_n_n_return_value_n_nget_useForceUpdate_n_const_value_BdApi_findModuleByProps_useForceUpdate_useForceUpdate_n_Object_defineProperty_this_useForceUpdate_n_value_n_configurable_true_n_n_return_value_n_nget_Logger_n_const_value_BdApi_findModuleByProps_setLogFn_default_n_Object_defineProperty_this_Logger_n_value_n_configurable_true_n_n_return_value_n_nget_Navigation_n_const_value_BdApi_findModuleByProps_replaceWith_n_Object_defineProperty_this_Navigation_n_value_n_configurable_true_n_n_return_value_n_namespaceObject = {
-				get joinClassNames() {
-					const value = BdApi.findModule((m => "function" === typeof m?.default?.default))?.default;
-					Object.defineProperty(this, "joinClassNames", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get useForceUpdate() {
-					const value = BdApi.findModuleByProps("useForceUpdate")?.useForceUpdate;
-					Object.defineProperty(this, "useForceUpdate", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Logger() {
-					const value = BdApi.findModuleByProps("setLogFn")?.default;
-					Object.defineProperty(this, "Logger", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get Navigation() {
-					const value = BdApi.findModuleByProps("replaceWith");
-					Object.defineProperty(this, "Navigation", {
-						value,
-						configurable: true
-					});
-					return value;
-				}
-			};
-			const PrivateModule = external_PluginApi_namespaceObject.WebpackModules.getByProps("openPrivateChannel");
-			function Item({
-				title,
-				description,
-				icon,
-				clickId,
-				closeModal
-			}) {
-				return external_BdApi_React_default().createElement("div", {
-					className: (0, external_get_joinClassNames_n_const_value_BdApi_findModule_m_typeof_m_default_default_function_default_n_Object_defineProperty_this_joinClassNames_n_value_n_configurable_true_n_n_return_value_n_nget_useForceUpdate_n_const_value_BdApi_findModuleByProps_useForceUpdate_useForceUpdate_n_Object_defineProperty_this_useForceUpdate_n_value_n_configurable_true_n_n_return_value_n_nget_Logger_n_const_value_BdApi_findModuleByProps_setLogFn_default_n_Object_defineProperty_this_Logger_n_value_n_configurable_true_n_n_return_value_n_nget_Navigation_n_const_value_BdApi_findModuleByProps_replaceWith_n_Object_defineProperty_this_Navigation_n_value_n_configurable_true_n_n_return_value_n_namespaceObject.joinClassNames)(item.Z.item, item.Z.userItem),
-					onClick: () => {
-						PrivateModule.openPrivateChannel(clickId);
-						closeModal();
-					}
-				}, external_BdApi_React_default().createElement("img", {
-					className: item.Z.image,
-					src: icon || "/assets/485a854d5171c8dc98088041626e6fea.png",
-					alt: "image"
-				}), external_BdApi_React_default().createElement("div", {
-					className: item.Z.inner
-				}, external_BdApi_React_default().createElement("div", {
-					className: item.Z.title
-				}, title), null !== description && void 0 !== description && description.length ? external_BdApi_React_default().createElement("div", {
-					className: item.Z.description
-				}, description) : null));
-			}
-			const external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject = Object.assign({}, BdApi.findModuleByProps("openContextMenu"), BdApi.findModuleByProps("MenuItem"));
-			var external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_default = __webpack_require__.n(external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject);
-			const external_BdApi_findModuleByProps_API_HOST_namespaceObject = BdApi.findModuleByProps("API_HOST");
-			const external_get_Dispatcher_n_const_value_BdApi_findModuleByProps_dirtyDispatch_subscribe_n_Object_defineProperty_this_Dispatcher_n_value_n_configurable_true_n_n_return_value_n_nget_EmojiUtils_n_const_value_BdApi_findModuleByProps_uploadEmoji_n_Object_defineProperty_this_EmojiUtils_n_value_n_configurable_true_n_n_return_value_n_nget_PermissionUtils_n_const_value_BdApi_findModuleByProps_computePermissions_n_Object_defineProperty_this_PermissionUtils_n_value_n_configurable_true_n_n_return_value_n_namespaceObject = {
-				get Dispatcher() {
-					const value = BdApi.findModuleByProps("dirtyDispatch", "subscribe");
-					Object.defineProperty(this, "Dispatcher", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get EmojiUtils() {
-					const value = BdApi.findModuleByProps("uploadEmoji");
-					Object.defineProperty(this, "EmojiUtils", {
-						value,
-						configurable: true
-					});
-					return value;
-				},
-				get PermissionUtils() {
-					const value = BdApi.findModuleByProps("computePermissions");
-					Object.defineProperty(this, "PermissionUtils", {
-						value,
-						configurable: true
-					});
-					return value;
-				}
-			};
-			function createStore(state) {
-				const listeners = new Set;
-				const api = {
-					getState() {
-						return state;
-					},
-					setState(partial) {
-						const partialState = "function" === typeof partial ? partial(state) : partial;
-						state = Object.assign({}, state, partialState);
-						listeners.forEach((listener => {
-							listener(state);
-						}));
-					},
-					get listeners() {
-						return listeners;
-					},
-					on(listener) {
-						if (listeners.has(listener)) return;
-						listeners.add(listener);
-						return () => listeners.delete(listener);
-					},
-					off(listener) {
-						return listeners.delete(listener);
-					}
-				};
-				return [function(collector = (_ => _)) {
-					const forceUpdate = useReducer((e => e + 1), 0)[1];
-					useEffect((() => {
-						const handler = () => forceUpdate();
-						listeners.add(handler);
-						return () => listeners.delete(handler);
-					}), []);
-					return collector(api.getState());
-				}, api];
-			}
-			var GuildAndFriendRemovalAlerts_React = __webpack_require__(698);
-			function GuildAndFriendRemovalAlerts_extends() {
-				GuildAndFriendRemovalAlerts_extends = Object.assign || function(target) {
-					for (var i = 1; i < arguments.length; i++) {
-						var source = arguments[i];
-						for (var key in source)
-							if (Object.prototype.hasOwnProperty.call(source, key)) target[key] = source[key];
-					}
-					return target;
-				};
-				return GuildAndFriendRemovalAlerts_extends.apply(this, arguments);
-			}
-			function GuildAndFriendRemovalAlerts_defineProperty(obj, key, value) {
-				if (key in obj) Object.defineProperty(obj, key, {
-					value,
-					enumerable: true,
-					configurable: true,
-					writable: true
-				});
-				else obj[key] = value;
-				return obj;
-			}
-			const {
-				getFriendIDs
-			} = external_PluginApi_namespaceObject.WebpackModules.getByProps("getFriendIDs");
-			const HomeButton = external_PluginApi_namespaceObject.WebpackModules.getByProps("DefaultHomeButton");
-			const events = [external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.GUILD_CREATE, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.GUILD_DELETE, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.GUILD_UPDATE, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.RELATIONSHIP_ADD, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.RELATIONSHIP_REMOVE, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.RELATIONSHIP_UPDATE, external_BdApi_findModuleByProps_API_HOST_namespaceObject.ActionTypes.FRIEND_REQUEST_ACCEPTED];
-			class GuildAndFriendRemovalAlerts extends(external_BasePlugin_default()) {
-				constructor(...args) {
-					super(...args);
-					GuildAndFriendRemovalAlerts_defineProperty(this, "history", {
-						guilds: Settings.get("removedGuildHistory", []),
-						friends: Settings.get("removedFriendHistory", []),
-						update: () => {
-							Settings.set("removedGuildHistory", this.history.guilds);
-							Settings.set("removedFriendHistory", this.history.friends);
-						},
-						clear: () => {
-							Object.assign(this.history, {
-								guilds: [],
-								friends: []
-							});
-							this.history.update();
-						}
-					});
-					GuildAndFriendRemovalAlerts_defineProperty(this, "snapshots", {
-						guilds: Settings.get("guildsSnapshot", []),
-						friends: Settings.get("friendsSnapshot", []),
-						update: ({
-							guilds,
-							friends
-						}) => {
-							Settings.set("guildsSnapshot", this.snapshots.guilds = guilds);
-							Settings.set("friendsSnapshot", this.snapshots.friends = friends);
-						}
-					});
-					GuildAndFriendRemovalAlerts_defineProperty(this, "getSettingsPanel", (() => GuildAndFriendRemovalAlerts_React.createElement(SettingsPanel, null)));
-					GuildAndFriendRemovalAlerts_defineProperty(this, "main", (() => {
-						console.log("main()");
-						const guilds = Object.keys(external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_default().Guilds.getGuilds()).map((guildId => this.serializeGuild(guildId)));
-						const friends = getFriendIDs().map((uid => this.serializeUser(uid)));
-						const removedGuilds = this.snapshots.guilds.filter((snapshot => !guilds.some((guild => snapshot.id === guild.id))));
-						const removedFriends = this.snapshots.friends.filter((snapshot => !friends.some((friend => snapshot.id === friend.id))));
-						if (removedGuilds.length || removedFriends.length) {
-							if (Settings.get("showModal", true)) this.openModal(removedGuilds, removedFriends);
-							removedGuilds.forEach((guild => this.history.guilds.unshift(guild)));
-							removedFriends.forEach((friend => this.history.friends.unshift(friend)));
-							if (Settings.get("showDeskNotifs", false)) {
-								removedGuilds.forEach((guild => new Notification(guild.name, {
-									silent: true,
-									body: "Server removed",
-									icon: guild.iconUrl
-								})));
-								removedFriends.forEach((friend => new Notification(friend.name, {
-									silent: true,
-									body: "Friend removed",
-									icon: friend.avatarUrl
-								})));
-							}
-						}
-						if (guilds.length !== this.snapshots.guilds.length || friends.length !== this.snapshots.friends.length) {
-							this.history.update();
-							this.snapshots.update({
-								guilds,
-								friends
-							});
-							console.log("update");
-						}
-					}));
-				}
-				onStart() {
-					external_PluginApi_namespaceObject.Patcher.after(HomeButton, "DefaultHomeButton", ((_, [props], component) => {
-						component.props.onContextMenu = e => {
-							(0, external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject.openContextMenu)(e, (() => GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_default().default, {
-								navId: GuildAndFriendRemovalAlerts_package.info.name,
-								onClose: external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject.closeContextMenu
-							}, GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject.MenuItem, {
-								label: "View GFR Logs",
-								action: () => this.openModal(this.history.guilds, this.history.friends, true),
-								id: GuildAndFriendRemovalAlerts_package.info.name + "-logs"
-							}), GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_openContextMenu_BdApi_findModuleByProps_MenuItem_namespaceObject.MenuItem, {
-								label: "View All Guilds and Friends",
-								action: () => this.openModal(),
-								id: GuildAndFriendRemovalAlerts_package.info.name + "-view-all"
-							}))));
-						};
-					}));
-					external_n_inject_name_config_info_name_n_if_style_element_style_element_remove_n_style_element_document_head_appendChild_Object_assign_document_createElement_style_id_name_textContent_plugin_styles_n_n_remove_n_if_style_element_n_style_element_remove_n_style_element_null_n_n_n_default().inject();
-					events.forEach((eventType => external_get_Dispatcher_n_const_value_BdApi_findModuleByProps_dirtyDispatch_subscribe_n_Object_defineProperty_this_Dispatcher_n_value_n_configurable_true_n_n_return_value_n_nget_EmojiUtils_n_const_value_BdApi_findModuleByProps_uploadEmoji_n_Object_defineProperty_this_EmojiUtils_n_value_n_configurable_true_n_n_return_value_n_nget_PermissionUtils_n_const_value_BdApi_findModuleByProps_computePermissions_n_Object_defineProperty_this_PermissionUtils_n_value_n_configurable_true_n_n_return_value_n_namespaceObject.Dispatcher.subscribe(eventType, this.main)));
-				}
-				serializeGuild(guildId) {
-					const serialized = {
-						id: guildId,
-						invalid: true,
-						name: "Unknown Guild",
-						iconUrl: "/assets/1531b79c2f2927945582023e1edaaa11.png"
-					};
-					try {
-						const guild = external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_default().Guilds.getGuild(guildId);
-						if (guild) Object.assign(serialized, {
-							invalid: false,
-							name: guild.name,
-							ownerId: guild.ownerId,
-							iconUrl: "function" === typeof guild.getIconURL ? guild.getIconURL("webp") : serialized.iconUrl
-						});
-					} finally {}
-					return serialized;
-				}
-				serializeUser(userId) {
-					const serialized = {
-						id: userId,
-						invalid: true,
-						tag: "Unknown User",
-						avatarURL: "/assets/1cbd08c76f8af6dddce02c5138971129.png"
-					};
-					try {
-						const user = external_get_Messages_n_const_value_BdApi_findModuleByProps_getMessage_getMessages_n_Object_defineProperty_this_Messages_n_value_n_configurable_true_n_n_return_value_n_nget_Channels_n_const_value_BdApi_findModuleByProps_getChannel_n_Object_defineProperty_this_Channels_n_value_n_configurable_true_n_n_return_value_n_nget_Guilds_n_const_value_BdApi_findModuleByProps_getGuild_n_Object_defineProperty_this_Guilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedGuilds_n_const_value_BdApi_findModuleByProps_getGuildId_getLastSelectedGuildId_n_Object_defineProperty_this_SelectedGuilds_n_value_n_configurable_true_n_n_return_value_n_nget_SelectedChannels_n_const_value_BdApi_findModuleByProps_getChannelId_getLastSelectedChannelId_n_Object_defineProperty_this_SelectedChannels_n_value_n_configurable_true_n_n_return_value_n_nget_Info_n_const_value_BdApi_findModuleByProps_getCurrentUser_n_Object_defineProperty_this_Info_n_value_n_configurable_true_n_n_return_value_n_nget_Status_n_const_value_BdApi_findModuleByProps_getStatus_n_Object_defineProperty_this_Status_n_value_n_configurable_true_n_n_return_value_n_nget_Users_n_const_value_BdApi_findModuleByProps_getUser_n_Object_defineProperty_this_Users_n_value_n_configurable_true_n_n_return_value_n_nget_Settings_n_const_value_BdApi_findModuleByProps_afkTimeout_status_n_Object_defineProperty_this_Settings_n_value_n_configurable_true_n_n_return_value_n_nget_UserProfile_n_const_value_BdApi_findModuleByProps_getUserProfile_n_Object_defineProperty_this_UserProfile_n_value_n_configurable_true_n_n_return_value_n_nget_Members_n_const_value_BdApi_findModuleByProps_getMember_n_Object_defineProperty_this_Members_n_value_n_configurable_true_n_n_return_value_n_nget_Activities_n_const_value_BdApi_findModuleByProps_getActivities_n_Object_defineProperty_this_Activities_n_value_n_configurable_true_n_n_return_value_n_nget_Games_n_const_value_BdApi_findModuleByProps_getGame_n_Object_defineProperty_this_Games_n_value_n_configurable_true_n_n_return_value_n_nget_Auth_n_const_value_BdApi_findModuleByProps_getId_isGuest_n_Object_defineProperty_this_Auth_n_value_n_configurable_true_n_n_return_value_n_nget_TypingUsers_n_const_value_BdApi_findModuleByProps_isTyping_n_Object_defineProperty_this_TypingUsers_n_value_n_configurable_true_n_n_return_value_n_default().Users.getUser(userId);
-						if (user) Object.assign(serialized, {
-							invalid: false,
-							tag: user.tag,
-							avatarUrl: "function" === typeof user.getAvatarURL ? user.getAvatarURL("webp") : serialized.avatarUrl
-						});
-					} finally {}
-					return serialized;
-				}
-				openModal(guilds, friends, showClearButton = false) {
-					if (!guilds && !friends) {
-						guilds = this.snapshots.guilds;
-						friends = this.snapshots.friends;
-					}
-					const clearLogs = () => BdApi.showConfirmationModal("Are you sure?", "Do you really want to clear the logs?\nThis action cannot be undone.", {
-						danger: true,
-						onConfirm: () => {
-							this.history.clear();
-							(0, external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.closeModal)(modalId);
-						},
-						confirmText: "Clear"
-					});
-					const modalId = (0, external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.openModal)((props => {
-						var _guilds, _friends, _guilds2, _friends2;
-						return GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.ModalRoot, GuildAndFriendRemovalAlerts_extends({}, props, {
-							size: "large",
-							className: styles.Z.modal
-						}), GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.ModalHeader, null, "Guild And Friend Removal Alerts ", GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.ModalCloseButton, {
-							className: styles.Z.floatRight,
-							onClick: props.onClose
-						})), GuildAndFriendRemovalAlerts_React.createElement(external_Object_assign_BdApi_findModuleByProps_ModalRoot_BdApi_findModuleByProps_openModal_namespaceObject.ModalContent, props, null !== (_guilds = guilds) && void 0 !== _guilds && _guilds.length || null !== (_friends = friends) && void 0 !== _friends && _friends.length ? GuildAndFriendRemovalAlerts_React.createElement(GuildAndFriendRemovalAlerts_React.Fragment, null, showClearButton ? GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.clearButton,
-							onClick: clearLogs
-						}, "Clear Logs") : null, null !== (_guilds2 = guilds) && void 0 !== _guilds2 && _guilds2.length ? GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.itemContainer
-						}, GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.title
-						}, "Guilds - ", GuildAndFriendRemovalAlerts_React.createElement("span", {
-							style: {
-								color: "var(--control-brand-foreground-new)"
-							}
-						}, guilds.length)), GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.items
-						}, guilds.map(((guild, i) => GuildAndFriendRemovalAlerts_React.createElement(Item, {
-							key: i,
-							title: guild.name,
-							description: "Owner ID - " + guild.ownerId,
-							icon: guild.iconUrl,
-							clickId: guild.ownerId,
-							closeModal: props.onClose
-						}))))) : null, null !== (_friends2 = friends) && void 0 !== _friends2 && _friends2.length ? GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.itemContainer
-						}, GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.title
-						}, "Friends - ", GuildAndFriendRemovalAlerts_React.createElement("span", {
-							style: {
-								color: "var(--control-brand-foreground-new)"
-							}
-						}, friends.length)), GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.items
-						}, friends.map(((friend, i) => GuildAndFriendRemovalAlerts_React.createElement(Item, {
-							key: i,
-							title: friend.tag,
-							icon: friend.avatarUrl,
-							clickId: friend.id,
-							closeModal: props.onClose
-						}))))) : null) : GuildAndFriendRemovalAlerts_React.createElement("div", {
-							className: styles.Z.nothingHere
-						}, "No logs to show.")));
-					}));
-				}
-				onStop() {
-					external_PluginApi_namespaceObject.Patcher.unpatchAll();
-					external_n_inject_name_config_info_name_n_if_style_element_style_element_remove_n_style_element_document_head_appendChild_Object_assign_document_createElement_style_id_name_textContent_plugin_styles_n_n_remove_n_if_style_element_n_style_element_remove_n_style_element_null_n_n_n_default().remove();
-					events.forEach((eventType => external_get_Dispatcher_n_const_value_BdApi_findModuleByProps_dirtyDispatch_subscribe_n_Object_defineProperty_this_Dispatcher_n_value_n_configurable_true_n_n_return_value_n_nget_EmojiUtils_n_const_value_BdApi_findModuleByProps_uploadEmoji_n_Object_defineProperty_this_EmojiUtils_n_value_n_configurable_true_n_n_return_value_n_nget_PermissionUtils_n_const_value_BdApi_findModuleByProps_computePermissions_n_Object_defineProperty_this_PermissionUtils_n_value_n_configurable_true_n_n_return_value_n_namespaceObject.Dispatcher.unsubscribe(eventType, this.main)));
-				}
-			}
-		})();
+		var __webpack_exports__ = __webpack_require__(234);
 		module.exports.LibraryPluginHack = __webpack_exports__;
 	})();
 	const PluginExports = module.exports.LibraryPluginHack;
-	const plugin = PluginExports?.__esModule ? PluginExports.default : PluginExports;
-	const showChangelog = plugin.prototype.showChangelog;
-	plugin.prototype.showChangelog = async function(footer) {
-		try {
-			footer = (await PluginApi.WebpackModules.getByProps("getUser", "acceptAgreements").getUser("264163473179672576")).tag + " | https://discord.gg/yNqzuJa";
-		} finally {
-			showChangelog.call(this, footer);
-		}
-	};
-	return plugin;
+	return PluginExports?.__esModule ? PluginExports.default : PluginExports;
 }
 module.exports = window.hasOwnProperty("ZeresPluginLibrary") ?
 	buildPlugin(window.ZeresPluginLibrary.buildPlugin(config)) :

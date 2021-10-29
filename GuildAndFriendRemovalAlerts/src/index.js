@@ -1,5 +1,5 @@
 import BasePlugin from "@zlibrary/plugin";
-import { Patcher, PluginUtilities, ReactComponents, WebpackModules } from "@zlibrary";
+import { Logger, Patcher, PluginUtilities, ReactComponents, WebpackModules } from "@zlibrary";
 import SettingsPanel from "./components/settings";
 import Settings from "./modules/settings";
 import Stores from "@discord/stores";
@@ -11,10 +11,9 @@ import ContextMenu, { closeContextMenu, MenuItem, openContextMenu } from "@disco
 import pkg from "./package.json";
 import { ActionTypes } from "@discord/constants";
 import { Dispatcher } from "@discord/modules";
-import createStore from "../../common/hooks/zustand";
 
 const { getFriendIDs } = WebpackModules.getByProps("getFriendIDs");
-const HomeButton = WebpackModules.getByProps("DefaultHomeButton");
+const HomeButton = WebpackModules.find(m => m?.default?.toString().indexOf("showDMsOnly") > -1);
 const events = [ ActionTypes.GUILD_CREATE, ActionTypes.GUILD_DELETE, ActionTypes.GUILD_UPDATE, ActionTypes.RELATIONSHIP_ADD,
 				 ActionTypes.RELATIONSHIP_REMOVE, ActionTypes.RELATIONSHIP_UPDATE, ActionTypes.FRIEND_REQUEST_ACCEPTED ];
 
@@ -48,16 +47,30 @@ export default class GuildAndFriendRemovalAlerts extends BasePlugin {
 	getSettingsPanel = () => <SettingsPanel/>;
 	
 	onStart() {
-		// TODO fix home button context menu
-		Patcher.after(HomeButton, "DefaultHomeButton", (_, [props], component) => {
-			component.props.onContextMenu = e => {
-				openContextMenu(e, () => (
-					<ContextMenu.default navId={pkg.info.name} onClose={closeContextMenu}>
-						<MenuItem label="View GFR Logs" action={() => this.openModal(this.history.guilds, this.history.friends, true)} id={pkg.info.name + "-logs"}/>
-						<MenuItem label="View All Guilds and Friends" action={() => this.openModal()} id={pkg.info.name + "-view-all"}/>
-					</ContextMenu.default>
-				));
-			};
+		const PatchedHomeButton = ({originalType, ...props}) => {
+			const returnValue = Reflect.apply(originalType, this, [props]);
+			
+			try {
+				returnValue.props.onContextMenu = e => {
+					openContextMenu(e, () => (
+						<ContextMenu.default navId={pkg.info.name} onClose={closeContextMenu}>
+							<MenuItem label="View GFR Logs" action={() => this.openModal(this.history.guilds, this.history.friends, true)} id={pkg.info.name + "-logs"}/>
+							<MenuItem label="View All Guilds and Friends" action={() => this.openModal()} id={pkg.info.name + "-view-all"}/>
+						</ContextMenu.default>
+					));
+				};
+			} catch (error) {
+				Logger.error("Error in DefaultHomeButton patch:", error);
+			}
+
+			return returnValue;
+		}
+
+		Patcher.after(HomeButton, "default", (_, __, component) => {
+			const originalType = component.type;
+
+			component.type = PatchedHomeButton;
+			Object.assign(component.props, {originalType: originalType});
 		});
 		
 		stylesheet.inject();

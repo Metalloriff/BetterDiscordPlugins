@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import createUpdateWrapper from "../../../common/hooks/createUpdateWrapper";
+import createUpdateWrapper from "common/hooks/createUpdateWrapper";
 import { WebpackModules } from "@zlibrary";
 import Settings from "../modules/settings";
 

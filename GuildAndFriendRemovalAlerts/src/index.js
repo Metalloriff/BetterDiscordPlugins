@@ -11,7 +11,6 @@ import ContextMenu, { closeContextMenu, MenuItem, openContextMenu } from "@disco
 import pkg from "./package.json";
 import { ActionTypes } from "@discord/constants";
 import { Dispatcher } from "@discord/modules";
-import createStore from "../../common/hooks/zustand";
 
 const { getFriendIDs } = WebpackModules.getByProps("getFriendIDs");
 const HomeButton = WebpackModules.getByProps("DefaultHomeButton");

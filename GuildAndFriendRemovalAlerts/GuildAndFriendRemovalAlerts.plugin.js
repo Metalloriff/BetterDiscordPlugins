@@ -1,6 +1,6 @@
 /**
  * @name GuildAndFriendRemovalAlerts
- * @version 3.1.0
+ * @version 3.2.0
  * @description Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.
  * @author Metalloriff
  * @source https://github.com/Metalloriff/BetterDiscordPlugins/GuildAndFriendRemovalAlerts
@@ -35,7 +35,7 @@
 const config = {
 	"info": {
 		"name": "GuildAndFriendRemovalAlerts",
-		"version": "3.1.0",
+		"version": "3.2.0",
 		"description": "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
 		"authors": [{
 			"name": "Metalloriff",
@@ -455,7 +455,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 				const {
 					getFriendIDs
 				} = external_PluginApi_namespaceObject.WebpackModules.getByProps("getFriendIDs");
-				const HomeButton = external_PluginApi_namespaceObject.WebpackModules.find((m => m?.default?.toString().indexOf("showDMsOnly") > -1));
+				const HomeButton = external_PluginApi_namespaceObject.WebpackModules.getByProps("HomeButton");
 				const events = [constants_namespaceObject.ActionTypes.GUILD_CREATE, constants_namespaceObject.ActionTypes.GUILD_DELETE, constants_namespaceObject.ActionTypes.GUILD_UPDATE, constants_namespaceObject.ActionTypes.RELATIONSHIP_ADD, constants_namespaceObject.ActionTypes.RELATIONSHIP_REMOVE, constants_namespaceObject.ActionTypes.RELATIONSHIP_UPDATE, constants_namespaceObject.ActionTypes.FRIEND_REQUEST_ACCEPTED];
 				class GuildAndFriendRemovalAlerts extends(external_BasePlugin_default()) {
 					constructor(...args) {
@@ -546,7 +546,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 							}
 							return returnValue;
 						};
-						external_PluginApi_namespaceObject.Patcher.after(HomeButton, "default", ((_, __, component) => {
+						external_PluginApi_namespaceObject.Patcher.after(HomeButton, "HomeButton", ((_, __, component) => {
 							const originalType = component.type;
 							component.type = PatchedHomeButton;
 							Object.assign(component.props, {

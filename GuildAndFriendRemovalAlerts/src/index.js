@@ -13,7 +13,7 @@ import { ActionTypes } from "@discord/constants";
 import { Dispatcher } from "@discord/modules";
 
 const { getFriendIDs } = WebpackModules.getByProps("getFriendIDs");
-const HomeButton = WebpackModules.find(m => m?.default?.toString().indexOf("showDMsOnly") > -1);
+const HomeButton = WebpackModules.getByProps("HomeButton");
 const events = [ ActionTypes.GUILD_CREATE, ActionTypes.GUILD_DELETE, ActionTypes.GUILD_UPDATE, ActionTypes.RELATIONSHIP_ADD,
 				 ActionTypes.RELATIONSHIP_REMOVE, ActionTypes.RELATIONSHIP_UPDATE, ActionTypes.FRIEND_REQUEST_ACCEPTED ];
 
@@ -66,7 +66,7 @@ export default class GuildAndFriendRemovalAlerts extends BasePlugin {
 			return returnValue;
 		}
 
-		Patcher.after(HomeButton, "default", (_, __, component) => {
+		Patcher.after(HomeButton, "HomeButton", (_, __, component) => {
 			const originalType = component.type;
 
 			component.type = PatchedHomeButton;

@@ -9,4 +9,4 @@
 # You can view information on my plugins [here](https://metalloriff.github.io/toms-discord-stuff/).
 - https://metalloriff.github.io/toms-discord-stuff/
 # You can also view my other projects [here](https://metalloriff.github.io/#projects).
-- https://metalloriff.github.io/#projects
+- https://kinzoku.one/

@@ -22,7 +22,7 @@ module.exports = (() => {
 						twitter_username: "Metalloriff"
 					}
 				],
-			version: "2.0.1",
+			version: "2.0.2",
 			description: "Allows you to view server icons, user avatars, and emotes in fullscreen via the context menu, or copy the link to them.",
 			github: "https://github.com/Metalloriff/BetterDiscordPlugins/blob/master/AvatarIconViewer.plugin.js",
 			github_raw: "https://raw.githubusercontent.com/Metalloriff/BetterDiscordPlugins/master/AvatarIconViewer.plugin.js"
@@ -55,7 +55,10 @@ module.exports = (() => {
 
 		const plugin = (Plugin, Api) => {
 			const { DiscordModules, WebpackModules, Patcher } = Api;
-			const { React, ModalStack } = DiscordModules
+			const { React } = DiscordModules
+			const ModalStack = WebpackModules.getByProps("openModal", "hasModalOpen");
+			const { ModalRoot } = WebpackModules.getByProps("ModalRoot");
+			const { ModalSize } = WebpackModules.getByProps("ModalSize");
 
 			const ImageModal = WebpackModules.getByDisplayName("ImageModal");
 			const ContextMenu = WebpackModules.getByProps("MenuItem");
@@ -83,49 +86,62 @@ module.exports = (() => {
 					// Therefore, this shitty workaround was made, which requires the user to
 					// open the context menu once before the plugin will work.
 
-					let modules;
-					await new Promise(async resolve => {
-						// This is really, really bad. I'm sorry.
-						// Don't do this. Don't look at this.
-						// I'll fix it later™️
+					// UPDATE: It's less spaghetti, but still spaghetti. I'm sorry.
 
-						while (true) {
-							modules = WebpackModules.findAll(m => m.default && m.default.displayName && (m.default.displayName.endsWith("UserContextMenu") || m.default.displayName == "GroupDMContextMenu"));
+					this.patched = [];
+					document.getElementById("app-mount").addEventListener("contextmenu", this.contextMenuListener = e => {
+						const modules = WebpackModules.findAll(
+							m => m.default && m.default.displayName && (
+								m.default.displayName.endsWith("UserContextMenu") || ~[
+									"GroupDMContextMenu",
+									"GuildContextMenu",
+									"MessageContextMenu"
+								].indexOf(m.default.displayName)
+							)
+						);
 
-							await new Promise(r => setTimeout(r, 1000));
+						for (const m of modules) {
+							if (~this.patched.indexOf(m.default.displayName)) {
+								continue;
+							}
 
-							if (modules) resolve();
-						}
-					});
+							switch (m.default.displayName) {
+								default: {
+									Patcher.after(m, "default", (_, [props], re) => {
+										const type = props.user ? "Avatar" : props.channel && props.channel.type == 3 ? "Icon" : null;
+										const url = formatURL(type == "Avatar" ? props.user.getAvatarURL() : type == "Icon" ? getChannelIconURL(props.channel) : null);
 
-					const GuildContextMenu = WebpackModules.find(m => m.default && m.default.displayName == "GuildContextMenu");
-					const MessageContextMenu = WebpackModules.find(m => m.default && m.default.displayName == "MessageContextMenu");
+										if (type && url)
+											re.props.children.props.children.push(this.createContext(url, type));
+									});
+								} break;
 
-					for (const m of modules) {
-						Patcher.after(m, "default", (_, [props], re) => {
-							const type = props.user ? "Avatar" : props.channel && props.channel.type == 3 ? "Icon" : null;
-							const url = formatURL(type == "Avatar" ? props.user.getAvatarURL() : type == "Icon" ? getChannelIconURL(props.channel) : null);
+								case "GuildContextMenu": {
+									Patcher.after(m, "default", (_, [props], re) => {
+										const url = formatURL(props.guild.getIconURL());
 
-							if (type && url)
-								re.props.children.props.children.push(this.createContext(url, type));
-						});
-					}
+										if (url)
+											re.props.children.push(this.createContext(url, "Icon"));
+									});
+								} break;
 
-					Patcher.after(GuildContextMenu, "default", (_, [props], re) => {
-						const url = formatURL(props.guild.getIconURL());
+								case "MessageContextMenu": {
+									Patcher.after(m, "default", (_, [props], re) => {
+										if (props.target && props.target.src) {
+											re.props.children.push(this.createContext(props.target.src, "Emoji"));
+										}
+									});
+								} break;
+							}
 
-						if (url)
-							re.props.children.push(this.createContext(url, "Icon"));
-					});
-
-					Patcher.after(MessageContextMenu, "default", (_, [props], re) => {
-						if (props.target && props.target.src) {
-							re.props.children.push(this.createContext(props.target.src, "Emoji"));
+							this.patched.push(m.default.displayName);
 						}
 					});
 				}
 
 				createContext(url, type) {
+					const ClassModule = WebpackModules.getByProps("modal", "image");
+
 					return React.createElement(ContextMenu.MenuGroup,
 						{
 							children:
@@ -136,20 +152,30 @@ module.exports = (() => {
 											label: "View " + type,
 											id: "aiv-view",
 											action: () =>
-												window.open(url)
-											// TODO fix this at some point
-											// ModalStack.push(
-											// 	ImageModal,
-											// 	{
-											// 		src: url,
-											// 		placeholder: url,
-											// 		original: url,
-											// 		width: 2048,
-											// 		height: 2048,
-											// 		onClickUntrusted: e => e.openHref(),
-											// 		renderLinkComponent: props => React.createElement(MaskedLink, props)
-											// 	}
-											// )
+												ModalStack.openModal(
+													props => (
+														React.createElement(
+															ModalRoot,
+															{
+																className: ClassModule.modal,
+																...props,
+																size: ModalSize.DYNAMIC
+															},
+															React.createElement(
+																ImageModal,
+																{
+																	src: url,
+																	placeholder: url,
+																	original: url,
+																	width: 2048,
+																	height: 2048,
+																	onClickUntrusted: e => e.openHref(),
+																	renderLinkComponent: props => React.createElement(MaskedLink, props)
+																}
+															)
+														)
+													)
+												)
 										}
 									),
 									React.createElement(
@@ -166,6 +192,7 @@ module.exports = (() => {
 
 				onStop() {
 					Patcher.unpatchAll();
+					document.getElementById("app-mount").removeEventListener("contextmenu", this.contextMenuListener);
 				}
 			}
 		};

@@ -555,6 +555,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 						}));
 						external_StyleLoader_default().inject();
 						events.forEach((eventType => modules_namespaceObject.Dispatcher.subscribe(eventType, this.main)));
+						this.main();
 					}
 					serializeGuild(guildId) {
 						const serialized = {

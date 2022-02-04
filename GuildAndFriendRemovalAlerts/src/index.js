@@ -76,6 +76,7 @@ export default class GuildAndFriendRemovalAlerts extends BasePlugin {
 		stylesheet.inject();
 		
 		events.forEach(eventType => Dispatcher.subscribe(eventType, this.main));
+		this.main();
 	}
 	
 	serializeGuild(guildId) {

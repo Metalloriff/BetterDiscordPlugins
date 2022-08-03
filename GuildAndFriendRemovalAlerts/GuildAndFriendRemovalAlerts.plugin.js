@@ -1,6 +1,6 @@
 /**
  * @name GuildAndFriendRemovalAlerts
- * @version 3.2.0
+ * @version 3.2.1
  * @description Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.
  * @author Metalloriff
  * @source https://github.com/Metalloriff/BetterDiscordPlugins/GuildAndFriendRemovalAlerts
@@ -35,7 +35,7 @@
 const config = {
 	"info": {
 		"name": "GuildAndFriendRemovalAlerts",
-		"version": "3.2.0",
+		"version": "3.2.1",
 		"description": "Displays alerts when you are kicked/banned from a server, a server is deleted, and when a friend removes you.",
 		"authors": [{
 			"name": "Metalloriff",

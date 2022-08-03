@@ -161,7 +161,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 			},
 			'@discord/modules': {
 				get 'Dispatcher'() {
-					return ___createMemoize___(this, 'Dispatcher', () => BdApi.findModuleByProps('dirtyDispatch', 'subscribe'))
+					return ___createMemoize___(this, 'Dispatcher', () => BdApi.findModuleByProps('dispatch', 'subscribe'))
 				},
 				get 'ComponentDispatcher'() {
 					return ___createMemoize___(this, 'ComponentDispatcher', () => BdApi.findModuleByProps('ComponentDispatch')?.ComponentDispatch)

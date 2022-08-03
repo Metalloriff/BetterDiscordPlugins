@@ -161,7 +161,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 			},
 			'@discord/modules': {
 				get 'Dispatcher'() {
-					return ___createMemoize___(this, 'Dispatcher', () => BdApi.findModuleByProps('dirtyDispatch', 'subscribe'))
+					return ___createMemoize___(this, 'Dispatcher', () => BdApi.findModuleByProps('dispatch', 'subscribe'))
 				},
 				get 'ComponentDispatcher'() {
 					return ___createMemoize___(this, 'ComponentDispatcher', () => BdApi.findModuleByProps('ComponentDispatch')?.ComponentDispatch)
@@ -456,7 +456,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 					getFriendIDs
 				} = external_PluginApi_namespaceObject.WebpackModules.getByProps("getFriendIDs");
 				const HomeButton = external_PluginApi_namespaceObject.WebpackModules.getByProps("HomeButton");
-				const events = [constants_namespaceObject.ActionTypes.GUILD_CREATE, constants_namespaceObject.ActionTypes.GUILD_DELETE, constants_namespaceObject.ActionTypes.GUILD_UPDATE, constants_namespaceObject.ActionTypes.RELATIONSHIP_ADD, constants_namespaceObject.ActionTypes.RELATIONSHIP_REMOVE, constants_namespaceObject.ActionTypes.RELATIONSHIP_UPDATE, constants_namespaceObject.ActionTypes.FRIEND_REQUEST_ACCEPTED];
+				const events = ["GUILD_CREATE", "GUILD_DELETE", "GUILD_UPDATE", "RELATIONSHIP_ADD", "RELATIONSHIP_REMOVE", "RELATIONSHIP_UPDATE", "FRIEND_REQUEST_ACCEPTED"];
 				class GuildAndFriendRemovalAlerts extends(external_BasePlugin_default()) {
 					constructor(...args) {
 						super(...args);

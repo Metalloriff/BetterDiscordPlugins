@@ -503,7 +503,7 @@ function buildPlugin([BasePlugin, PluginApi]) {
 										body: "Server removed",
 										icon: guild.iconUrl
 									})));
-									removedFriends.forEach((friend => new Notification(friend.name, {
+									removedFriends.forEach((friend => new Notification(friend.tag, {
 										silent: true,
 										body: "Friend removed",
 										icon: friend.avatarUrl
